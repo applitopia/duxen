@@ -1,0 +1,56 @@
+{
+  "name": "duxen",
+  "version": "0.0.1",
+  "description": "High performance engine maintaining a complex immutable state for online applications",
+  "main": "dist/index.js",
+  "scripts": {
+    "all": "npm run flow status && npm run lint && npm run build && npm run test && npm run clean",
+    "build": "npm run build:clean && npm run build:babel && npm run build:browserify && npm run build:uglify && npm run build:flow",
+    "build:clean": "rimraf dist && rimraf out && rimraf coverage",
+    "build:babel": "babel src/ -d dist/",
+    "build:browserify": "mkdirp dist && browserify dist/index.js -o dist/duxen.js",
+    "build:uglify": "uglifyjs dist/duxen.js -o dist/duxen.min.js -c -m",
+    "build:flow": "cp -p flow-typed/duxen.js dist/duxen.js.flow",
+    "flow": "flow",
+    "lint": "eslint src __tests__",
+    "test": "jest --verbose --coverage",
+    "clean": "rimraf out && rimraf coverage",
+    "debug": "node --inspect --debug-brk ./node_modules/.bin/jest -i"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/applitopia/duxen.git"
+  },
+  "keywords": [
+    "duxen",
+    "immutable-js",
+    "immutable",
+    "redux",
+    "engine",
+    "meteor",
+    "react"
+  ],
+  "author": "Applitopia, Inc.",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/applitopia/duxen/issues"
+  },
+  "homepage": "https://github.com/applitopia/duxen#readme",
+  "dependencies": {
+    "immutable-sorted": "^0.1.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-eslint": "^7.2.3",
+    "babel-jest": "^20.0.3",
+    "babel-preset-env": "^1.5.2",
+    "babel-preset-flow": "^6.23.0",
+    "browserify": "^14.4.0",
+    "eslint": "^4.0.0",
+    "eslint-plugin-flowtype": "^2.34.0",
+    "flow-bin": "^0.48.0",
+    "jest": "^20.0.4",
+    "regenerator-runtime": "^0.10.5",
+    "rimraf": "^2.6.1"
+  }
+}
