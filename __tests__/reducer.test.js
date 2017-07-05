@@ -212,7 +212,8 @@ test("Reducer pause, resume", function() {
     _props: {},
     _state: {todos: {paused: false}},
     todos: {},
-    todosView: {}};
+    todosView: {}
+  };
   expect(state0.toJS()).toEqual(expected0);
 
   const action1 = engine.pause("todos");

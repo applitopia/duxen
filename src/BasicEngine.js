@@ -13,7 +13,7 @@ import CommonEngine from './CommonEngine';
 
 const cast = <T>(value: any): T => (value: T);
 
-export default class SimpleEngine extends CommonEngine implements EngineInterface {
+export default class BasicEngine extends CommonEngine implements EngineInterface {
 
   constructor(schema: Schema) {
     super(schema);
@@ -38,33 +38,36 @@ export default class SimpleEngine extends CommonEngine implements EngineInterfac
       }
     };
 
-    const updateViews = (mutableState: State, state: State, collName: string, collData: CollData): void => {
+    const updateViews = (mutableState: State, state: State, collName: string, collData: CollData, cn: CompiledName): void => {
       const paused = mutableState.getIn(["_state", collName, "paused"]);
 
       if(paused === true) {
         return;
       }
 
-      const va = cs.collViews[collName];
+      const va:Array<CompiledCollView> = cs.collViews[collName];
+
+      const schemaState:State = mutableState.getIn(cn.schemaPath);
 
       for(let i:number=0, length=va.length; i < length; i++) {
-        const v = va[i];
+        const v:CompiledCollView = va[i];
+        const vcn:CompiledName = getCompiledName(v.viewName);
 
         // Prepare props
-        const props = {};
+        const props:Props = {};
         for(let p:string in v.props) {
           const propFn = v.props[p];
-          props[p] = propFn(mutableState);
+          props[p] = propFn(schemaState);
         }
         const oldProps = mutableState.getIn(['_props', v.viewName]);
         const newProps = fromJS(props);
-        const oldData = state.get(collName);
+        const oldData = state.getIn(cn.path);
         const oldPaused = state.getIn(["_state", collName, "paused"]);
         if(collData !== oldData || !is(oldProps, newProps) || oldPaused !== paused) {
           const newdata = v.recipe(cast(collData.toSeq()), props);
 
           mutableState.setIn(['_props', v.viewName], newProps);
-          mutableState.set(v.viewName, newdata);
+          mutableState.setIn(vcn.path, newdata);
         }
       }
     };
@@ -79,11 +82,21 @@ export default class SimpleEngine extends CommonEngine implements EngineInterfac
       }
     };
 
+    const getCompiledName = (name: string): CompiledName => {
+      const cn:CompiledName = cs.names[name];
+
+      if(!cn) {
+        throw new Error("Name does not exist in schema: "+name);
+      }
+
+      return cn;
+    }
+
     const reduce = (mutableState: State, state: State, action: Action) => {
       switch (action.type) {
         case 'DUXEN_BATCH': {
           const collAction:BatchAction = cast(action);
-          const actions: List<CollAction> = collAction.actions;
+          const actions:List<CollAction> = collAction.actions;
           for(let i = 0, len = actions.size; i < len; i++) {
             reduce(mutableState, state, cast(actions.get(i)));
           }
@@ -92,20 +105,22 @@ export default class SimpleEngine extends CommonEngine implements EngineInterfac
 
         case 'DUXEN_INSERT': {
           const collAction:InsertAction = cast(action);
-          const collData:CollData = cast(mutableState.get(collAction.collName));
+          const cn:CompiledName = getCompiledName(collAction.collName);
+          const collData:CollData = cast(mutableState.getIn(cn.path));
 
           const newcollData:CollData = collData.set(collAction.id, collAction.doc);
 
-          mutableState.set(collAction.collName, newcollData);
+          mutableState.setIn(cn.path, newcollData);
 
           updateOriginals(mutableState, collAction.collName, collAction.id);
-          updateViews(mutableState, state, collAction.collName, newcollData);
+          updateViews(mutableState, state, collAction.collName, newcollData, cn);
           break;
         }
 
         case 'DUXEN_UPDATE': {
           const collAction:UpdateAction = cast(action);
-          const collData:CollData = cast(mutableState.get(collAction.collName));
+          const cn:CompiledName = getCompiledName(collAction.collName);
+          const collData:CollData = cast(mutableState.getIn(cn.path));
           const id:StateKey = collAction.id;
 
           const doc:CollDocument | void = collData.get(id);
@@ -121,10 +136,10 @@ export default class SimpleEngine extends CommonEngine implements EngineInterfac
           if(setDoc || unsetDoc) {
             newDoc = doc.withMutations((mutableDoc: CollDocument): void => {
               if(setDoc) {
-                setDoc.forEach((v, k) => mutableDoc.set(k, v));
+                setDoc.forEach((v, k) => mutableDoc.setIn(k.split('.'), v));
               }
               if(unsetDoc) {
-                unsetDoc.forEach((v, k) => mutableDoc.delete(k));
+                unsetDoc.forEach((v, k) => mutableDoc.deleteIn(k.split('.')));
               }
             });
           } else {
@@ -132,39 +147,40 @@ export default class SimpleEngine extends CommonEngine implements EngineInterfac
           }
 
           const newcollData:CollData = collData.set(collAction.id, newDoc);
-          mutableState.set(collAction.collName, newcollData);
+          mutableState.setIn(cn.path, newcollData);
 
           updateOriginals(mutableState, collAction.collName, id, doc);
-          updateViews(mutableState, state, collAction.collName, newcollData);
+          updateViews(mutableState, state, collAction.collName, newcollData, cn);
           break;
         }
 
         case 'DUXEN_REMOVE': {
           const collAction:RemoveAction = cast(action);
-          const collData:CollData = cast(mutableState.get(collAction.collName));
+          const cn:CompiledName = getCompiledName(collAction.collName);
+          const collData:CollData = cast(mutableState.getIn(cn.path));
           const id:StateKey = collAction.id;
 
           const doc:CollDocument | void = collData.get(id);
-          if(!doc) {
-            throw new Error("Updating document that does not exist: "+JSON.stringify(id));
+          if(doc) {
+            // Removing a document that exists
+            const newcollData:CollData = collData.remove(id);
+
+            mutableState.setIn(cn.path, newcollData);
+
+            updateOriginals(mutableState, collAction.collName, id, doc);
+            updateViews(mutableState, state, collAction.collName, newcollData, cn);
           }
-
-          const newcollData:CollData = collData.remove(collAction.id);
-
-          mutableState.set(collAction.collName, newcollData);
-
-          updateOriginals(mutableState, collAction.collName, id, doc);
-          updateViews(mutableState, state, collAction.collName, newcollData);
           break;
         }
 
         case 'DUXEN_RESET': {
           const collAction:ResetAction = cast(action);
+          const cn:CompiledName = getCompiledName(collAction.collName);
           const newcollData:CollData = Map();
 
-          mutableState.set(collAction.collName, newcollData);
+          mutableState.setIn(cn.path, newcollData);
           mutableState.deleteIn(["_state", collAction.collName, "originals"]);
-          updateViews(mutableState, state, collAction.collName, newcollData);
+          updateViews(mutableState, state, collAction.collName, newcollData, cn);
           break;
         }
 
@@ -176,28 +192,31 @@ export default class SimpleEngine extends CommonEngine implements EngineInterfac
 
         case 'DUXEN_RESUME': {
           const collAction:PauseAction = cast(action);
+          const cn:CompiledName = getCompiledName(collAction.collName);
           mutableState.setIn(["_state", collAction.collName, "paused"], false);
-          const collData:CollData = cast(mutableState.get(collAction.collName));
-          updateViews(mutableState, state, collAction.collName, collData);
+          const collData:CollData = cast(mutableState.getIn(cn.path));
+          updateViews(mutableState, state, collAction.collName, collData, cn);
           break;
         }
 
         case 'DUXEN_SAVE': {
           const collAction:PauseAction = cast(action);
-          const collData:CollData = cast(mutableState.get(collAction.collName));
+          const cn:CompiledName = getCompiledName(collAction.collName);
+          const collData:CollData = cast(mutableState.getIn(cn.path));
           mutableState.setIn(["_state", collAction.collName, "saved"], collData);
           break;
         }
 
         case 'DUXEN_RESTORE': {
           const collAction:PauseAction = cast(action);
+          const cn:CompiledName = getCompiledName(collAction.collName);
           const collData:CollData = cast(mutableState.getIn(["_state", collAction.collName, "saved"]));
           if(!collData) {
             throw new Error("Restore: nothing was saved")
           }
           mutableState.deleteIn(["_state", collAction.collName, "saved"]);
-          mutableState.set(collAction.collName, collData);
-          updateViews(mutableState, state, collAction.collName, collData);
+          mutableState.setIn(cn.path, collData);
+          updateViews(mutableState, state, collAction.collName, collData, cn);
           break;
         }
 
@@ -229,23 +248,19 @@ export default class SimpleEngine extends CommonEngine implements EngineInterfac
           const compiledAction:CompiledAction = cs.actions[action.type];
           if(compiledAction) {
             const name:string = compiledAction.name;
-            const compiledName:CompiledName = cs.names[name];
-
-            if(!compiledName) {
-              throw new Error("Unknown name in action: "+JSON.stringify(action));
-            }
+            const cn:CompiledName = getCompiledName(name);
 
             switch(compiledAction.type) {
               case 'value': {
                 const valueAction:ValueAction = cast(action);
-                const oldValue:StateValue | void = state.getIn(compiledName.path);
+                const oldValue:StateValue | void = state.getIn(cn.path);
                 if(oldValue === undefined) {
                   throw Error("Lost value in state:"+name);
                 }
                 const reducer:ValueReducer = compiledAction.reducer;
                 const newValue:StateValue = reducer(oldValue, valueAction);
                 if(oldValue !== newValue) {
-                  mutableState.setIn(compiledName.path, newValue);
+                  mutableState.setIn(cn.path, newValue);
                   changed = true;
                 }
                 break;
@@ -253,14 +268,14 @@ export default class SimpleEngine extends CommonEngine implements EngineInterfac
               case 'custom': {
                 const customAction:CustomAction = cast(action);
                 const reducer:CustomReducer = compiledAction.reducer;
-                if(compiledName.path.length > 0) {
-                  const subState:State = mutableState.getIn(compiledName.path);
+                if(cn.path.length > 0) {
+                  const subState:State = mutableState.getIn(cn.path);
                   if(!subState) {
-                    throw new Error("Missing path in state:"+JSON.stringify(compiledName.path));
+                    throw new Error("Missing path in state:"+JSON.stringify(cn.path));
                   }
                   const mutableSubState:State = subState.asMutable();
                   reducer(mutableSubState, customAction);
-                  mutableState.setIn(compiledName.path, mutableSubState);
+                  mutableState.setIn(cn.path, mutableSubState);
                 } else {
                   reducer(mutableState, customAction);
                 }
@@ -274,8 +289,9 @@ export default class SimpleEngine extends CommonEngine implements EngineInterfac
 
           if(changed)
           for(let name:string in cs.collViews) {
-            const collData: CollData = cast(state.get(name));
-            updateViews(mutableState, state, name, collData);
+            const cn:CompiledName = getCompiledName(name);
+            const collData: CollData = cast(state.getIn(cn.path));
+            updateViews(mutableState, state, name, collData, cn);
           }
           break;
         }

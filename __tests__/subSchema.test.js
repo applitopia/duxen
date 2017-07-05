@@ -37,8 +37,6 @@ test("Initial state - subschema value", function() {
     "_props": {},
     "_state": {},
     "calendarSchema": {
-      "_props": {},
-      "_state": {},
       "currentMonth": "2017-06"
     },
     "todosFilter": "Get milk"
@@ -81,8 +79,6 @@ test("Reducer - subschema value", function() {
     "_props": {},
     "_state": {},
     "calendarSchema": {
-      "_props": {},
-      "_state": {},
       "currentMonth": "2017-06"
     },
     "todosFilter": "Get milk"
@@ -95,8 +91,6 @@ test("Reducer - subschema value", function() {
     "_props": {},
     "_state": {},
     "calendarSchema": {
-      "_props": {},
-      "_state": {},
       "currentMonth": "2017-06"
     },
     "todosFilter": "Get sugar",
@@ -109,8 +103,6 @@ test("Reducer - subschema value", function() {
     "_props": {},
     "_state": {},
     "calendarSchema": {
-      "_props": {},
-      "_state": {},
       "currentMonth": "2017-07"
     },
     "todosFilter": "Get sugar",
@@ -149,8 +141,6 @@ test("Reducer - subschema custom", function() {
     "_props": {},
     "_state": {},
     "calendarSchema": {
-      "_props": {},
-      "_state": {},
     },
   };
   expect(state0.toJS()).toEqual(expected0);
@@ -161,8 +151,6 @@ test("Reducer - subschema custom", function() {
     "_props": {},
     "_state": {},
     "calendarSchema": {
-      "_props": {},
-      "_state": {},
     },
     "pager": {"pageNo": 1},
   };
@@ -174,8 +162,6 @@ test("Reducer - subschema custom", function() {
     "_props": {},
     "_state": {},
     "calendarSchema": {
-      "_props": {},
-      "_state": {},
       "pager": {"pageNo": 1},
     },
   };

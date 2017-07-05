@@ -78,6 +78,9 @@ var CommonEngine = function () {
     value: function _verifyCustomName(customName) {
       this._verifyName(customName, 'custom');
     }
+
+    // Dispatch an action to listeners
+
   }, {
     key: '_action',
     value: function _action(action) {
@@ -85,6 +88,20 @@ var CommonEngine = function () {
         var listener = this.listeners[i];
         listener(action);
       }
+    }
+
+    // Extract a value from state
+
+  }, {
+    key: 'get',
+    value: function get(state, name) {
+      var compiledName = this.compiledSchema.names[name];
+
+      if (!compiledName) {
+        throw new Error("Name not found in schema: " + name);
+      }
+
+      return state.getIn(compiledName.path);
     }
 
     //
@@ -122,18 +139,9 @@ var CommonEngine = function () {
   }, {
     key: 'cleanState',
     value: function cleanState(state) {
-      var _this2 = this;
-
-      var prefix = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "";
-
       return state.withMutations(function (mutableState) {
         mutableState.delete("_props");
         mutableState.delete("_state");
-        mutableState.forEach(function (v, k) {
-          if (_this2._getNameType(prefix + k) === 'schema') {
-            mutableState.set(k, _this2.cleanState(cast(v), k + "."));
-          }
-        });
       });
     }
 
@@ -294,7 +302,7 @@ var CommonEngine = function () {
       _value = ensure(_value);
 
       var action = {
-        type: cn.prefix + actionType,
+        type: cn.namePrefix + actionType,
         value: _value
       };
       this._action(action);
@@ -319,10 +327,10 @@ var CommonEngine = function () {
 
       var action = customEntry.action();
 
-      if (action.type !== actionType) {
+      if (action.type !== undefined && action.type !== actionType) {
         throw new Error("Inconsistent custom action type: " + JSON.stringify(action.type) + " vs " + actionType);
       }
-      action.type = cn.prefix + actionType;
+      action.type = cn.namePrefix + actionType;
       this._action(action);
       return action;
     }

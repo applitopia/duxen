@@ -32,13 +32,13 @@ var cast = function cast(value) {
   return value;
 };
 
-var SimpleEngine = function (_CommonEngine) {
-  _inherits(SimpleEngine, _CommonEngine);
+var BasicEngine = function (_CommonEngine) {
+  _inherits(BasicEngine, _CommonEngine);
 
-  function SimpleEngine(schema) {
-    _classCallCheck(this, SimpleEngine);
+  function BasicEngine(schema) {
+    _classCallCheck(this, BasicEngine);
 
-    return _possibleConstructorReturn(this, (SimpleEngine.__proto__ || Object.getPrototypeOf(SimpleEngine)).call(this, schema));
+    return _possibleConstructorReturn(this, (BasicEngine.__proto__ || Object.getPrototypeOf(BasicEngine)).call(this, schema));
   }
 
   //
@@ -46,7 +46,7 @@ var SimpleEngine = function (_CommonEngine) {
   //
 
 
-  _createClass(SimpleEngine, [{
+  _createClass(BasicEngine, [{
     key: 'reducer',
     value: function reducer() {
       var _this2 = this;
@@ -67,7 +67,7 @@ var SimpleEngine = function (_CommonEngine) {
         }
       };
 
-      var updateViews = function updateViews(mutableState, state, collName, collData) {
+      var updateViews = function updateViews(mutableState, state, collName, collData, cn) {
         var paused = mutableState.getIn(["_state", collName, "paused"]);
 
         if (paused === true) {
@@ -76,24 +76,27 @@ var SimpleEngine = function (_CommonEngine) {
 
         var va = cs.collViews[collName];
 
+        var schemaState = mutableState.getIn(cn.schemaPath);
+
         for (var i = 0, length = va.length; i < length; i++) {
           var v = va[i];
+          var vcn = getCompiledName(v.viewName);
 
           // Prepare props
           var props = {};
           for (var p in v.props) {
             var propFn = v.props[p];
-            props[p] = propFn(mutableState);
+            props[p] = propFn(schemaState);
           }
           var oldProps = mutableState.getIn(['_props', v.viewName]);
           var newProps = (0, _immutableSorted.fromJS)(props);
-          var oldData = state.get(collName);
+          var oldData = state.getIn(cn.path);
           var oldPaused = state.getIn(["_state", collName, "paused"]);
           if (collData !== oldData || !(0, _immutableSorted.is)(oldProps, newProps) || oldPaused !== paused) {
             var newdata = v.recipe(cast(collData.toSeq()), props);
 
             mutableState.setIn(['_props', v.viewName], newProps);
-            mutableState.set(v.viewName, newdata);
+            mutableState.setIn(vcn.path, newdata);
           }
         }
       };
@@ -106,6 +109,16 @@ var SimpleEngine = function (_CommonEngine) {
             mutableState.setIn(["_state", collName, "originals", id], doc);
           }
         }
+      };
+
+      var getCompiledName = function getCompiledName(name) {
+        var cn = cs.names[name];
+
+        if (!cn) {
+          throw new Error("Name does not exist in schema: " + name);
+        }
+
+        return cn;
       };
 
       var reduce = function reduce(mutableState, state, action) {
@@ -123,21 +136,23 @@ var SimpleEngine = function (_CommonEngine) {
           case 'DUXEN_INSERT':
             {
               var _collAction = cast(action);
-              var collData = cast(mutableState.get(_collAction.collName));
+              var cn = getCompiledName(_collAction.collName);
+              var collData = cast(mutableState.getIn(cn.path));
 
               var newcollData = collData.set(_collAction.id, _collAction.doc);
 
-              mutableState.set(_collAction.collName, newcollData);
+              mutableState.setIn(cn.path, newcollData);
 
               updateOriginals(mutableState, _collAction.collName, _collAction.id);
-              updateViews(mutableState, state, _collAction.collName, newcollData);
+              updateViews(mutableState, state, _collAction.collName, newcollData, cn);
               break;
             }
 
           case 'DUXEN_UPDATE':
             {
               var _collAction2 = cast(action);
-              var _collData = cast(mutableState.get(_collAction2.collName));
+              var _cn = getCompiledName(_collAction2.collName);
+              var _collData = cast(mutableState.getIn(_cn.path));
               var id = _collAction2.id;
 
               var doc = _collData.get(id);
@@ -154,12 +169,12 @@ var SimpleEngine = function (_CommonEngine) {
                 newDoc = doc.withMutations(function (mutableDoc) {
                   if (setDoc) {
                     setDoc.forEach(function (v, k) {
-                      return mutableDoc.set(k, v);
+                      return mutableDoc.setIn(k.split('.'), v);
                     });
                   }
                   if (unsetDoc) {
                     unsetDoc.forEach(function (v, k) {
-                      return mutableDoc.delete(k);
+                      return mutableDoc.deleteIn(k.split('.'));
                     });
                   }
                 });
@@ -168,41 +183,42 @@ var SimpleEngine = function (_CommonEngine) {
               }
 
               var _newcollData = _collData.set(_collAction2.id, newDoc);
-              mutableState.set(_collAction2.collName, _newcollData);
+              mutableState.setIn(_cn.path, _newcollData);
 
               updateOriginals(mutableState, _collAction2.collName, id, doc);
-              updateViews(mutableState, state, _collAction2.collName, _newcollData);
+              updateViews(mutableState, state, _collAction2.collName, _newcollData, _cn);
               break;
             }
 
           case 'DUXEN_REMOVE':
             {
               var _collAction3 = cast(action);
-              var _collData2 = cast(mutableState.get(_collAction3.collName));
+              var _cn2 = getCompiledName(_collAction3.collName);
+              var _collData2 = cast(mutableState.getIn(_cn2.path));
               var _id = _collAction3.id;
 
               var _doc = _collData2.get(_id);
-              if (!_doc) {
-                throw new Error("Updating document that does not exist: " + JSON.stringify(_id));
+              if (_doc) {
+                // Removing a document that exists
+                var _newcollData2 = _collData2.remove(_id);
+
+                mutableState.setIn(_cn2.path, _newcollData2);
+
+                updateOriginals(mutableState, _collAction3.collName, _id, _doc);
+                updateViews(mutableState, state, _collAction3.collName, _newcollData2, _cn2);
               }
-
-              var _newcollData2 = _collData2.remove(_collAction3.id);
-
-              mutableState.set(_collAction3.collName, _newcollData2);
-
-              updateOriginals(mutableState, _collAction3.collName, _id, _doc);
-              updateViews(mutableState, state, _collAction3.collName, _newcollData2);
               break;
             }
 
           case 'DUXEN_RESET':
             {
               var _collAction4 = cast(action);
+              var _cn3 = getCompiledName(_collAction4.collName);
               var _newcollData3 = (0, _immutableSorted.Map)();
 
-              mutableState.set(_collAction4.collName, _newcollData3);
+              mutableState.setIn(_cn3.path, _newcollData3);
               mutableState.deleteIn(["_state", _collAction4.collName, "originals"]);
-              updateViews(mutableState, state, _collAction4.collName, _newcollData3);
+              updateViews(mutableState, state, _collAction4.collName, _newcollData3, _cn3);
               break;
             }
 
@@ -216,16 +232,18 @@ var SimpleEngine = function (_CommonEngine) {
           case 'DUXEN_RESUME':
             {
               var _collAction6 = cast(action);
+              var _cn4 = getCompiledName(_collAction6.collName);
               mutableState.setIn(["_state", _collAction6.collName, "paused"], false);
-              var _collData3 = cast(mutableState.get(_collAction6.collName));
-              updateViews(mutableState, state, _collAction6.collName, _collData3);
+              var _collData3 = cast(mutableState.getIn(_cn4.path));
+              updateViews(mutableState, state, _collAction6.collName, _collData3, _cn4);
               break;
             }
 
           case 'DUXEN_SAVE':
             {
               var _collAction7 = cast(action);
-              var _collData4 = cast(mutableState.get(_collAction7.collName));
+              var _cn5 = getCompiledName(_collAction7.collName);
+              var _collData4 = cast(mutableState.getIn(_cn5.path));
               mutableState.setIn(["_state", _collAction7.collName, "saved"], _collData4);
               break;
             }
@@ -233,13 +251,14 @@ var SimpleEngine = function (_CommonEngine) {
           case 'DUXEN_RESTORE':
             {
               var _collAction8 = cast(action);
+              var _cn6 = getCompiledName(_collAction8.collName);
               var _collData5 = cast(mutableState.getIn(["_state", _collAction8.collName, "saved"]));
               if (!_collData5) {
                 throw new Error("Restore: nothing was saved");
               }
               mutableState.deleteIn(["_state", _collAction8.collName, "saved"]);
-              mutableState.set(_collAction8.collName, _collData5);
-              updateViews(mutableState, state, _collAction8.collName, _collData5);
+              mutableState.setIn(_cn6.path, _collData5);
+              updateViews(mutableState, state, _collAction8.collName, _collData5, _cn6);
               break;
             }
 
@@ -273,24 +292,20 @@ var SimpleEngine = function (_CommonEngine) {
               var compiledAction = cs.actions[action.type];
               if (compiledAction) {
                 var name = compiledAction.name;
-                var compiledName = cs.names[name];
-
-                if (!compiledName) {
-                  throw new Error("Unknown name in action: " + JSON.stringify(action));
-                }
+                var _cn7 = getCompiledName(name);
 
                 switch (compiledAction.type) {
                   case 'value':
                     {
                       var valueAction = cast(action);
-                      var oldValue = state.getIn(compiledName.path);
+                      var oldValue = state.getIn(_cn7.path);
                       if (oldValue === undefined) {
                         throw Error("Lost value in state:" + name);
                       }
                       var reducer = compiledAction.reducer;
                       var newValue = reducer(oldValue, valueAction);
                       if (oldValue !== newValue) {
-                        mutableState.setIn(compiledName.path, newValue);
+                        mutableState.setIn(_cn7.path, newValue);
                         changed = true;
                       }
                       break;
@@ -299,14 +314,14 @@ var SimpleEngine = function (_CommonEngine) {
                     {
                       var customAction = cast(action);
                       var _reducer = compiledAction.reducer;
-                      if (compiledName.path.length > 0) {
-                        var subState = mutableState.getIn(compiledName.path);
+                      if (_cn7.path.length > 0) {
+                        var subState = mutableState.getIn(_cn7.path);
                         if (!subState) {
-                          throw new Error("Missing path in state:" + JSON.stringify(compiledName.path));
+                          throw new Error("Missing path in state:" + JSON.stringify(_cn7.path));
                         }
                         var mutableSubState = subState.asMutable();
                         _reducer(mutableSubState, customAction);
-                        mutableState.setIn(compiledName.path, mutableSubState);
+                        mutableState.setIn(_cn7.path, mutableSubState);
                       } else {
                         _reducer(mutableState, customAction);
                       }
@@ -320,8 +335,9 @@ var SimpleEngine = function (_CommonEngine) {
               }
 
               if (changed) for (var _name in cs.collViews) {
-                var _collData8 = cast(state.get(_name));
-                updateViews(mutableState, state, _name, _collData8);
+                var _cn8 = getCompiledName(_name);
+                var _collData8 = cast(state.getIn(_cn8.path));
+                updateViews(mutableState, state, _name, _collData8, _cn8);
               }
               break;
             }
@@ -343,7 +359,7 @@ var SimpleEngine = function (_CommonEngine) {
     }
   }]);
 
-  return SimpleEngine;
+  return BasicEngine;
 }(_CommonEngine3.default);
 
-exports.default = SimpleEngine;
+exports.default = BasicEngine;

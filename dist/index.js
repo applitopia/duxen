@@ -11,8 +11,6 @@ var _BasicEngine2 = _interopRequireDefault(_BasicEngine);
 
 var _MeteorDriver = require('./MeteorDriver');
 
-var _MeteorDriver2 = _interopRequireDefault(_MeteorDriver);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // import Engine from './AdvancedEngine';
@@ -32,7 +30,7 @@ var createEngine = function createEngine(schema) {
 };
 
 exports.createEngine = createEngine;
-exports.MeteorDriver = _MeteorDriver2.default;
+exports.MeteorDriver = _MeteorDriver.MeteorDriver;
 exports.default = {
   createEngine: createEngine
 };

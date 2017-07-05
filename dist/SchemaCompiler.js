@@ -17,12 +17,12 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
     initState: (0, _immutableSorted.Map)()
   };
 
-  var compileValueSchemaEntry = function compileValueSchemaEntry(name, entry, prefix) {
+  var compileValueSchemaEntry = function compileValueSchemaEntry(name, entry, namePrefix) {
     var actionType = entry.actionType;
     if (!actionType) {
       throw new Error("Missing actionType in value schema: " + JSON.stringify(entry));
     }
-    actionType = prefix + actionType;
+    actionType = namePrefix + actionType;
     if (cs.actions[actionType]) {
       throw new Error("Duplicate actionType in value schema: " + JSON.stringify(entry));
     }
@@ -51,6 +51,9 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
     if (!entry.reducer) {
       throw new Error("Missing reducer in custom schema: " + JSON.stringify(entry));
     }
+    if (entry.path) {
+      throw new Error("Path is not allowed in custom schema: " + JSON.stringify(entry));
+    }
 
     var reducer = function reducer(state, action) {
       switch (action.type) {
@@ -70,22 +73,33 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
     cs.actions[actionType] = { type: "custom", name: name, actionType: actionType, reducer: reducer };
   };
 
-  var compile = function compile(schema, prefix) {
+  var compile = function compile(schema, schemaName, schemaPathName) {
+
     for (var name in schema) {
+      if (name.match(/^\$|\.|\0/)) {
+        throw Error("Invalid name (can't start with $, can't contain '.' or '\0'): " + name);
+      }
+
       var entry = schema[name];
 
       if (!entry) {
-        throw Error("Can't find name in schema: " + name);
+        throw Error("Improper definition in schema: " + name);
       }
 
-      var path = prefix.split('.');
-      path[path.length - 1] = name;
+      var schemaPath = schemaPathName ? schemaPathName.split('.') : [];
+      var subPathName = (entry.path ? entry.path + '.' : "") + name;
+      var subPath = subPathName.split('.');
+      var pathNamePrefix = schemaPathName ? schemaPathName + '.' : "";
+      var pathName = pathNamePrefix + subPathName;
+      var path = pathName.split('.');
 
       if (entry.type === 'custom') {
         path = path.slice(0, path.length - 1);
+        subPath = subPath.slice(0, subPath.length - 1);
       }
 
-      name = prefix + name;
+      var namePrefix = schemaName ? schemaName + '.' : "";
+      name = namePrefix + name;
 
       var compiledName = cs.names[name];
 
@@ -93,13 +107,15 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
         throw Error("Duplicate name in schema: " + name);
       }
 
-      cs.names[name] = { name: name, type: entry.type, prefix: prefix, path: path, schemaEntry: entry };
+      var cn = { name: name, type: entry.type, namePrefix: namePrefix, path: path, schemaPath: schemaPath, subPath: subPath, schemaEntry: entry };
+      cs.names[name] = cn;
 
       switch (entry.type) {
 
         case 'value':
           {
-            compileValueSchemaEntry(name, entry, prefix);
+            cn.initValue = entry.initValue;
+            compileValueSchemaEntry(name, entry, namePrefix);
             break;
           }
 
@@ -118,24 +134,24 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
             if (!collName) {
               throw new Error("missing collName in view schema: " + name);
             }
-            var _cv = cs.collViews[collName];
-            if (!_cv) {
-              _cv = cs.collViews[collName] = [];
+            var cva = cs.collViews[collName];
+            if (!cva) {
+              cva = cs.collViews[namePrefix + collName] = [];
             }
-            var newView = { viewName: name, collName: collName, props: entry.props, recipe: entry.recipe };
-            _cv.push(newView);
+            var _cv = { viewName: name, collName: collName, props: entry.props, recipe: entry.recipe };
+            cva.push(_cv);
             break;
           }
 
         case 'custom':
           {
-            compileCustomSchemaEntry(name, entry, prefix);
+            compileCustomSchemaEntry(name, entry, namePrefix);
             break;
           }
 
         case 'schema':
           {
-            compile(entry.schema, prefix + name + ".");
+            compile(entry.schema, name, pathName);
             break;
           }
 
@@ -150,31 +166,39 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
   //
   // Initial state
   //
-  var compileInitState = function compileInitState(schema) {
+  var compileInitState = function compileInitState(schema, prefix, rootMap) {
     return (0, _immutableSorted.Map)().withMutations(function (map) {
-      map.set('_props', (0, _immutableSorted.Map)());
-      map.set('_state', (0, _immutableSorted.Map)());
+
+      if (!rootMap) {
+        rootMap = map;
+        map.set('_props', (0, _immutableSorted.Map)());
+        map.set('_state', (0, _immutableSorted.Map)());
+      }
       for (var name in schema) {
         var entry = schema[name];
+
         if (map.get(name)) {
           throw new Error('duplicate name in schema: ' + name);
         }
 
+        name = prefix + name;
+        var cn = cs.names[name];
+
         switch (entry.type) {
           case 'value':
             {
-              map.set(name, (0, _immutableSorted.fromJS)(entry.initValue));
+              map.setIn(cn.subPath, cn.initValue);
               break;
             }
           case 'collection':
             {
-              map.setIn(["_state", name, "paused"], false);
-              map.set(name, (0, _immutableSorted.Map)());
+              map.setIn(cn.subPath, (0, _immutableSorted.Map)());
+              rootMap.setIn(["_state", name, "paused"], false);
               break;
             }
           case 'schema':
             {
-              map.set(name, compileInitState(entry.schema));
+              map.set(name, compileInitState(entry.schema, prefix + name + ".", rootMap));
               break;
             }
           case 'custom':
@@ -182,18 +206,22 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
               break;
             }
           case 'view':
+            {
+              map.setIn(cn.subPath, (0, _immutableSorted.Map)());
+              break;
+            }
+
           default:
             {
-              map.set(name, (0, _immutableSorted.Map)());
-              break;
+              throw new Error("Unexpected entry type: " + entry.type);
             }
         }
       }
     });
   };
 
-  compile(schema, "");
-  cs.initState = compileInitState(schema);
+  compile(schema, "", "");
+  cs.initState = compileInitState(schema, "", undefined);
 
   return cs;
 }; /**

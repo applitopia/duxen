@@ -33,13 +33,13 @@ var cast = function cast(value) {
   return value;
 };
 
-var SimpleEngine = function (_CommonEngine) {
-  _inherits(SimpleEngine, _CommonEngine);
+var BasicEngine = function (_CommonEngine) {
+  _inherits(BasicEngine, _CommonEngine);
 
-  function SimpleEngine(schema) {
-    _classCallCheck(this, SimpleEngine);
+  function BasicEngine(schema) {
+    _classCallCheck(this, BasicEngine);
 
-    return _possibleConstructorReturn(this, (SimpleEngine.__proto__ || Object.getPrototypeOf(SimpleEngine)).call(this, schema));
+    return _possibleConstructorReturn(this, (BasicEngine.__proto__ || Object.getPrototypeOf(BasicEngine)).call(this, schema));
   }
 
   //
@@ -47,7 +47,7 @@ var SimpleEngine = function (_CommonEngine) {
   //
 
 
-  _createClass(SimpleEngine, [{
+  _createClass(BasicEngine, [{
     key: 'reducer',
     value: function reducer() {
       var _this2 = this;
@@ -68,7 +68,7 @@ var SimpleEngine = function (_CommonEngine) {
         }
       };
 
-      var updateViews = function updateViews(mutableState, state, collName, collData) {
+      var updateViews = function updateViews(mutableState, state, collName, collData, cn) {
         var paused = mutableState.getIn(["_state", collName, "paused"]);
 
         if (paused === true) {
@@ -77,24 +77,27 @@ var SimpleEngine = function (_CommonEngine) {
 
         var va = cs.collViews[collName];
 
+        var schemaState = mutableState.getIn(cn.schemaPath);
+
         for (var i = 0, length = va.length; i < length; i++) {
           var v = va[i];
+          var vcn = getCompiledName(v.viewName);
 
           // Prepare props
           var props = {};
           for (var p in v.props) {
             var propFn = v.props[p];
-            props[p] = propFn(mutableState);
+            props[p] = propFn(schemaState);
           }
           var oldProps = mutableState.getIn(['_props', v.viewName]);
           var newProps = (0, _immutableSorted.fromJS)(props);
-          var oldData = state.get(collName);
+          var oldData = state.getIn(cn.path);
           var oldPaused = state.getIn(["_state", collName, "paused"]);
           if (collData !== oldData || !(0, _immutableSorted.is)(oldProps, newProps) || oldPaused !== paused) {
             var newdata = v.recipe(cast(collData.toSeq()), props);
 
             mutableState.setIn(['_props', v.viewName], newProps);
-            mutableState.set(v.viewName, newdata);
+            mutableState.setIn(vcn.path, newdata);
           }
         }
       };
@@ -107,6 +110,16 @@ var SimpleEngine = function (_CommonEngine) {
             mutableState.setIn(["_state", collName, "originals", id], doc);
           }
         }
+      };
+
+      var getCompiledName = function getCompiledName(name) {
+        var cn = cs.names[name];
+
+        if (!cn) {
+          throw new Error("Name does not exist in schema: " + name);
+        }
+
+        return cn;
       };
 
       var reduce = function reduce(mutableState, state, action) {
@@ -124,21 +137,23 @@ var SimpleEngine = function (_CommonEngine) {
           case 'DUXEN_INSERT':
             {
               var _collAction = cast(action);
-              var collData = cast(mutableState.get(_collAction.collName));
+              var cn = getCompiledName(_collAction.collName);
+              var collData = cast(mutableState.getIn(cn.path));
 
               var newcollData = collData.set(_collAction.id, _collAction.doc);
 
-              mutableState.set(_collAction.collName, newcollData);
+              mutableState.setIn(cn.path, newcollData);
 
               updateOriginals(mutableState, _collAction.collName, _collAction.id);
-              updateViews(mutableState, state, _collAction.collName, newcollData);
+              updateViews(mutableState, state, _collAction.collName, newcollData, cn);
               break;
             }
 
           case 'DUXEN_UPDATE':
             {
               var _collAction2 = cast(action);
-              var _collData = cast(mutableState.get(_collAction2.collName));
+              var _cn = getCompiledName(_collAction2.collName);
+              var _collData = cast(mutableState.getIn(_cn.path));
               var id = _collAction2.id;
 
               var doc = _collData.get(id);
@@ -155,12 +170,12 @@ var SimpleEngine = function (_CommonEngine) {
                 newDoc = doc.withMutations(function (mutableDoc) {
                   if (setDoc) {
                     setDoc.forEach(function (v, k) {
-                      return mutableDoc.set(k, v);
+                      return mutableDoc.setIn(k.split('.'), v);
                     });
                   }
                   if (unsetDoc) {
                     unsetDoc.forEach(function (v, k) {
-                      return mutableDoc.delete(k);
+                      return mutableDoc.deleteIn(k.split('.'));
                     });
                   }
                 });
@@ -169,41 +184,42 @@ var SimpleEngine = function (_CommonEngine) {
               }
 
               var _newcollData = _collData.set(_collAction2.id, newDoc);
-              mutableState.set(_collAction2.collName, _newcollData);
+              mutableState.setIn(_cn.path, _newcollData);
 
               updateOriginals(mutableState, _collAction2.collName, id, doc);
-              updateViews(mutableState, state, _collAction2.collName, _newcollData);
+              updateViews(mutableState, state, _collAction2.collName, _newcollData, _cn);
               break;
             }
 
           case 'DUXEN_REMOVE':
             {
               var _collAction3 = cast(action);
-              var _collData2 = cast(mutableState.get(_collAction3.collName));
+              var _cn2 = getCompiledName(_collAction3.collName);
+              var _collData2 = cast(mutableState.getIn(_cn2.path));
               var _id = _collAction3.id;
 
               var _doc = _collData2.get(_id);
-              if (!_doc) {
-                throw new Error("Updating document that does not exist: " + JSON.stringify(_id));
+              if (_doc) {
+                // Removing a document that exists
+                var _newcollData2 = _collData2.remove(_id);
+
+                mutableState.setIn(_cn2.path, _newcollData2);
+
+                updateOriginals(mutableState, _collAction3.collName, _id, _doc);
+                updateViews(mutableState, state, _collAction3.collName, _newcollData2, _cn2);
               }
-
-              var _newcollData2 = _collData2.remove(_collAction3.id);
-
-              mutableState.set(_collAction3.collName, _newcollData2);
-
-              updateOriginals(mutableState, _collAction3.collName, _id, _doc);
-              updateViews(mutableState, state, _collAction3.collName, _newcollData2);
               break;
             }
 
           case 'DUXEN_RESET':
             {
               var _collAction4 = cast(action);
+              var _cn3 = getCompiledName(_collAction4.collName);
               var _newcollData3 = (0, _immutableSorted.Map)();
 
-              mutableState.set(_collAction4.collName, _newcollData3);
+              mutableState.setIn(_cn3.path, _newcollData3);
               mutableState.deleteIn(["_state", _collAction4.collName, "originals"]);
-              updateViews(mutableState, state, _collAction4.collName, _newcollData3);
+              updateViews(mutableState, state, _collAction4.collName, _newcollData3, _cn3);
               break;
             }
 
@@ -217,16 +233,18 @@ var SimpleEngine = function (_CommonEngine) {
           case 'DUXEN_RESUME':
             {
               var _collAction6 = cast(action);
+              var _cn4 = getCompiledName(_collAction6.collName);
               mutableState.setIn(["_state", _collAction6.collName, "paused"], false);
-              var _collData3 = cast(mutableState.get(_collAction6.collName));
-              updateViews(mutableState, state, _collAction6.collName, _collData3);
+              var _collData3 = cast(mutableState.getIn(_cn4.path));
+              updateViews(mutableState, state, _collAction6.collName, _collData3, _cn4);
               break;
             }
 
           case 'DUXEN_SAVE':
             {
               var _collAction7 = cast(action);
-              var _collData4 = cast(mutableState.get(_collAction7.collName));
+              var _cn5 = getCompiledName(_collAction7.collName);
+              var _collData4 = cast(mutableState.getIn(_cn5.path));
               mutableState.setIn(["_state", _collAction7.collName, "saved"], _collData4);
               break;
             }
@@ -234,13 +252,14 @@ var SimpleEngine = function (_CommonEngine) {
           case 'DUXEN_RESTORE':
             {
               var _collAction8 = cast(action);
+              var _cn6 = getCompiledName(_collAction8.collName);
               var _collData5 = cast(mutableState.getIn(["_state", _collAction8.collName, "saved"]));
               if (!_collData5) {
                 throw new Error("Restore: nothing was saved");
               }
               mutableState.deleteIn(["_state", _collAction8.collName, "saved"]);
-              mutableState.set(_collAction8.collName, _collData5);
-              updateViews(mutableState, state, _collAction8.collName, _collData5);
+              mutableState.setIn(_cn6.path, _collData5);
+              updateViews(mutableState, state, _collAction8.collName, _collData5, _cn6);
               break;
             }
 
@@ -274,24 +293,20 @@ var SimpleEngine = function (_CommonEngine) {
               var compiledAction = cs.actions[action.type];
               if (compiledAction) {
                 var name = compiledAction.name;
-                var compiledName = cs.names[name];
-
-                if (!compiledName) {
-                  throw new Error("Unknown name in action: " + JSON.stringify(action));
-                }
+                var _cn7 = getCompiledName(name);
 
                 switch (compiledAction.type) {
                   case 'value':
                     {
                       var valueAction = cast(action);
-                      var oldValue = state.getIn(compiledName.path);
+                      var oldValue = state.getIn(_cn7.path);
                       if (oldValue === undefined) {
                         throw Error("Lost value in state:" + name);
                       }
                       var reducer = compiledAction.reducer;
                       var newValue = reducer(oldValue, valueAction);
                       if (oldValue !== newValue) {
-                        mutableState.setIn(compiledName.path, newValue);
+                        mutableState.setIn(_cn7.path, newValue);
                         changed = true;
                       }
                       break;
@@ -300,14 +315,14 @@ var SimpleEngine = function (_CommonEngine) {
                     {
                       var customAction = cast(action);
                       var _reducer = compiledAction.reducer;
-                      if (compiledName.path.length > 0) {
-                        var subState = mutableState.getIn(compiledName.path);
+                      if (_cn7.path.length > 0) {
+                        var subState = mutableState.getIn(_cn7.path);
                         if (!subState) {
-                          throw new Error("Missing path in state:" + JSON.stringify(compiledName.path));
+                          throw new Error("Missing path in state:" + JSON.stringify(_cn7.path));
                         }
                         var mutableSubState = subState.asMutable();
                         _reducer(mutableSubState, customAction);
-                        mutableState.setIn(compiledName.path, mutableSubState);
+                        mutableState.setIn(_cn7.path, mutableSubState);
                       } else {
                         _reducer(mutableState, customAction);
                       }
@@ -321,8 +336,9 @@ var SimpleEngine = function (_CommonEngine) {
               }
 
               if (changed) for (var _name in cs.collViews) {
-                var _collData8 = cast(state.get(_name));
-                updateViews(mutableState, state, _name, _collData8);
+                var _cn8 = getCompiledName(_name);
+                var _collData8 = cast(state.getIn(_cn8.path));
+                updateViews(mutableState, state, _name, _collData8, _cn8);
               }
               break;
             }
@@ -344,10 +360,10 @@ var SimpleEngine = function (_CommonEngine) {
     }
   }]);
 
-  return SimpleEngine;
+  return BasicEngine;
 }(_CommonEngine3.default);
 
-exports.default = SimpleEngine;
+exports.default = BasicEngine;
 },{"./CommonEngine":2,"immutable-sorted":6}],2:[function(require,module,exports){
 'use strict';
 
@@ -429,6 +445,9 @@ var CommonEngine = function () {
     value: function _verifyCustomName(customName) {
       this._verifyName(customName, 'custom');
     }
+
+    // Dispatch an action to listeners
+
   }, {
     key: '_action',
     value: function _action(action) {
@@ -436,6 +455,20 @@ var CommonEngine = function () {
         var listener = this.listeners[i];
         listener(action);
       }
+    }
+
+    // Extract a value from state
+
+  }, {
+    key: 'get',
+    value: function get(state, name) {
+      var compiledName = this.compiledSchema.names[name];
+
+      if (!compiledName) {
+        throw new Error("Name not found in schema: " + name);
+      }
+
+      return state.getIn(compiledName.path);
     }
 
     //
@@ -473,18 +506,9 @@ var CommonEngine = function () {
   }, {
     key: 'cleanState',
     value: function cleanState(state) {
-      var _this2 = this;
-
-      var prefix = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "";
-
       return state.withMutations(function (mutableState) {
         mutableState.delete("_props");
         mutableState.delete("_state");
-        mutableState.forEach(function (v, k) {
-          if (_this2._getNameType(prefix + k) === 'schema') {
-            mutableState.set(k, _this2.cleanState(cast(v), k + "."));
-          }
-        });
       });
     }
 
@@ -645,7 +669,7 @@ var CommonEngine = function () {
       _value = ensure(_value);
 
       var action = {
-        type: cn.prefix + actionType,
+        type: cn.namePrefix + actionType,
         value: _value
       };
       this._action(action);
@@ -670,10 +694,10 @@ var CommonEngine = function () {
 
       var action = customEntry.action();
 
-      if (action.type !== actionType) {
+      if (action.type !== undefined && action.type !== actionType) {
         throw new Error("Inconsistent custom action type: " + JSON.stringify(action.type) + " vs " + actionType);
       }
-      action.type = cn.prefix + actionType;
+      action.type = cn.namePrefix + actionType;
       this._action(action);
       return action;
     }
@@ -699,31 +723,50 @@ exports.default = CommonEngine;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+exports.MeteorDriver = exports.MeteorCollection = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; /**
+                                                                                                                                                                                                                                                                               *  Copyright (c) 2017, Applitopia, Inc.
+                                                                                                                                                                                                                                                                               *  All rights reserved.
+                                                                                                                                                                                                                                                                               *
+                                                                                                                                                                                                                                                                               *  This source code is licensed under the MIT-style license found in the
+                                                                                                                                                                                                                                                                               *  LICENSE file in the root directory of this source tree.
+                                                                                                                                                                                                                                                                               *
+                                                                                                                                                                                                                                                                               *  
+                                                                                                                                                                                                                                                                               */
+
+var _immutableSorted = require('immutable-sorted');
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-/**
- *  Copyright (c) 2017, Applitopia, Inc.
- *  All rights reserved.
- *
- *  This source code is licensed under the MIT-style license found in the
- *  LICENSE file in the root directory of this source tree.
- *
- *  
- */
-
-var unifyId = function unifyId(mongoId) {
-  if (typeof mongoId !== 'string') {
-    return mongoId._str;
-  }
-  return mongoId;
+var cast = function cast(value) {
+  return value;
 };
 
-var MeteorCollection = function () {
+var isEmptyObject = function isEmptyObject(obj) {
+  if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) !== 'object') {
+    return false;
+  }
+
+  for (var x in obj) {
+    return false;
+  }
+
+  return true;
+};
+
+var getMongoID = function getMongoID(selector) {
+  if ((typeof selector === 'undefined' ? 'undefined' : _typeof(selector)) === 'object' && selector._id !== undefined) {
+    return selector._id;
+  } else if (isEmptyObject(selector)) {
+    return undefined;
+  }
+  return cast(selector);
+};
+
+var MeteorCollection = exports.MeteorCollection = function () {
   function MeteorCollection(name, engine, dispatch, getData, getOriginals) {
     _classCallCheck(this, MeteorCollection);
 
@@ -734,7 +777,7 @@ var MeteorCollection = function () {
     this._getOriginals = getOriginals;
     this._paused = false;
     this._pending = [];
-    this._ids = {};
+    this._ids = (0, _immutableSorted.Set)().asMutable();
   }
 
   _createClass(MeteorCollection, [{
@@ -759,61 +802,48 @@ var MeteorCollection = function () {
     }
   }, {
     key: 'remove',
-    value: function remove(mongoId) {
-      var _this = this;
-
-      var removeId = function removeId(mongoIdStr) {
-        delete _this._ids[mongoIdStr];
-        var action = _this._engine.remove(_this._name, mongoIdStr);
-        _this.dispatch(action);
-      };
-
-      switch (typeof mongoId === 'undefined' ? 'undefined' : _typeof(mongoId)) {
-        case 'string':
-          {
-            removeId(mongoId);
-            break;
-          }
-
-        case 'object':
-          {
-            if (mongoId._str === undefined) {
-              this._ids = {};
-              this._pending = [];
-              var action = this._engine.reset(this._name);
-              this._dispatch(action);
-            } else {
-              removeId(mongoId._str);
-            }
-            break;
-          }
-
-        default:
-          {
-            throw new Error("Invalid MongoID: " + JSON.stringify(mongoId));
-          }
+    value: function remove(selector) {
+      var mongoId = getMongoID(selector);
+      if (!mongoId) {
+        this._ids = (0, _immutableSorted.Set)().asMutable();
+        this._pending = [];
+        var action = this._engine.reset(this._name);
+        this._dispatch(action);
+      } else {
+        this._ids.remove(mongoId);
+        var _action = this._engine.remove(this._name, mongoId);
+        this.dispatch(_action);
       }
     }
   }, {
     key: 'insert',
     value: function insert(replace) {
-      var mongoId = unifyId(replace._id);
-      this._ids[mongoId] = true;
+      var mongoId = replace._id;
+      if (!mongoId) {
+        throw new Error("Empty mongoID: " + JSON.stringify(replace));
+      }
+      this._ids.add(mongoId);
       var action = this._engine.insert(this._name, mongoId, replace);
       this.dispatch(action);
     }
   }, {
     key: 'update',
-    value: function update(mongoId, replace) {
-      mongoId = unifyId(mongoId);
+    value: function update(selector, replace) {
+      var mongoId = getMongoID(selector);
+      if (!mongoId) {
+        throw new Error("Selector not supported:" + JSON.stringify(selector));
+      }
       var action = this._engine.update(this._name, mongoId, replace);
       this.dispatch(action);
     }
   }, {
     key: 'findOne',
-    value: function findOne(mongoId) {
-      mongoId = unifyId(mongoId);
-      return this._ids[mongoId];
+    value: function findOne(selector) {
+      var mongoId = getMongoID(selector);
+      if (!mongoId) {
+        throw new Error("Selector not supported:" + JSON.stringify(selector));
+      }
+      return this._ids.has(mongoId);
     }
   }, {
     key: 'pauseObservers',
@@ -844,6 +874,11 @@ var MeteorCollection = function () {
       var collData = this._getOriginals();
       var action = this._engine.retrieveOriginals(this._name);
       this.dispatch(action);
+      if (collData) {
+        return (0, _immutableSorted.Seq)(collData).map(function (v) {
+          return v ? v.toJS() : v;
+        });
+      }
       return collData;
     }
   }]);
@@ -851,7 +886,7 @@ var MeteorCollection = function () {
   return MeteorCollection;
 }();
 
-var MeteorDriver = function () {
+var MeteorDriver = exports.MeteorDriver = function () {
   function MeteorDriver(engine, dispatch, getState) {
     _classCallCheck(this, MeteorDriver);
 
@@ -863,14 +898,14 @@ var MeteorDriver = function () {
   _createClass(MeteorDriver, [{
     key: 'open',
     value: function open(name, connection) {
-      var _this2 = this;
+      var _this = this;
 
       // eslint-disable-line no-unused-vars
       var getData = function getData() {
-        return _this2._getState().get(name);
+        return _this._getState().get(name);
       };
       var getOriginals = function getOriginals() {
-        return _this2._getState().getIn(['_state', name, "originals"]);
+        return _this._getState().getIn(['_state', name, "originals"]);
       };
       return new MeteorCollection(name, this._engine, this._dispatch, getData, getOriginals);
     }
@@ -878,9 +913,7 @@ var MeteorDriver = function () {
 
   return MeteorDriver;
 }();
-
-exports.default = MeteorDriver;
-},{}],4:[function(require,module,exports){
+},{"immutable-sorted":6}],4:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -900,12 +933,12 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
     initState: (0, _immutableSorted.Map)()
   };
 
-  var compileValueSchemaEntry = function compileValueSchemaEntry(name, entry, prefix) {
+  var compileValueSchemaEntry = function compileValueSchemaEntry(name, entry, namePrefix) {
     var actionType = entry.actionType;
     if (!actionType) {
       throw new Error("Missing actionType in value schema: " + JSON.stringify(entry));
     }
-    actionType = prefix + actionType;
+    actionType = namePrefix + actionType;
     if (cs.actions[actionType]) {
       throw new Error("Duplicate actionType in value schema: " + JSON.stringify(entry));
     }
@@ -934,6 +967,9 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
     if (!entry.reducer) {
       throw new Error("Missing reducer in custom schema: " + JSON.stringify(entry));
     }
+    if (entry.path) {
+      throw new Error("Path is not allowed in custom schema: " + JSON.stringify(entry));
+    }
 
     var reducer = function reducer(state, action) {
       switch (action.type) {
@@ -953,22 +989,33 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
     cs.actions[actionType] = { type: "custom", name: name, actionType: actionType, reducer: reducer };
   };
 
-  var compile = function compile(schema, prefix) {
+  var compile = function compile(schema, schemaName, schemaPathName) {
+
     for (var name in schema) {
+      if (name.match(/^\$|\.|\0/)) {
+        throw Error("Invalid name (can't start with $, can't contain '.' or '\0'): " + name);
+      }
+
       var entry = schema[name];
 
       if (!entry) {
-        throw Error("Can't find name in schema: " + name);
+        throw Error("Improper definition in schema: " + name);
       }
 
-      var path = prefix.split('.');
-      path[path.length - 1] = name;
+      var schemaPath = schemaPathName ? schemaPathName.split('.') : [];
+      var subPathName = (entry.path ? entry.path + '.' : "") + name;
+      var subPath = subPathName.split('.');
+      var pathNamePrefix = schemaPathName ? schemaPathName + '.' : "";
+      var pathName = pathNamePrefix + subPathName;
+      var path = pathName.split('.');
 
       if (entry.type === 'custom') {
         path = path.slice(0, path.length - 1);
+        subPath = subPath.slice(0, subPath.length - 1);
       }
 
-      name = prefix + name;
+      var namePrefix = schemaName ? schemaName + '.' : "";
+      name = namePrefix + name;
 
       var compiledName = cs.names[name];
 
@@ -976,13 +1023,15 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
         throw Error("Duplicate name in schema: " + name);
       }
 
-      cs.names[name] = { name: name, type: entry.type, prefix: prefix, path: path, schemaEntry: entry };
+      var cn = { name: name, type: entry.type, namePrefix: namePrefix, path: path, schemaPath: schemaPath, subPath: subPath, schemaEntry: entry };
+      cs.names[name] = cn;
 
       switch (entry.type) {
 
         case 'value':
           {
-            compileValueSchemaEntry(name, entry, prefix);
+            cn.initValue = entry.initValue;
+            compileValueSchemaEntry(name, entry, namePrefix);
             break;
           }
 
@@ -1001,24 +1050,24 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
             if (!collName) {
               throw new Error("missing collName in view schema: " + name);
             }
-            var _cv = cs.collViews[collName];
-            if (!_cv) {
-              _cv = cs.collViews[collName] = [];
+            var cva = cs.collViews[collName];
+            if (!cva) {
+              cva = cs.collViews[namePrefix + collName] = [];
             }
-            var newView = { viewName: name, collName: collName, props: entry.props, recipe: entry.recipe };
-            _cv.push(newView);
+            var _cv = { viewName: name, collName: collName, props: entry.props, recipe: entry.recipe };
+            cva.push(_cv);
             break;
           }
 
         case 'custom':
           {
-            compileCustomSchemaEntry(name, entry, prefix);
+            compileCustomSchemaEntry(name, entry, namePrefix);
             break;
           }
 
         case 'schema':
           {
-            compile(entry.schema, prefix + name + ".");
+            compile(entry.schema, name, pathName);
             break;
           }
 
@@ -1033,31 +1082,39 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
   //
   // Initial state
   //
-  var compileInitState = function compileInitState(schema) {
+  var compileInitState = function compileInitState(schema, prefix, rootMap) {
     return (0, _immutableSorted.Map)().withMutations(function (map) {
-      map.set('_props', (0, _immutableSorted.Map)());
-      map.set('_state', (0, _immutableSorted.Map)());
+
+      if (!rootMap) {
+        rootMap = map;
+        map.set('_props', (0, _immutableSorted.Map)());
+        map.set('_state', (0, _immutableSorted.Map)());
+      }
       for (var name in schema) {
         var entry = schema[name];
+
         if (map.get(name)) {
           throw new Error('duplicate name in schema: ' + name);
         }
 
+        name = prefix + name;
+        var cn = cs.names[name];
+
         switch (entry.type) {
           case 'value':
             {
-              map.set(name, (0, _immutableSorted.fromJS)(entry.initValue));
+              map.setIn(cn.subPath, cn.initValue);
               break;
             }
           case 'collection':
             {
-              map.setIn(["_state", name, "paused"], false);
-              map.set(name, (0, _immutableSorted.Map)());
+              map.setIn(cn.subPath, (0, _immutableSorted.Map)());
+              rootMap.setIn(["_state", name, "paused"], false);
               break;
             }
           case 'schema':
             {
-              map.set(name, compileInitState(entry.schema));
+              map.set(name, compileInitState(entry.schema, prefix + name + ".", rootMap));
               break;
             }
           case 'custom':
@@ -1065,18 +1122,22 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
               break;
             }
           case 'view':
+            {
+              map.setIn(cn.subPath, (0, _immutableSorted.Map)());
+              break;
+            }
+
           default:
             {
-              map.set(name, (0, _immutableSorted.Map)());
-              break;
+              throw new Error("Unexpected entry type: " + entry.type);
             }
         }
       }
     });
   };
 
-  compile(schema, "");
-  cs.initState = compileInitState(schema);
+  compile(schema, "", "");
+  cs.initState = compileInitState(schema, "", undefined);
 
   return cs;
 }; /**
@@ -1102,8 +1163,6 @@ var _BasicEngine2 = _interopRequireDefault(_BasicEngine);
 
 var _MeteorDriver = require('./MeteorDriver');
 
-var _MeteorDriver2 = _interopRequireDefault(_MeteorDriver);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // import Engine from './AdvancedEngine';
@@ -1123,7 +1182,7 @@ var createEngine = function createEngine(schema) {
 };
 
 exports.createEngine = createEngine;
-exports.MeteorDriver = _MeteorDriver2.default;
+exports.MeteorDriver = _MeteorDriver.MeteorDriver;
 exports.default = {
   createEngine: createEngine
 };

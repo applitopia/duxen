@@ -61,11 +61,23 @@ export default class CommonEngine implements EngineInterface {
     this._verifyName(customName, 'custom');
   }
 
+  // Dispatch an action to listeners
   _action(action: Action): void {
     for(let i = 0; i < this.listeners.length; i++) {
-      const listener:(Action)=>void = this.listeners[i];
+      const listener:Action=>void = this.listeners[i];
       listener(action);
     }
+  }
+
+  // Extract a value from state
+  get(state: State, name: string): StateValue {
+    const compiledName:CompiledName = this.compiledSchema.names[name];
+
+    if(!compiledName) {
+      throw new Error("Name not found in schema: "+name);
+    }
+
+    return state.getIn(compiledName.path);
   }
 
   //
@@ -73,7 +85,7 @@ export default class CommonEngine implements EngineInterface {
   //
   // Returns a function to unsubscribe
   //
-  subscribe(listener: (Action)=>void): ()=>void {
+  subscribe(listener: Action=>void): ()=>void {
     if (typeof listener !== 'function') {
       throw new Error('Listener must be a function.')
     }
@@ -94,15 +106,10 @@ export default class CommonEngine implements EngineInterface {
   //
   // Remove all internal items from the state
   //
-  cleanState(state: State, prefix: string = ""): State {
+  cleanState(state: State): State {
     return state.withMutations((mutableState: State): void => {
       mutableState.delete("_props");
       mutableState.delete("_state");
-      mutableState.forEach((v: StateValue, k: string): void => {
-        if(this._getNameType(prefix+k) === 'schema') {
-          mutableState.set(k, this.cleanState(cast(v), k+"."));
-        }
-      });
     });
   }
 
@@ -249,7 +256,7 @@ export default class CommonEngine implements EngineInterface {
     value = ensure(value);
 
     const action:ValueAction = {
-      type: cn.prefix+actionType,
+      type: cn.namePrefix+actionType,
       value,
     };
     this._action(action);
@@ -273,10 +280,10 @@ export default class CommonEngine implements EngineInterface {
 
     const action:CustomAction = customEntry.action();
 
-    if(action.type !== actionType) {
+    if(action.type !== undefined && action.type !== actionType) {
       throw new Error("Inconsistent custom action type: "+JSON.stringify(action.type)+" vs "+actionType);
     }
-    action.type = cn.prefix+actionType;
+    action.type = cn.namePrefix+actionType;
     this._action(action);
     return action;
   }

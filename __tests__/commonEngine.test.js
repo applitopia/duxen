@@ -14,12 +14,111 @@ import { List, fromJS } from 'immutable-sorted';
 const cast = <T>(value: any): T => (value: T);
 const ensure = <T>(value: any): T => cast(fromJS(value));
 
-test("action creators", function() {
+test("common engine", function() {
   const schema:Schema = {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
       actionType: 'CHANGE_TODOS_FILTER',
+    },
+    'todos': {
+      type: 'collection',
+    },
+    'todosView': {
+      type: 'view',
+      collName: 'todos',
+      props: {},
+      recipe: (seq) => seq,
+    },
+  };
+
+  const engine:EngineInterface = new createEngine(schema);
+  const reducer:Reducer = engine.reducer();
+
+  const state0:State = reducer(undefined, {type: "INIT"});
+  const expected0 = {
+    _props: {},
+    _state: {todos: {paused: false}},
+    todosFilter: "Get milk",
+    todos: {},
+    todosView: {}
+  };
+  expect(state0.toJS()).toEqual(expected0);
+
+  const state1 = engine.get(state0, "todosFilter");
+  const expected1 = "Get milk";
+  expect(state1).toEqual(expected1);
+
+  const action2 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
+  const state2 = reducer(state0, action2);
+  const expected2 = {
+    _props: {"todosView": {}},
+    _state: {todos: {paused: false}},
+    todosFilter: "Get milk",
+    todos: {
+      id1: {"text": "Get tickets"},
+    },
+    todosView: {
+      id1: {"text": "Get tickets"},
+    }
+  };
+  expect(state2.toJS()).toEqual(expected2);
+
+  const action3 = engine.insert("todos", "id2", ensure({"text": "Get milk"}));
+  const state3 = reducer(state2, action3);
+  const expected3 = {
+    _props: {"todosView": {}},
+    _state: {todos: {paused: false}},
+    todosFilter: "Get milk",
+    todos: {
+      id1: {"text": "Get tickets"},
+      id2: {"text": "Get milk"},
+    },
+    todosView: {
+      id1: {"text": "Get tickets"},
+      id2: {"text": "Get milk"},
+    }
+  };
+  expect(state3.toJS()).toEqual(expected3);
+
+  const action4 = engine.insert("todos", "id3", ensure({"text": "Get sugar"}));
+  const state4 = reducer(state3, action4);
+  const expected4 = {
+    _props: {"todosView": {}},
+    _state: {todos: {paused: false}},
+    todosFilter: "Get milk",
+    todos: {
+      id1: {"text": "Get tickets"},
+      id2: {"text": "Get milk"},
+      id3: {"text": "Get sugar"},
+    },
+    todosView: {
+      id1: {"text": "Get tickets"},
+      id2: {"text": "Get milk"},
+      id3: {"text": "Get sugar"},
+    }
+  };
+  expect(state4.toJS()).toEqual(expected4);
+
+  const state5:State = engine.get(state4, "todos");
+  const expected5 = {
+    id1: {"text": "Get tickets"},
+    id2: {"text": "Get milk"},
+    id3: {"text": "Get sugar"},
+  };
+  expect(state5.toJS()).toEqual(expected5);
+
+});
+
+test("action subscribe", function() {
+  const schema:Schema = {
+    'todosFilter': {
+      type: 'value',
+      initValue: "Get milk",
+      actionType: 'CHANGE_TODOS_FILTER',
+    },
+    'todos': {
+      type: 'collection',
     },
     'customNextPage': {
       type: 'custom',
@@ -31,18 +130,17 @@ test("action creators", function() {
           mutableState.setIn(["pager", "pageNo"], pageNo+1);
       }
     },
-    'todos': {
-      type: 'collection',
-    },
-    'todosView': {
-      type: 'view',
-      collName: 'todos',
-      props: {},
-      recipe: (seq) => seq
-    },
   };
 
   const engine:EngineInterface = createEngine(schema);
+
+  const receivedActions = {
+
+  };
+
+  const unsubscribeHandle:()=>void = engine.subscribe((action: Action) => {
+      receivedActions[action.type] = true;
+  });
 
   const insertAction:InsertAction = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
   expect(insertAction).toEqual({"type": "DUXEN_INSERT", "collName": "todos", "id": "id1", "doc": fromJS({"text": "Get tickets"})});
@@ -84,66 +182,23 @@ test("action creators", function() {
   const customAction:CustomAction = engine.custom("customNextPage");
   expect(customAction).toEqual({"type": "CUSTOM_NEXT_PAGE"});
 
-});
-
-test("SubSchema Action creators", function() {
-  const schema:Schema = {
-    'todosFilter': {
-      type: 'value',
-      initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
-    },
-    "calendarSchema": {
-      type: 'schema',
-      schema: {
-        'currentMonth': {
-          type: 'value',
-          initValue: "2017-06",
-          actionType: 'CHANGE_CURRENT_MONTH',
-        },
-        'customNextPage': {
-          type: 'custom',
-          actionType: 'CUSTOM_NEXT_PAGE',
-          action: () => ({type: 'CUSTOM_NEXT_PAGE'}),
-          // eslint-disable-next-line no-unused-vars
-          reducer: (mutableState: State, action: Action): void => {
-            const pageNo:number = mutableState.getIn(["pager", "pageNo"], 0);
-            mutableState.setIn(["pager", "pageNo"], pageNo+1);
-          }
-        },
-      },
-    }
+  const expectedReceivedActions = {
+    "DUXEN_INSERT": true,
+    "DUXEN_UPDATE": true,
+    "DUXEN_REMOVE": true,
+    "DUXEN_RESET": true,
+    "DUXEN_PAUSE": true,
+    "DUXEN_RESUME": true,
+    "DUXEN_SAVE": true,
+    "DUXEN_RESTORE": true,
+    "DUXEN_SAVE_ORIGINALS": true,
+    "DUXEN_RETRIEVE_ORIGINALS": true,
+    "DUXEN_BATCH": true,
+    "CHANGE_TODOS_FILTER": true,
+    "CUSTOM_NEXT_PAGE": true
   };
 
-  const engine:EngineInterface = new createEngine(schema);
+  unsubscribeHandle();
 
-  const valueAction:ValueAction = engine.value("todosFilter", "Get sugar");
-  expect(valueAction).toEqual({"type": "CHANGE_TODOS_FILTER", "value": "Get sugar"});
-
-  const valueAction2:ValueAction = engine.value("calendarSchema.currentMonth", "2017-07");
-  expect(valueAction2).toEqual({"type": "calendarSchema.CHANGE_CURRENT_MONTH", "value": "2017-07"});
-
-  const customAction:CustomAction = engine.custom("calendarSchema.customNextPage");
-  expect(customAction).toEqual({"type": "calendarSchema.CUSTOM_NEXT_PAGE"});
-
-});
-
-test("SubSchema Coll Action creators", function() {
-  const schema:Schema = {
-    'todoSchema': {
-      type: "schema",
-      schema: {
-        'todos': {
-          type: 'collection',
-          path: "a.b.c",
-        },
-      }
-    }
-  };
-
-  const engine:EngineInterface = new createEngine(schema);
-
-  const insertAction:InsertAction = engine.insert("todoSchema.todos", "id1", {text: "Get sugar"});
-  expect(insertAction).toEqual({"type": "DUXEN_INSERT", collName: "todoSchema.todos", id: "id1", doc: fromJS({text: "Get sugar"})});
-
+  expect(receivedActions).toEqual(expectedReceivedActions);
 });

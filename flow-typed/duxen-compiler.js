@@ -11,19 +11,53 @@
  //
  // Compiled Types
  //
- declare type CompiledProps = {[string]: (state: State)=>StateValue};
+
  declare type CompiledCollView = {
    viewName: string,
    collName: string,
-   props: CompiledProps,
-   recipe: Recipe};
- declare type CompiledCollectionViews = {[string]: Array<CompiledCollectionView>};
- declare type CompiledName = {name: string, type: SchemaEntryType, prefix: string, path: Array<string>, schemaEntry: SchemaEntry};
- declare type CompiledNames = {[string]: CompiledName};
- declare type CompiledAction =
-   {type: "value", name: string, actionType: CustomActionType, reducer: ValueReducer} |
-   {type: "custom", name: string, actionType: CustomActionType, reducer: CustomReducer};
- declare type CompiledActions = {[CustomActionType]: CompiledAction};
+   props: PropsRecipe,
+   recipe: Recipe
+ };
+
+ declare type CompiledCollViews = {
+   [string]: Array<CompiledCollView>
+ };
+
+ declare type CompiledName = {
+   name: string,
+   type: SchemaEntryType,
+   initValue?: StateValue,
+   namePrefix: string,
+   path: Array<string>,
+   schemaPath: Array<string>,
+   subPath: Array<string>,
+   schemaEntry: SchemaEntry
+ };
+
+ declare type CompiledNames = {
+   [string]: CompiledName
+ };
+
+ declare type CompiledValueAction = {
+   type: "value",
+   name: string,
+   actionType: CustomActionType,
+   reducer: ValueReducer
+ };
+
+ declare type CompiledCustomAction = {
+   type: "custom",
+   name: string,
+   actionType: CustomActionType,
+   reducer: CustomReducer
+ };
+
+ declare type CompiledAction = CompiledValueAction | CompiledCustomAction;
+
+ declare type CompiledActions = {
+   [CustomActionType]: CompiledAction
+ };
+
  declare type CompiledSchema = {
    collViews: CompiledCollViews,
    names: CompiledNames,

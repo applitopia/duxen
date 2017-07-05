@@ -14,6 +14,49 @@ import { compileSchema } from '../src/SchemaCompiler';
 
 const cast = <T>(value: any): T => (value: T);
 
+test("Does not allow $ and . in names", function() {
+  const schema1:Schema = {
+    'todos.Filter': {
+      type: 'value',
+      initValue: "Get milk",
+      actionType: 'CHANGE_TODOS_FILTER',
+    },
+  };
+
+  expect(() => compileSchema(schema1)).toThrow("Invalid name (can't start with $, can't contain '.' or '\0')");
+
+  const schema2:Schema = {
+    '$todosFilter': {
+      type: 'value',
+      initValue: "Get milk",
+      actionType: 'CHANGE_TODOS_FILTER',
+    },
+  };
+
+  expect(() => compileSchema(schema2)).toThrow("Invalid name (can't start with $, can't contain '.' or '\0')");
+
+  const schema3:Schema = {
+    'todos\0Filter': {
+      type: 'value',
+      initValue: "Get milk",
+      actionType: 'CHANGE_TODOS_FILTER',
+    },
+  };
+
+  expect(() => compileSchema(schema3)).toThrow("Invalid name (can't start with $, can't contain '.' or '\0')");
+
+  // $ in the middle of the string is all right
+  const schema4:Schema = {
+    'todos$Filter': {
+      type: 'value',
+      initValue: "Get milk",
+      actionType: 'CHANGE_TODOS_FILTER',
+    },
+  };
+  const compiledSchema4:CompiledSchema = compileSchema(schema4);
+  expect(compiledSchema4).toMatchObject({actions: {}, collViews: {}, names: {}});
+});
+
 test("Simple Schema Compiler", function() {
   const schema:Schema = {
     'todosFilter': {
@@ -62,10 +105,10 @@ test("Simple Schema Compiler", function() {
       ]
     },
     "names": {
-      "customNextPage": {"name": "customNextPage", "type": "custom", prefix: "", path: [], schemaEntry: schema.customNextPage},
-      "todos": {"name": "todos", "type": "collection", prefix: "", path: ["todos"], schemaEntry: schema.todos},
-      "todosFilter": {"name": "todosFilter", "type": "value", prefix: "", path: ["todosFilter"], schemaEntry: schema.todosFilter},
-      "todosView": {"name": "todosView", "type": "view", prefix: "", path: ["todosView"], schemaEntry: schema.todosView}
+      "customNextPage": {"name": "customNextPage", "type": "custom", namePrefix: "", path: [], schemaPath: [], subPath: [], schemaEntry: schema.customNextPage},
+      "todos": {"name": "todos", "type": "collection", namePrefix: "", path: ["todos"], schemaPath: [], subPath: ["todos"], schemaEntry: schema.todos},
+      "todosFilter": {"name": "todosFilter", "type": "value", "initValue": "Get milk", namePrefix: "", path: ["todosFilter"], schemaPath: [], subPath: ["todosFilter"], schemaEntry: schema.todosFilter},
+      "todosView": {"name": "todosView", "type": "view", namePrefix: "", path: ["todosView"], schemaPath: [], subPath: ["todosView"], schemaEntry: schema.todosView}
     },
     "actions": {
       "CHANGE_TODOS_FILTER": {
@@ -117,9 +160,9 @@ test("SubSchema Compiler", function() {
   const csExpected:CompiledSchema = {
     "collViews": {},
     "names": {
-      "calendarSchema": {"name": "calendarSchema", "type": "schema", prefix: "", path: ["calendarSchema"], schemaEntry: schema.calendarSchema},
-      "calendarSchema.currentMonth": {"name": "calendarSchema.currentMonth", "type": "value", prefix: "calendarSchema.", path: ["calendarSchema", "currentMonth"], schemaEntry: cast(schema["calendarSchema"]).schema.currentMonth},
-      "todosFilter": {"name": "todosFilter", "type": "value", prefix: "", path: ["todosFilter"], schemaEntry: schema.todosFilter}
+      "calendarSchema": {"name": "calendarSchema", "type": "schema", namePrefix: "", path: ["calendarSchema"], schemaPath: [], subPath: ["calendarSchema"], schemaEntry: schema.calendarSchema},
+      "calendarSchema.currentMonth": {"name": "calendarSchema.currentMonth", "type": "value", "initValue": "2017-06", namePrefix: "calendarSchema.", path: ["calendarSchema", "currentMonth"], schemaPath: ["calendarSchema"], subPath: ["currentMonth"], schemaEntry: cast(schema["calendarSchema"]).schema.currentMonth},
+      "todosFilter": {"name": "todosFilter", "type": "value", "initValue": "Get milk", namePrefix: "", path: ["todosFilter"], schemaPath: [], subPath: ["todosFilter"], schemaEntry: schema.todosFilter}
     },
     "actions": {
       "calendarSchema.CHANGE_CURRENT_MONTH": {
@@ -140,8 +183,6 @@ test("SubSchema Compiler", function() {
       _state: {},
       todosFilter: "Get milk",
       calendarSchema: {
-        _props: {},
-        _state: {},
         currentMonth: "2017-06"
       }
     }))

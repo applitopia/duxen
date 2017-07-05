@@ -73,17 +73,53 @@ declare type SchemaEntryType =
   'view' |
   'custom' |
   'schema';
-declare type ValueSchemaEntry = {type: 'value', initValue: StateValue, actionType: CustomActionType, action?: (StateValue)=>ValueAction, reducer?: ValueReducer};
-declare type CollectionSchemaEntry = {type: 'collection'};
-declare type Recipe = (seq: Seq<StateKey, StateValue>, props: {[string]: StateValue}) => Seq<StateKey, StateValue>;
-declare type ViewSchemaEntry = {type: 'view', collName: string, recalcOn?: [CustomActionType], props: {[string]: (state: State)=>StateValue}, recipe: Recipe};
-declare type CustomSchemaEntry = {type: 'custom', actionType: CustomActionType, action: ()=>CustomAction, reducer: CustomReducer};
-declare type SubSchemaEntry = {type: 'schema', schema: Schema};
+declare type ValueSchemaEntry = {
+  type: 'value',
+  path?: string,
+  initValue: StateValue,
+  actionType: CustomActionType,
+  action?: (StateValue)=>ValueAction,
+  reducer?: ValueReducer};
+declare type CollectionSchemaEntry = {
+  type: 'collection',
+  path?: string
+};
+declare type Props = {[string]: StateValue};
+declare type PropsRecipe = {[string]: (state: State)=>StateValue};
+declare type ViewRecipe = (seq: Seq<StateKey, StateValue>, props: Props) => Seq<StateKey, StateValue>;
+
+declare type ViewSchemaEntry = {
+  type: 'view',
+  collName: string,
+  path?: string,
+  recalcOn?: [CustomActionType],
+  props: PropsRecipe,
+  recipe: ViewRecipe
+};
+
+declare type CustomSchemaEntry = {
+  type: 'custom',
+  path?: string,
+  actionType: CustomActionType,
+  action: ()=>CustomAction,
+  reducer: CustomReducer
+};
+
+declare type SubSchemaEntry = {
+  type: 'schema',
+  path?: string,
+  schema: Schema
+};
+
 declare type SchemaEntry = ValueSchemaEntry | CollectionSchemaEntry | ViewSchemaEntry | CustomSchemaEntry | SubSchemaEntry;
-declare type Schema = {[string]: SchemaEntry};
+
+declare type Schema = {
+  [string]: SchemaEntry
+};
 
 declare interface EngineInterface {
   // Utility functions
+  get(state: State, name: string): StateValue;
   cleanState(state: State): State;
   subscribe(listener: (Action)=>void): ()=>void;
 
@@ -115,16 +151,17 @@ declare function createEngine(schema: Schema): EngineInterface;
 //
 
 declare type MongoID = string | {|_str: string|};
+declare type Selector = MongoID | {_id: MongoID} | {||};
 
 declare class MeteorCollection {
   static (name: string, engine: EngineInterface, dispatch: (Action)=>Action, getData: ()=>CollData, getOriginals: ()=>CollData): MeteorCollection;
   dispatch(action: Action): Action;
   flush(): void;
 
-  remove(mongoId: MongoID | {||}): void;
+  remove(selector: Selector): void;
   insert(replace: CollDocument): void;
-  update(mongoId: MongoID, replace: CollDocument): void;
-  findOne(mongoId: MongoID): boolean;
+  update(selector: Selector, replace: CollDocument): void;
+  findOne(selector: Selector): boolean;
 
   pauseObservers(): void;
   resumeObservers(): void;
