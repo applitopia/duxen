@@ -126,6 +126,16 @@ var MeteorCollection = exports.MeteorCollection = function () {
       return this._ids.has(mongoId);
     }
   }, {
+    key: 'fetchOne',
+    value: function fetchOne(selector) {
+      var mongoId = getMongoID(selector);
+      if (!mongoId) {
+        throw new Error("Selector not supported:" + JSON.stringify(selector));
+      }
+      this.flush();
+      return this._getData().get(mongoId);
+    }
+  }, {
     key: 'pauseObservers',
     value: function pauseObservers() {
       this._paused = true;
@@ -182,7 +192,7 @@ var MeteorDriver = exports.MeteorDriver = function () {
 
       // eslint-disable-line no-unused-vars
       var getData = function getData() {
-        return _this._getState().get(name);
+        return _this._engine.get(_this._getState(), name);
       };
       var getOriginals = function getOriginals() {
         return _this._getState().getIn(['_state', name, "originals"]);

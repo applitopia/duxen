@@ -11,8 +11,9 @@
 import { createStore } from 'redux';
 import { createEngine } from '../src';
 import { MeteorDriver, MeteorCollection } from '../src/MeteorDriver';
+import { Map } from 'immutable-sorted';
 
-test("Meteor Driver", function() {
+test("Meteor Driver - dispatch, insert, update, remove", function() {
   const schema:Schema = {
     'todosFilter': {
       type: 'value',
@@ -89,4 +90,75 @@ test("Meteor Driver", function() {
   };
   expect(state4.toJS()).toEqual(expected4);
 
+});
+
+test("Meteor Driver - dispatch, insert, update, remove", function() {
+  const schema:Schema = {
+    'todosFilter': {
+      type: 'value',
+      initValue: "Get milk",
+      actionType: 'CHANGE_TODOS_FILTER',
+    },
+    'todos': {
+      type: 'collection',
+    },
+    'todosView': {
+      type: 'view',
+      collName: 'todos',
+      props: {},
+      recipe: (seq) => seq.map((v)=>v.delete("_id")),
+    },
+  };
+
+  const engine:EngineInterface = new createEngine(schema);
+  const reducer:Reducer = engine.reducer();
+  const store = createStore(reducer);
+  const meteorDriver:MeteorDriver = new MeteorDriver(engine, store.dispatch, store.getState);
+  const meteorCollection:MeteorCollection = meteorDriver.open("todos", {});
+
+  const state0:State = store.getState();
+  const expected0 = {
+    _props: {},
+    _state: {todos: {paused: false}},
+    todosFilter: "Get milk",
+    todos: {},
+    todosView: {}};
+  expect(state0.toJS()).toEqual(expected0);
+
+  const action1 = engine.value("todosFilter", "Get sugar");
+  meteorCollection.dispatch(action1)
+  const state1 = store.getState();
+  const expected1 = {
+    _props: {todosView: {}},
+    _state: {todos: {paused: false}},
+    todosFilter: "Get sugar",
+    todos: {},
+    todosView: {}};
+  expect(state1.toJS()).toEqual(expected1);
+
+  meteorCollection.insert({_id: "id1", "text": "Get tickets"});
+  const state2 = store.getState();
+  const expected2 = {
+    _props: {todosView: {}},
+    _state: {todos: {paused: false}},
+    todosFilter: "Get sugar",
+    todos: {id1: {_id: "id1", "text": "Get tickets"}},
+    todosView: {id1: {"text": "Get tickets"}}
+  };
+  expect(state2.toJS()).toEqual(expected2);
+
+  const result3_1:boolean = meteorCollection.findOne({_id: "id1"});
+  expect(result3_1).toBe(true);
+  const result3_2:boolean = meteorCollection.findOne("id1");
+  expect(result3_2).toBe(true);
+  const result3_3:boolean = meteorCollection.findOne({_id: "id2"});
+  expect(result3_3).toBe(false);
+  const result3_4:boolean = meteorCollection.findOne("id2");
+  expect(result3_4).toBe(false);
+
+  meteorCollection.pauseObservers();
+  meteorCollection.resumeObservers();
+  meteorCollection.saveOriginals();
+  const originals:Seq<StateKey, mixed> = meteorCollection.retrieveOriginals();
+  expect(originals.toMap()).toEqual(Map());
 });

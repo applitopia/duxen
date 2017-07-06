@@ -117,6 +117,15 @@ export class MeteorCollection {
     return this._ids.has(mongoId);
   }
 
+  fetchOne(selector: Selector): boolean {
+    const mongoId:?MongoID = getMongoID(selector);
+    if(!mongoId) {
+      throw new Error("Selector not supported:"+JSON.stringify(selector));
+    }
+    this.flush();
+    return this._getData().get(mongoId);
+  }
+
   pauseObservers(): void {
     this._paused = true;
     this._pending = [];
@@ -160,7 +169,7 @@ export class MeteorDriver {
   }
 
   open(name: string, connection?: {}): MeteorCollection { // eslint-disable-line no-unused-vars
-    const getData = () => this._getState().get(name);
+    const getData = () => this._engine.get(this._getState(), name);
     const getOriginals = () => this._getState().getIn(['_state', name, "originals"]);
     return new MeteorCollection(name, this._engine, this._dispatch, getData, getOriginals);
   }

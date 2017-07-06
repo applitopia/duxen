@@ -131,15 +131,37 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
           const updDoc:CollDocument = collAction.doc;
           const setDoc:CollDocument = cast(updDoc.get("$set"));
           const unsetDoc:CollDocument = cast(updDoc.get("$unset"));
+          const incDoc:CollDocument = cast(updDoc.get("$inc"));
+          const mulDoc:CollDocument = cast(updDoc.get("$mul"));
 
           let newDoc:CollDocument;
-          if(setDoc || unsetDoc) {
+          if(setDoc || unsetDoc || incDoc || mulDoc) {
             newDoc = doc.withMutations((mutableDoc: CollDocument): void => {
               if(setDoc) {
                 setDoc.forEach((v, k) => mutableDoc.setIn(k.split('.'), v));
               }
               if(unsetDoc) {
                 unsetDoc.forEach((v, k) => mutableDoc.deleteIn(k.split('.')));
+              }
+              if(incDoc) {
+                incDoc.forEach((v, k) => {
+                  const keyPath:Array<string> = k.split('.');
+                  let val:StateValue = mutableDoc.getIn(keyPath);
+                  if(typeof val === 'number') {
+                    val += v;
+                    mutableDoc.setIn(keyPath, val);
+                  }
+                });
+              }
+              if(mulDoc) {
+                mulDoc.forEach((v, k) => {
+                  const keyPath:Array<string> = k.split('.');
+                  let val:StateValue = mutableDoc.getIn(keyPath);
+                  if(typeof val === 'number') {
+                    val *= v;
+                    mutableDoc.setIn(keyPath, val);
+                  }
+                });
               }
             });
           } else {

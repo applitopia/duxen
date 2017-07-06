@@ -55,7 +55,7 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
       throw new Error("Missing reducer in custom schema: "+JSON.stringify(entry));
     }
     if(entry.path) {
-      throw new Error("Path is not allowed in custom schema: "+JSON.stringify(entry));      
+      throw new Error("Path is not allowed in custom schema: "+JSON.stringify(entry));
     }
 
     const reducer:CustomReducer = (state: State, action: CustomAction): State => {
@@ -88,7 +88,7 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
       }
 
       let schemaPath:Array<string> = schemaPathName?schemaPathName.split('.'):[];
-      const subPathName:string = (entry.path ? entry.path + '.' : "") + name;
+      const subPathName:string = (entry.path ? entry.path : name);
       let subPath:Array<string> = subPathName.split('.');
       const pathNamePrefix:string = schemaPathName ? schemaPathName + '.' : "";
       const pathName:string = pathNamePrefix + subPathName;
@@ -189,7 +189,7 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
         break;
       }
       case 'schema': {
-        map.set(name, compileInitState(entry.schema, prefix+name+".", rootMap));
+        map.setIn(cn.subPath, compileInitState(entry.schema, prefix+name+".", rootMap));
         break;
       }
       case 'custom': {

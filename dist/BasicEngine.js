@@ -163,9 +163,11 @@ var BasicEngine = function (_CommonEngine) {
               var updDoc = _collAction2.doc;
               var setDoc = cast(updDoc.get("$set"));
               var unsetDoc = cast(updDoc.get("$unset"));
+              var incDoc = cast(updDoc.get("$inc"));
+              var mulDoc = cast(updDoc.get("$mul"));
 
               var newDoc = void 0;
-              if (setDoc || unsetDoc) {
+              if (setDoc || unsetDoc || incDoc || mulDoc) {
                 newDoc = doc.withMutations(function (mutableDoc) {
                   if (setDoc) {
                     setDoc.forEach(function (v, k) {
@@ -175,6 +177,26 @@ var BasicEngine = function (_CommonEngine) {
                   if (unsetDoc) {
                     unsetDoc.forEach(function (v, k) {
                       return mutableDoc.deleteIn(k.split('.'));
+                    });
+                  }
+                  if (incDoc) {
+                    incDoc.forEach(function (v, k) {
+                      var keyPath = k.split('.');
+                      var val = mutableDoc.getIn(keyPath);
+                      if (typeof val === 'number') {
+                        val += v;
+                        mutableDoc.setIn(keyPath, val);
+                      }
+                    });
+                  }
+                  if (mulDoc) {
+                    mulDoc.forEach(function (v, k) {
+                      var keyPath = k.split('.');
+                      var val = mutableDoc.getIn(keyPath);
+                      if (typeof val === 'number') {
+                        val *= v;
+                        mutableDoc.setIn(keyPath, val);
+                      }
                     });
                   }
                 });

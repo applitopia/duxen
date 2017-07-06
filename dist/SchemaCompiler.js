@@ -87,7 +87,7 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
       }
 
       var schemaPath = schemaPathName ? schemaPathName.split('.') : [];
-      var subPathName = (entry.path ? entry.path + '.' : "") + name;
+      var subPathName = entry.path ? entry.path : name;
       var subPath = subPathName.split('.');
       var pathNamePrefix = schemaPathName ? schemaPathName + '.' : "";
       var pathName = pathNamePrefix + subPathName;
@@ -198,7 +198,7 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
             }
           case 'schema':
             {
-              map.set(name, compileInitState(entry.schema, prefix + name + ".", rootMap));
+              map.setIn(cn.subPath, compileInitState(entry.schema, prefix + name + ".", rootMap));
               break;
             }
           case 'custom':

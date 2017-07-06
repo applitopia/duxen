@@ -18,7 +18,7 @@ test("Reducer value is aware of path", function() {
   const schema:Schema = {
     'todosFilter': {
       type: 'value',
-      path: 'a.b.c',
+      path: 'a.b.c.todosFilter',
       initValue: "Get milk",
       actionType: 'CHANGE_TODOS_FILTER',
     },
@@ -126,17 +126,17 @@ test("Reducer value, collection, view are aware of path", function() {
   const schema:Schema = {
     'todosFilter': {
       type: 'value',
-      path: 'a.b.c',
+      path: 'a.b.c.todosFilter',
       initValue: "Get milk",
       actionType: 'CHANGE_TODOS_FILTER',
     },
     'todos': {
       type: 'collection',
-      path: 'x.y.z',
+      path: 'x.y.z.todos',
     },
     'todosView': {
       type: 'view',
-      path: 'views.are.here',
+      path: 'views.are.here.todosView',
       collName: 'todos',
       props: {},
       recipe: (seq) => seq,

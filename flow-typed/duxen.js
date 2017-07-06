@@ -162,6 +162,7 @@ declare class MeteorCollection {
   insert(replace: CollDocument): void;
   update(selector: Selector, replace: CollDocument): void;
   findOne(selector: Selector): boolean;
+  fetchOne(selector: Selector): CollDocument;
 
   pauseObservers(): void;
   resumeObservers(): void;

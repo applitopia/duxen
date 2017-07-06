@@ -164,9 +164,11 @@ var BasicEngine = function (_CommonEngine) {
               var updDoc = _collAction2.doc;
               var setDoc = cast(updDoc.get("$set"));
               var unsetDoc = cast(updDoc.get("$unset"));
+              var incDoc = cast(updDoc.get("$inc"));
+              var mulDoc = cast(updDoc.get("$mul"));
 
               var newDoc = void 0;
-              if (setDoc || unsetDoc) {
+              if (setDoc || unsetDoc || incDoc || mulDoc) {
                 newDoc = doc.withMutations(function (mutableDoc) {
                   if (setDoc) {
                     setDoc.forEach(function (v, k) {
@@ -176,6 +178,26 @@ var BasicEngine = function (_CommonEngine) {
                   if (unsetDoc) {
                     unsetDoc.forEach(function (v, k) {
                       return mutableDoc.deleteIn(k.split('.'));
+                    });
+                  }
+                  if (incDoc) {
+                    incDoc.forEach(function (v, k) {
+                      var keyPath = k.split('.');
+                      var val = mutableDoc.getIn(keyPath);
+                      if (typeof val === 'number') {
+                        val += v;
+                        mutableDoc.setIn(keyPath, val);
+                      }
+                    });
+                  }
+                  if (mulDoc) {
+                    mulDoc.forEach(function (v, k) {
+                      var keyPath = k.split('.');
+                      var val = mutableDoc.getIn(keyPath);
+                      if (typeof val === 'number') {
+                        val *= v;
+                        mutableDoc.setIn(keyPath, val);
+                      }
                     });
                   }
                 });
@@ -846,6 +868,16 @@ var MeteorCollection = exports.MeteorCollection = function () {
       return this._ids.has(mongoId);
     }
   }, {
+    key: 'fetchOne',
+    value: function fetchOne(selector) {
+      var mongoId = getMongoID(selector);
+      if (!mongoId) {
+        throw new Error("Selector not supported:" + JSON.stringify(selector));
+      }
+      this.flush();
+      return this._getData().get(mongoId);
+    }
+  }, {
     key: 'pauseObservers',
     value: function pauseObservers() {
       this._paused = true;
@@ -902,7 +934,7 @@ var MeteorDriver = exports.MeteorDriver = function () {
 
       // eslint-disable-line no-unused-vars
       var getData = function getData() {
-        return _this._getState().get(name);
+        return _this._engine.get(_this._getState(), name);
       };
       var getOriginals = function getOriginals() {
         return _this._getState().getIn(['_state', name, "originals"]);
@@ -1003,7 +1035,7 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
       }
 
       var schemaPath = schemaPathName ? schemaPathName.split('.') : [];
-      var subPathName = (entry.path ? entry.path + '.' : "") + name;
+      var subPathName = entry.path ? entry.path : name;
       var subPath = subPathName.split('.');
       var pathNamePrefix = schemaPathName ? schemaPathName + '.' : "";
       var pathName = pathNamePrefix + subPathName;
@@ -1114,7 +1146,7 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
             }
           case 'schema':
             {
-              map.set(name, compileInitState(entry.schema, prefix + name + ".", rootMap));
+              map.setIn(cn.subPath, compileInitState(entry.schema, prefix + name + ".", rootMap));
               break;
             }
           case 'custom':
