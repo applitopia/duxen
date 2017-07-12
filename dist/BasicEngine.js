@@ -4,6 +4,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _immutableSorted = require('immutable-sorted');
@@ -62,40 +64,63 @@ var BasicEngine = function (_CommonEngine) {
           failed("Missing collName in action: " + action.toString());
         }
 
-        if (_this2._getNameType(action.collName) !== 'collection' || !cs.collViews[action.collName]) {
+        if (_this2._getNameType(action.collName) !== 'collection') {
           failed("Unknown collection name: " + action.collName);
         }
       };
 
-      var updateViews = function updateViews(mutableState, state, collName, collData, cn) {
+      var updateViews = function updateViews(mutableState, state, collName, cn) {
         var paused = mutableState.getIn(["_state", collName, "paused"]);
 
         if (paused === true) {
           return;
         }
 
-        var va = cs.collViews[collName];
+        var va = cn.dependents;
 
+        if (!va) {
+          return;
+        }
+
+        var oldPaused = state.getIn(["_state", collName, "paused"]);
         var schemaState = mutableState.getIn(cn.schemaPath);
 
         for (var i = 0, length = va.length; i < length; i++) {
-          var v = va[i];
-          var vcn = getCompiledName(v.viewName);
+          var viewName = va[i];
+          var vcn = getCompiledName(viewName);
+          var vcne = cast(vcn.schemaEntry);
+          var scn = getCompiledName(vcn.namePrefix + vcne.sourceName);
 
           // Prepare props
           var props = {};
-          for (var p in v.props) {
-            var propFn = v.props[p];
-            props[p] = propFn(schemaState);
+          for (var p in vcne.props) {
+            var propRecipe = vcne.props[p];
+            switch (typeof propRecipe === 'undefined' ? 'undefined' : _typeof(propRecipe)) {
+              case 'function':
+                {
+                  props[p] = propRecipe(schemaState);
+                  break;
+                }
+              case 'string':
+                {
+                  var pcn = getCompiledName(propRecipe);
+                  props[p] = schemaState.getIn(pcn.subPath);
+                  break;
+                }
+              default:
+                {
+                  throw new Error("Invalid type of propRecipe: " + (typeof propRecipe === 'undefined' ? 'undefined' : _typeof(propRecipe)));
+                }
+            }
           }
-          var oldProps = mutableState.getIn(['_props', v.viewName]);
+          var oldProps = mutableState.getIn(['_props', viewName]);
           var newProps = (0, _immutableSorted.fromJS)(props);
-          var oldData = state.getIn(cn.path);
-          var oldPaused = state.getIn(["_state", collName, "paused"]);
-          if (collData !== oldData || !(0, _immutableSorted.is)(oldProps, newProps) || oldPaused !== paused) {
-            var newdata = v.recipe(cast(collData.toSeq()), props);
+          var oldSourceData = state.getIn(scn.path);
+          var newSourceData = mutableState.getIn(scn.path);
+          if (oldSourceData !== newSourceData || !(0, _immutableSorted.is)(oldProps, newProps) || oldPaused !== paused) {
+            var newdata = vcne.recipe(cast(newSourceData.toSeq()), props);
 
-            mutableState.setIn(['_props', v.viewName], newProps);
+            mutableState.setIn(['_props', viewName], newProps);
             mutableState.setIn(vcn.path, newdata);
           }
         }
@@ -144,7 +169,7 @@ var BasicEngine = function (_CommonEngine) {
               mutableState.setIn(cn.path, newcollData);
 
               updateOriginals(mutableState, _collAction.collName, _collAction.id);
-              updateViews(mutableState, state, _collAction.collName, newcollData, cn);
+              updateViews(mutableState, state, _collAction.collName, cn);
               break;
             }
 
@@ -208,7 +233,7 @@ var BasicEngine = function (_CommonEngine) {
               mutableState.setIn(_cn.path, _newcollData);
 
               updateOriginals(mutableState, _collAction2.collName, id, doc);
-              updateViews(mutableState, state, _collAction2.collName, _newcollData, _cn);
+              updateViews(mutableState, state, _collAction2.collName, _cn);
               break;
             }
 
@@ -227,7 +252,7 @@ var BasicEngine = function (_CommonEngine) {
                 mutableState.setIn(_cn2.path, _newcollData2);
 
                 updateOriginals(mutableState, _collAction3.collName, _id, _doc);
-                updateViews(mutableState, state, _collAction3.collName, _newcollData2, _cn2);
+                updateViews(mutableState, state, _collAction3.collName, _cn2);
               }
               break;
             }
@@ -240,7 +265,7 @@ var BasicEngine = function (_CommonEngine) {
 
               mutableState.setIn(_cn3.path, _newcollData3);
               mutableState.deleteIn(["_state", _collAction4.collName, "originals"]);
-              updateViews(mutableState, state, _collAction4.collName, _newcollData3, _cn3);
+              updateViews(mutableState, state, _collAction4.collName, _cn3);
               break;
             }
 
@@ -256,8 +281,7 @@ var BasicEngine = function (_CommonEngine) {
               var _collAction6 = cast(action);
               var _cn4 = getCompiledName(_collAction6.collName);
               mutableState.setIn(["_state", _collAction6.collName, "paused"], false);
-              var _collData3 = cast(mutableState.getIn(_cn4.path));
-              updateViews(mutableState, state, _collAction6.collName, _collData3, _cn4);
+              updateViews(mutableState, state, _collAction6.collName, _cn4);
               break;
             }
 
@@ -265,8 +289,8 @@ var BasicEngine = function (_CommonEngine) {
             {
               var _collAction7 = cast(action);
               var _cn5 = getCompiledName(_collAction7.collName);
-              var _collData4 = cast(mutableState.getIn(_cn5.path));
-              mutableState.setIn(["_state", _collAction7.collName, "saved"], _collData4);
+              var _collData3 = cast(mutableState.getIn(_cn5.path));
+              mutableState.setIn(["_state", _collAction7.collName, "saved"], _collData3);
               break;
             }
 
@@ -274,21 +298,21 @@ var BasicEngine = function (_CommonEngine) {
             {
               var _collAction8 = cast(action);
               var _cn6 = getCompiledName(_collAction8.collName);
-              var _collData5 = cast(mutableState.getIn(["_state", _collAction8.collName, "saved"]));
-              if (!_collData5) {
+              var _collData4 = cast(mutableState.getIn(["_state", _collAction8.collName, "saved"]));
+              if (!_collData4) {
                 throw new Error("Restore: nothing was saved");
               }
               mutableState.deleteIn(["_state", _collAction8.collName, "saved"]);
-              mutableState.setIn(_cn6.path, _collData5);
-              updateViews(mutableState, state, _collAction8.collName, _collData5, _cn6);
+              mutableState.setIn(_cn6.path, _collData4);
+              updateViews(mutableState, state, _collAction8.collName, _cn6);
               break;
             }
 
           case 'DUXEN_SAVE_ORIGINALS':
             {
               var _collAction9 = cast(action);
-              var _collData6 = cast(mutableState.getIn(["_state", _collAction9.collName, "originals"]));
-              if (_collData6) {
+              var _collData5 = cast(mutableState.getIn(["_state", _collAction9.collName, "originals"]));
+              if (_collData5) {
                 throw new Error("Save Originals: called twice without retrieve originals");
               }
               mutableState.setIn(["_state", _collAction9.collName, "originals"], (0, _immutableSorted.Map)());
@@ -298,8 +322,8 @@ var BasicEngine = function (_CommonEngine) {
           case 'DUXEN_RETRIEVE_ORIGINALS':
             {
               var _collAction10 = cast(action);
-              var _collData7 = cast(mutableState.getIn(["_state", _collAction10.collName, "originals"]));
-              if (!_collData7) {
+              var _collData6 = cast(mutableState.getIn(["_state", _collAction10.collName, "originals"]));
+              if (!_collData6) {
                 throw new Error("Retrieve Originals: called without save originals");
               }
               mutableState.deleteIn(["_state", _collAction10.collName, "originals"]);
@@ -356,10 +380,19 @@ var BasicEngine = function (_CommonEngine) {
                 }
               }
 
-              if (changed) for (var _name in cs.collViews) {
+              if (changed) for (var _name in cs.names) {
                 var _cn8 = getCompiledName(_name);
-                var _collData8 = cast(state.getIn(_cn8.path));
-                updateViews(mutableState, state, _name, _collData8, _cn8);
+                switch (_cn8.type) {
+                  case 'collection':
+                    {
+                      updateViews(mutableState, state, _name, _cn8);
+                      break;
+                    }
+                  default:
+                    {
+                      break;
+                    }
+                }
               }
               break;
             }

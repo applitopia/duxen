@@ -33,40 +33,60 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
         failed("Missing collName in action: "+action.toString());
       }
 
-      if(this._getNameType(action.collName) !== 'collection' || !cs.collViews[action.collName]) {
+      if(this._getNameType(action.collName) !== 'collection') {
         failed("Unknown collection name: "+action.collName);
       }
     };
 
-    const updateViews = (mutableState: State, state: State, collName: string, collData: CollData, cn: CompiledName): void => {
+    const updateViews = (mutableState: State, state: State, collName: string, cn: CompiledName): void => {
       const paused = mutableState.getIn(["_state", collName, "paused"]);
 
       if(paused === true) {
         return;
       }
 
-      const va:Array<CompiledCollView> = cs.collViews[collName];
+      const va:Array<string> =cn.dependents;
 
+      if(!va) {
+        return;
+      }
+
+      const oldPaused = state.getIn(["_state", collName, "paused"]);
       const schemaState:State = mutableState.getIn(cn.schemaPath);
 
       for(let i:number=0, length=va.length; i < length; i++) {
-        const v:CompiledCollView = va[i];
-        const vcn:CompiledName = getCompiledName(v.viewName);
+        const viewName: string = va[i];
+        const vcn:CompiledName = getCompiledName(viewName);
+        const vcne: ViewSchemaEntry = cast(vcn.schemaEntry);
+        const scn:CompiledName = getCompiledName(vcn.namePrefix+vcne.sourceName);
 
         // Prepare props
         const props:Props = {};
-        for(let p:string in v.props) {
-          const propFn = v.props[p];
-          props[p] = propFn(schemaState);
+        for(let p:string in vcne.props) {
+          const propRecipe: PropRecipe = vcne.props[p];
+          switch(typeof(propRecipe)) {
+            case 'function': {
+              props[p] = propRecipe(schemaState);
+              break;
+            }
+            case 'string': {
+              const pcn:CompiledName = getCompiledName(propRecipe);
+              props[p] = schemaState.getIn(pcn.subPath);
+              break;
+            }
+            default: {
+              throw new Error("Invalid type of propRecipe: "+typeof(propRecipe));
+            }
+          }
         }
-        const oldProps = mutableState.getIn(['_props', v.viewName]);
+        const oldProps = mutableState.getIn(['_props', viewName]);
         const newProps = fromJS(props);
-        const oldData = state.getIn(cn.path);
-        const oldPaused = state.getIn(["_state", collName, "paused"]);
-        if(collData !== oldData || !is(oldProps, newProps) || oldPaused !== paused) {
-          const newdata = v.recipe(cast(collData.toSeq()), props);
+        const oldSourceData = state.getIn(scn.path);
+        const newSourceData = mutableState.getIn(scn.path);
+        if(oldSourceData !== newSourceData || !is(oldProps, newProps) || oldPaused !== paused) {
+          const newdata = vcne.recipe(cast(newSourceData.toSeq()), props);
 
-          mutableState.setIn(['_props', v.viewName], newProps);
+          mutableState.setIn(['_props', viewName], newProps);
           mutableState.setIn(vcn.path, newdata);
         }
       }
@@ -113,7 +133,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
           mutableState.setIn(cn.path, newcollData);
 
           updateOriginals(mutableState, collAction.collName, collAction.id);
-          updateViews(mutableState, state, collAction.collName, newcollData, cn);
+          updateViews(mutableState, state, collAction.collName, cn);
           break;
         }
 
@@ -172,7 +192,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
           mutableState.setIn(cn.path, newcollData);
 
           updateOriginals(mutableState, collAction.collName, id, doc);
-          updateViews(mutableState, state, collAction.collName, newcollData, cn);
+          updateViews(mutableState, state, collAction.collName, cn);
           break;
         }
 
@@ -190,7 +210,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
             mutableState.setIn(cn.path, newcollData);
 
             updateOriginals(mutableState, collAction.collName, id, doc);
-            updateViews(mutableState, state, collAction.collName, newcollData, cn);
+            updateViews(mutableState, state, collAction.collName, cn);
           }
           break;
         }
@@ -202,7 +222,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
 
           mutableState.setIn(cn.path, newcollData);
           mutableState.deleteIn(["_state", collAction.collName, "originals"]);
-          updateViews(mutableState, state, collAction.collName, newcollData, cn);
+          updateViews(mutableState, state, collAction.collName, cn);
           break;
         }
 
@@ -216,8 +236,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
           const collAction:PauseAction = cast(action);
           const cn:CompiledName = getCompiledName(collAction.collName);
           mutableState.setIn(["_state", collAction.collName, "paused"], false);
-          const collData:CollData = cast(mutableState.getIn(cn.path));
-          updateViews(mutableState, state, collAction.collName, collData, cn);
+          updateViews(mutableState, state, collAction.collName, cn);
           break;
         }
 
@@ -238,7 +257,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
           }
           mutableState.deleteIn(["_state", collAction.collName, "saved"]);
           mutableState.setIn(cn.path, collData);
-          updateViews(mutableState, state, collAction.collName, collData, cn);
+          updateViews(mutableState, state, collAction.collName, cn);
           break;
         }
 
@@ -310,10 +329,17 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
           }
 
           if(changed)
-          for(let name:string in cs.collViews) {
+          for(let name:string in cs.names) {
             const cn:CompiledName = getCompiledName(name);
-            const collData: CollData = cast(state.getIn(cn.path));
-            updateViews(mutableState, state, name, collData, cn);
+            switch(cn.type) {
+              case 'collection': {
+                updateViews(mutableState, state, name, cn);
+                break;
+              }
+              default: {
+                break;
+              }
+            }
           }
           break;
         }

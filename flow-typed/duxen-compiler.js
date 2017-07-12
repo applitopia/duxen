@@ -12,18 +12,7 @@
  // Compiled Types
  //
 
- declare type CompiledCollView = {
-   viewName: string,
-   collName: string,
-   props: PropsRecipe,
-   recipe: Recipe
- };
-
- declare type CompiledCollViews = {
-   [string]: Array<CompiledCollView>
- };
-
- declare type CompiledName = {
+ declare type CompiledName = {|
    name: string,
    type: SchemaEntryType,
    initValue?: StateValue,
@@ -31,26 +20,27 @@
    path: Array<string>,
    schemaPath: Array<string>,
    subPath: Array<string>,
-   schemaEntry: SchemaEntry
- };
+   schemaEntry: SchemaEntry,
+   dependents: Array<string>
+ |};
 
  declare type CompiledNames = {
    [string]: CompiledName
  };
 
- declare type CompiledValueAction = {
+ declare type CompiledValueAction = {|
    type: "value",
    name: string,
    actionType: CustomActionType,
    reducer: ValueReducer
- };
+ |};
 
- declare type CompiledCustomAction = {
+ declare type CompiledCustomAction = {|
    type: "custom",
    name: string,
    actionType: CustomActionType,
    reducer: CustomReducer
- };
+ |};
 
  declare type CompiledAction = CompiledValueAction | CompiledCustomAction;
 
@@ -58,9 +48,8 @@
    [CustomActionType]: CompiledAction
  };
 
- declare type CompiledSchema = {
-   collViews: CompiledCollViews,
+ declare type CompiledSchema = {|
    names: CompiledNames,
    actions: CompiledActions,
    initState: State,
- };
+ |};

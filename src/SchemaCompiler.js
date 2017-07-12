@@ -10,13 +10,95 @@
 
 import { Map } from 'immutable-sorted';
 
+// deps is array of [sourceName, dependentName]
+export const compileDependencies = (deps: Array<[string, string]>): {[string]: Array<string>} => {
+  // dt is dependecy table
+  const dt:{[string]: Array<string>} = {};
+
+  // cd is compiled dependency table
+  const cd:{[string]: Array<string>} = {};
+
+  for(let i = 0; i < deps.length; i++) {
+    const dep = deps[i];
+    const sourceName = dep[0];
+    const depName = dep[1];
+
+    let dtDep:Array<string> = dt[sourceName];
+
+    if(!dtDep) {
+      dtDep = [];
+      dt[sourceName] = dtDep;
+    }
+    dtDep.push(depName);
+  }
+
+  const expand = (s: string, output: Array<string>, stackTable: {[string]: true}, stack: Array<string>) => {
+    stack.push(s);
+
+    if(stackTable[s]) {
+      throw new Error("Dependency loop: "+stack.toString());
+    }
+
+    stackTable[s] = true;
+
+    const a: Array<string> = dt[s];
+
+    if(a)
+    for(let i = 0; i < a.length; i++) {
+      const si: string = a[i];
+      output.push(si);
+      expand(si, output, stackTable, stack);
+    }
+
+    stack.pop();
+    delete stackTable[s];
+  };
+
+  // eliminate duplicates in arrays (keep the last reference)
+  const dedupe = (a: Array<string>): Array<string> => {
+    const t: {[string]: number} = {};
+
+    for(let i = a.length-1; i >= 0; i--) {
+      const s: string = a[i];
+
+      if(t[s] === undefined) {
+        t[s] = i;
+      }
+    }
+
+    const r: Array<string> = [];
+    for(let i = 0; i < a.length; i++) {
+      const s: string = a[i];
+
+      if(t[s] === i) {
+        r.push(s);
+      }
+    }
+
+    return r;
+  };
+
+  // Expand arrays, identify loops, eliminate duplicates
+  for(let sourceName: string in dt) {
+    const ea: Array<string> = [];
+    const stackTable: {[string]: true} = {};
+    const stack: Array<string> = [];
+
+    expand(sourceName, ea, stackTable, stack);
+    const dea = dedupe(ea);
+
+    cd[sourceName] = dea;
+  }
+
+  return cd;
+};
+
 export const compileSchema = (schema: Schema): CompiledSchema => {
 
   // Compiled Schema
   const cs:CompiledSchema = {
     names: {},
     actions: {},
-    collViews: {},
     initState: Map(),
   };
 
@@ -108,7 +190,7 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
         throw Error("Duplicate name in schema: "+name);
       }
 
-      const cn:CompiledName = {name, type: entry.type, namePrefix, path, schemaPath, subPath, schemaEntry: entry};
+      const cn:CompiledName = {name, type: entry.type, namePrefix, path, schemaPath, subPath, schemaEntry: entry, dependents: []};
       cs.names[name] = cn;
 
       switch(entry.type) {
@@ -120,24 +202,14 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
       }
 
       case 'collection': {
-        const cv:Array<CompiledCollView> = cs.collViews[name];
-        if(!cv) {
-          cs.collViews[name] = [];
-        }
         break;
       }
 
       case 'view': {
-        const collName:string = entry.collName;
-        if(!collName) {
-          throw new Error("missing collName in view schema: "+name);
+        const sourceName:string = entry.sourceName;
+        if(!sourceName) {
+          throw new Error("missing sourceName in view schema: "+name);
         }
-        let cva:Array<CompiledCollView> = cs.collViews[collName];
-        if(!cva) {
-          cva = cs.collViews[namePrefix+collName] = [];
-        }
-        const cv:CompiledCollView = {viewName: name, collName, props: entry.props, recipe: entry.recipe};
-        cva.push(cv);
         break;
       }
 
@@ -155,6 +227,38 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
         throw new Error("Invalid SchemaEntry type: "+entry.type);
       }
       }
+    }
+
+    // Build dependents
+    const deps: Array<[string, string]> = [];
+    for(let name: string in cs.names) {
+      const cn:CompiledName = cs.names[name];
+      const cnse:SchemaEntry = cn.schemaEntry;
+
+      switch(cnse.type) {
+        case 'view': {
+          if(!cnse.sourceName) {
+            throw new Error("Source collection or view name is not specified for: "+name);
+          }
+
+          const srcName:string = cn.namePrefix+cnse.sourceName;
+          const sn:CompiledName = cs.names[srcName];
+          if(!sn) {
+            throw new Error("Source name not found in schema: "+srcName);
+          }
+          deps.push([srcName, name]);
+          break;
+        }
+        default: {
+          break;
+        }
+      }
+    }
+    const cd: {[string]: Array<string>} = compileDependencies(deps);
+    for(let name: string in cd) {
+      const a: Array<string> = cd[name];
+      const sn:CompiledName = cs.names[name];
+      sn.dependents = a;
     }
   };
 

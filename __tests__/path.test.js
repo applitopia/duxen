@@ -27,7 +27,7 @@ test("Reducer value is aware of path", function() {
     },
     'todosView': {
       type: 'view',
-      collName: 'todos',
+      sourceName: 'todos',
       props: {},
       recipe: (seq) => seq,
     },
@@ -137,7 +137,7 @@ test("Reducer value, collection, view are aware of path", function() {
     'todosView': {
       type: 'view',
       path: 'views.are.here.todosView',
-      collName: 'todos',
+      sourceName: 'todos',
       props: {},
       recipe: (seq) => seq,
     },

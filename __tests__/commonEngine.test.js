@@ -26,7 +26,7 @@ test("common engine", function() {
     },
     'todosView': {
       type: 'view',
-      collName: 'todos',
+      sourceName: 'todos',
       props: {},
       recipe: (seq) => seq,
     },

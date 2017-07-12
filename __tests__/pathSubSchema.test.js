@@ -29,7 +29,7 @@ test("Subschema and value, collection, view with path", function() {
     'todosView': {
       type: 'view',
       path: 'views.are.here.todosView',
-      collName: 'todos',
+      sourceName: 'todos',
       props: {},
       recipe: (seq) => seq,
     },
@@ -279,7 +279,7 @@ test("Subschema with path, and value, collection, view with path", function() {
     'todosView': {
       type: 'view',
       path: 'views.are.here.todosView',
-      collName: 'todos',
+      sourceName: 'todos',
       props: {},
       recipe: (seq) => seq,
     },

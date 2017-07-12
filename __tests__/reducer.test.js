@@ -26,7 +26,7 @@ test("Reducer insert, update remove", function() {
     },
     'todosView': {
       type: 'view',
-      collName: 'todos',
+      sourceName: 'todos',
       props: {},
       recipe: (seq) => seq,
     },
@@ -101,7 +101,7 @@ test("Reducer reset", function() {
     },
     'todosView': {
       type: 'view',
-      collName: 'todos',
+      sourceName: 'todos',
       props: {},
       recipe: (seq) => seq,
     },
@@ -198,7 +198,7 @@ test("Reducer pause, resume", function() {
     },
     'todosView': {
       type: 'view',
-      collName: 'todos',
+      sourceName: 'todos',
       props: {},
       recipe: (seq) => seq,
     },
@@ -290,7 +290,7 @@ test("Reducer save, restore", function() {
     },
     'todosView': {
       type: 'view',
-      collName: 'todos',
+      sourceName: 'todos',
       props: {},
       recipe: (seq) => seq,
     },
@@ -413,7 +413,7 @@ test("Reducer saveOriginals, insert, retrieveOriginals", function() {
     },
     'todosView': {
       type: 'view',
-      collName: 'todos',
+      sourceName: 'todos',
       props: {},
       recipe: (seq) => seq,
     },
@@ -544,7 +544,7 @@ test("Reducer saveOriginals, insert, update, remove, retrieveOriginals", functio
     },
     'todosView': {
       type: 'view',
-      collName: 'todos',
+      sourceName: 'todos',
       props: {},
       recipe: (seq) => seq,
     },
@@ -660,7 +660,7 @@ test("Reducer batch", function() {
     },
     'todosView': {
       type: 'view',
-      collName: 'todos',
+      sourceName: 'todos',
       props: {},
       recipe: (seq) => seq,
     },
@@ -728,7 +728,7 @@ test("Reducer props", function() {
     },
     'todosView': {
       type: 'view',
-      collName: 'todos',
+      sourceName: 'todos',
       props: {
         filter: (state) => state.getIn(['todosFilter']),
       },

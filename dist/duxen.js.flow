@@ -73,43 +73,45 @@ declare type SchemaEntryType =
   'view' |
   'custom' |
   'schema';
-declare type ValueSchemaEntry = {
+declare type ValueSchemaEntry = {|
   type: 'value',
   path?: string,
   initValue: StateValue,
   actionType: CustomActionType,
   action?: (StateValue)=>ValueAction,
-  reducer?: ValueReducer};
-declare type CollectionSchemaEntry = {
+  reducer?: ValueReducer
+|};
+declare type CollectionSchemaEntry = {|
   type: 'collection',
   path?: string
-};
+|};
 declare type Props = {[string]: StateValue};
-declare type PropsRecipe = {[string]: (state: State)=>StateValue};
+declare type PropRecipe = string | (state: State)=>StateValue;
+declare type PropsRecipe = {[string]: PropRecipe};
 declare type ViewRecipe = (seq: Seq<StateKey, StateValue>, props: Props) => Seq<StateKey, StateValue>;
 
-declare type ViewSchemaEntry = {
+declare type ViewSchemaEntry = {|
   type: 'view',
-  collName: string,
+  sourceName: string,
   path?: string,
   recalcOn?: [CustomActionType],
   props: PropsRecipe,
   recipe: ViewRecipe
-};
+|};
 
-declare type CustomSchemaEntry = {
+declare type CustomSchemaEntry = {|
   type: 'custom',
   path?: string,
   actionType: CustomActionType,
   action: ()=>CustomAction,
   reducer: CustomReducer
-};
+|};
 
-declare type SubSchemaEntry = {
+declare type SubSchemaEntry = {|
   type: 'schema',
   path?: string,
   schema: Schema
-};
+|};
 
 declare type SchemaEntry = ValueSchemaEntry | CollectionSchemaEntry | ViewSchemaEntry | CustomSchemaEntry | SubSchemaEntry;
 

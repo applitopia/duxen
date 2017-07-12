@@ -118,10 +118,13 @@ var MeteorCollection = exports.MeteorCollection = function () {
     }
   }, {
     key: 'findOne',
-    value: function findOne(selector) {
+    value: function findOne(selector, options) {
       var mongoId = getMongoID(selector);
       if (!mongoId) {
         throw new Error("Selector not supported:" + JSON.stringify(selector));
+      }
+      if ((typeof options === 'undefined' ? 'undefined' : _typeof(options)) === 'object' && options.fetch === true) {
+        return this.fetchOne(mongoId);
       }
       return this._ids.has(mongoId);
     }

@@ -50,9 +50,12 @@ test("Initial state - collection", function() {
 
 test("Initial state - view", function() {
   const schema:Schema = {
+    'todos': {
+      type: 'collection'
+    },
     'todosView': {
       type: 'view',
-      collName: 'todos',
+      sourceName: 'todos',
       props: {},
       recipe: (seq) => seq
     },
@@ -64,7 +67,8 @@ test("Initial state - view", function() {
 
   expect(state.toJS()).toEqual({
     '_props': {},
-    '_state': {},
+    '_state': {"todos": {"paused": false}},
+    "todos": {},
     "todosView": {}
   });
 });

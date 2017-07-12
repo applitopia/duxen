@@ -3,9 +3,99 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.compileSchema = undefined;
+exports.compileSchema = exports.compileDependencies = undefined;
 
 var _immutableSorted = require("immutable-sorted");
+
+// deps is array of [sourceName, dependentName]
+var compileDependencies = exports.compileDependencies = function compileDependencies(deps) {
+  // dt is dependecy table
+  var dt = {};
+
+  // cd is compiled dependency table
+  var cd = {};
+
+  for (var i = 0; i < deps.length; i++) {
+    var dep = deps[i];
+    var sourceName = dep[0];
+    var depName = dep[1];
+
+    var dtDep = dt[sourceName];
+
+    if (!dtDep) {
+      dtDep = [];
+      dt[sourceName] = dtDep;
+    }
+    dtDep.push(depName);
+  }
+
+  var expand = function expand(s, output, stackTable, stack) {
+    stack.push(s);
+
+    if (stackTable[s]) {
+      throw new Error("Dependency loop: " + stack.toString());
+    }
+
+    stackTable[s] = true;
+
+    var a = dt[s];
+
+    if (a) for (var _i = 0; _i < a.length; _i++) {
+      var si = a[_i];
+      output.push(si);
+      expand(si, output, stackTable, stack);
+    }
+
+    stack.pop();
+    delete stackTable[s];
+  };
+
+  // eliminate duplicates in arrays (keep the last reference)
+  var dedupe = function dedupe(a) {
+    var t = {};
+
+    for (var _i2 = a.length - 1; _i2 >= 0; _i2--) {
+      var s = a[_i2];
+
+      if (t[s] === undefined) {
+        t[s] = _i2;
+      }
+    }
+
+    var r = [];
+    for (var _i3 = 0; _i3 < a.length; _i3++) {
+      var _s = a[_i3];
+
+      if (t[_s] === _i3) {
+        r.push(_s);
+      }
+    }
+
+    return r;
+  };
+
+  // Expand arrays, identify loops, eliminate duplicates
+  for (var _sourceName in dt) {
+    var ea = [];
+    var stackTable = {};
+    var stack = [];
+
+    expand(_sourceName, ea, stackTable, stack);
+    var dea = dedupe(ea);
+
+    cd[_sourceName] = dea;
+  }
+
+  return cd;
+}; /**
+    *  Copyright (c) 2017, Applitopia, Inc.
+    *  All rights reserved.
+    *
+    *  This source code is licensed under the MIT-style license found in the
+    *  LICENSE file in the root directory of this source tree.
+    *
+    *  
+    */
 
 var compileSchema = exports.compileSchema = function compileSchema(schema) {
 
@@ -13,7 +103,6 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
   var cs = {
     names: {},
     actions: {},
-    collViews: {},
     initState: (0, _immutableSorted.Map)()
   };
 
@@ -107,7 +196,7 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
         throw Error("Duplicate name in schema: " + name);
       }
 
-      var cn = { name: name, type: entry.type, namePrefix: namePrefix, path: path, schemaPath: schemaPath, subPath: subPath, schemaEntry: entry };
+      var cn = { name: name, type: entry.type, namePrefix: namePrefix, path: path, schemaPath: schemaPath, subPath: subPath, schemaEntry: entry, dependents: [] };
       cs.names[name] = cn;
 
       switch (entry.type) {
@@ -121,25 +210,15 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
 
         case 'collection':
           {
-            var cv = cs.collViews[name];
-            if (!cv) {
-              cs.collViews[name] = [];
-            }
             break;
           }
 
         case 'view':
           {
-            var collName = entry.collName;
-            if (!collName) {
-              throw new Error("missing collName in view schema: " + name);
+            var sourceName = entry.sourceName;
+            if (!sourceName) {
+              throw new Error("missing sourceName in view schema: " + name);
             }
-            var cva = cs.collViews[collName];
-            if (!cva) {
-              cva = cs.collViews[namePrefix + collName] = [];
-            }
-            var _cv = { viewName: name, collName: collName, props: entry.props, recipe: entry.recipe };
-            cva.push(_cv);
             break;
           }
 
@@ -160,6 +239,40 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
             throw new Error("Invalid SchemaEntry type: " + entry.type);
           }
       }
+    }
+
+    // Build dependents
+    var deps = [];
+    for (var _name in cs.names) {
+      var _cn = cs.names[_name];
+      var cnse = _cn.schemaEntry;
+
+      switch (cnse.type) {
+        case 'view':
+          {
+            if (!cnse.sourceName) {
+              throw new Error("Source collection or view name is not specified for: " + _name);
+            }
+
+            var srcName = _cn.namePrefix + cnse.sourceName;
+            var sn = cs.names[srcName];
+            if (!sn) {
+              throw new Error("Source name not found in schema: " + srcName);
+            }
+            deps.push([srcName, _name]);
+            break;
+          }
+        default:
+          {
+            break;
+          }
+      }
+    }
+    var cd = compileDependencies(deps);
+    for (var _name2 in cd) {
+      var a = cd[_name2];
+      var _sn = cs.names[_name2];
+      _sn.dependents = a;
     }
   };
 
@@ -224,12 +337,4 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
   cs.initState = compileInitState(schema, "", undefined);
 
   return cs;
-}; /**
-    *  Copyright (c) 2017, Applitopia, Inc.
-    *  All rights reserved.
-    *
-    *  This source code is licensed under the MIT-style license found in the
-    *  LICENSE file in the root directory of this source tree.
-    *
-    *  
-    */
+};

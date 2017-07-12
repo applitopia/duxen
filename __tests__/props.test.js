@@ -1,0 +1,103 @@
+/**
+ *  Copyright (c) 2017, Applitopia, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the MIT-style license found in the
+ *  LICENSE file in the root directory of this source tree.
+ *
+ *  @flow
+ */
+
+import { createEngine } from '../src';
+import { Seq, fromJS } from 'immutable-sorted';
+
+const cast = <T>(value: any): T => (value: T);
+const ensure = <T>(value: any): T => cast(fromJS(value));
+
+test("props", function() {
+  const schema:Schema = {
+    'todosFilter': {
+      type: 'value',
+      initValue: "Get milk",
+      actionType: 'CHANGE_TODOS_FILTER',
+    },
+    'todos': {
+      type: 'collection',
+    },
+    'todosView': {
+      type: 'view',
+      sourceName: 'todos',
+      props: {todosFilter: "todosFilter"},
+      recipe: (seq, props) => seq.filter(v=>v.get('text').indexOf(props.todosFilter) >= 0),
+    },
+    'todosViewCnt': {
+      type: 'view',
+      sourceName: 'todosView',
+      props: {},
+      recipe: (seq) => Seq({cnt: seq.count()}),
+    },
+  };
+
+  const engine:EngineInterface = new createEngine(schema);
+  const reducer:Reducer = engine.reducer();
+
+  const state0:State = reducer(undefined, {type: "INIT"});
+  const expected0 = {
+    _props: {},
+    _state: {todos: {paused: false}},
+    todosFilter: "Get milk",
+    todos: {},
+    todosView: {},
+    todosViewCnt: {},
+  };
+  expect(state0.toJS()).toEqual(expected0);
+
+  const action1 = engine.value("todosFilter", "concert");
+  const state1 = reducer(state0, action1);
+  const expected1 = {
+    _props: {todosView: {"todosFilter": "concert"}, todosViewCnt: {}},
+    _state: {todos: {paused: false}},
+    todosFilter: "concert",
+    todos: {},
+    todosView: {},
+    todosViewCnt: {cnt: 0},
+  };
+  expect(state1.toJS()).toEqual(expected1);
+
+  const action2 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
+  const state2 = reducer(state1, action2);
+  const expected2 = {
+    _props: {todosView: {"todosFilter": "concert"}, todosViewCnt: {}},
+    _state: {todos: {paused: false}},
+    todosFilter: "concert",
+    todos: {id1: {"text": "Get tickets"}},
+    todosView: {},
+    todosViewCnt: {cnt: 0},
+  };
+  expect(state2.toJS()).toEqual(expected2);
+
+  const action3 = engine.update("todos", "id1", ensure({"text": "Get tickets to concert"}));
+  const state3 = reducer(state2, action3);
+  const expected3 = {
+    _props: {todosView: {"todosFilter": "concert"}, todosViewCnt: {}},
+    _state: {todos: {paused: false}},
+    todosFilter: "concert",
+    todos: {id1: {"text": "Get tickets to concert"}},
+    todosView: {id1: {"text": "Get tickets to concert"}},
+    todosViewCnt: {cnt: 1},
+  };
+  expect(state3.toJS()).toEqual(expected3);
+
+  const action4 = engine.remove("todos", "id1");
+  const state4 = reducer(state3, action4);
+  const expected4 = {
+    _props: {todosView: {"todosFilter": "concert"}, todosViewCnt: {}},
+    _state: {todos: {paused: false}},
+    todosFilter: "concert",
+    todos: {},
+    todosView: {},
+    todosViewCnt: {cnt: 0},
+  };
+  expect(state4.toJS()).toEqual(expected4);
+
+});
