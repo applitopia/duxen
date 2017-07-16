@@ -43,42 +43,43 @@ const schema = {
   'todosFilter': {
     type: 'value',
     initValue: "",
-    actionType: 'CHANGE_TASKS_FILTER',
+    actionType: 'CHANGE_TODOS_FILTER',
   },
 
   'todosLimit': {
     type: 'value',
-    initValue: 100,
-    actionType: 'CHANGE_TASKS_LIMIT',
+    initValue: 10,
+    actionType: 'CHANGE_TODOS_LIMIT',
   },
 
   'todos': {type: 'collection'},
 
   'todosView': {
     type:'view',
-    collName: 'todos',
-    props: {
-      todosFilter: state=>state.get('todosFilter'),
-      todosLimit: state=>state.get('todosLimit'),
-    },
+    sourceName: 'todos',
+    props: ['todosFilter', 'todosLimit'],
     recipe: (seq, props)=>seq
-      .filter(v=>v.get('name').startsWith(props.todosFilter))
-      .sort((a, b)=>cmp(a.get('name'), b.get('name')))
+      .filter(v=>v.get('text').indexOf(props.todosFilter) >= 0)
+      .sort((a, b)=>cmp(a.get('text'), b.get('text')))
       .take(props.todosLimit),
   },
 
   'todosCnt': {
     type:'view',
-    collName: 'todos',
-    props: {
-      todosFilter: state=>state.get('todosFilter'),
-      todosLimit: state=>state.get('todosLimit'),
-    },
+    sourceName: 'todosView',
+    props: [],
+    recipe: (seq)=>Seq({cnt: seq.count()})
+  },
+
+  'todosCompletedCnt': {
+    type:'view',
+    sourceName: 'todosView',
+    props: [],
     recipe: (seq, props)=>{
       const cnt = seq
-      .filter(v=>v.get('name').startsWith(props.todosFilter))
+      .filter(v=>v.get('completed'))
       .count();
-      return Seq([cnt]);
+      return Seq({cnt});
     }
   },
 
