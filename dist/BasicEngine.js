@@ -69,8 +69,9 @@ var BasicEngine = function (_CommonEngine) {
         }
       };
 
-      var updateViews = function updateViews(mutableState, state, collName, cn) {
-        var paused = mutableState.getIn(["_state", collName, "paused"]);
+      var updateDependents = function updateDependents(mutableState, state, sourceName, cn) {
+        var isColl = cn.type == 'collection';
+        var paused = isColl ? mutableState.getIn(["_state", sourceName, "paused"]) : false;
 
         if (paused === true) {
           return;
@@ -82,46 +83,69 @@ var BasicEngine = function (_CommonEngine) {
           return;
         }
 
-        var oldPaused = state.getIn(["_state", collName, "paused"]);
         var schemaState = mutableState.getIn(cn.schemaPath);
 
         for (var i = 0, length = va.length; i < length; i++) {
-          var viewName = va[i];
-          var vcn = getCompiledName(viewName);
-          var vcne = cast(vcn.schemaEntry);
-          var scn = getCompiledName(vcn.namePrefix + vcne.sourceName);
+          var depName = va[i];
+          var dcn = getCompiledName(depName);
 
-          // Prepare props
-          var props = {};
-          for (var p in vcne.props) {
-            var propRecipe = vcne.props[p];
-            switch (typeof propRecipe === 'undefined' ? 'undefined' : _typeof(propRecipe)) {
-              case 'function':
-                {
-                  props[p] = propRecipe(schemaState);
-                  break;
-                }
-              case 'string':
-                {
-                  var pcn = getCompiledName(propRecipe);
-                  props[p] = schemaState.getIn(pcn.subPath);
-                  break;
-                }
-              default:
-                {
-                  throw new Error("Invalid type of propRecipe: " + (typeof propRecipe === 'undefined' ? 'undefined' : _typeof(propRecipe)));
-                }
-            }
-          }
-          var oldProps = mutableState.getIn(['_props', viewName]);
-          var newProps = (0, _immutableSorted.fromJS)(props);
-          var oldSourceData = state.getIn(scn.path);
-          var newSourceData = mutableState.getIn(scn.path);
-          if (oldSourceData !== newSourceData || !(0, _immutableSorted.is)(oldProps, newProps) || oldPaused !== paused) {
-            var newdata = vcne.recipe(cast(newSourceData.toSeq()), props);
+          switch (dcn.type) {
+            case 'formula':
+              {
+                var fcne = cast(dcn.schemaEntry);
 
-            mutableState.setIn(['_props', viewName], newProps);
-            mutableState.setIn(vcn.path, newdata);
+                // Prepare props
+                var props = {};
+                for (var pi = 0, len = fcne.props.length; pi < len; pi++) {
+                  var propName = fcne.props[pi];
+                  switch (typeof propName === 'undefined' ? 'undefined' : _typeof(propName)) {
+                    case 'string':
+                      {
+                        var pcn = getCompiledName(propName);
+                        props[propName] = schemaState.getIn(pcn.subPath);
+                        break;
+                      }
+                    default:
+                      {
+                        throw new Error("Invalid type of propName: " + (typeof propName === 'undefined' ? 'undefined' : _typeof(propName)));
+                      }
+                  }
+                }
+                var newValue = fcne.recipe(props);
+                mutableState.setIn(dcn.path, newValue);
+                break;
+              }
+            case 'view':
+              {
+                var vcne = cast(dcn.schemaEntry);
+                var scn = getCompiledName(dcn.namePrefix + vcne.sourceName);
+
+                // Prepare props
+                var _props = {};
+                for (var _pi = 0, _len = vcne.props.length; _pi < _len; _pi++) {
+                  var _propName = vcne.props[_pi];
+                  switch (typeof _propName === 'undefined' ? 'undefined' : _typeof(_propName)) {
+                    case 'string':
+                      {
+                        var _pcn = getCompiledName(_propName);
+                        _props[_propName] = schemaState.getIn(_pcn.subPath);
+                        break;
+                      }
+                    default:
+                      {
+                        throw new Error("Invalid type of propName: " + (typeof _propName === 'undefined' ? 'undefined' : _typeof(_propName)));
+                      }
+                  }
+                }
+                var newSourceData = mutableState.getIn(scn.path);
+                var newdata = vcne.recipe(cast(newSourceData.toSeq()), _props);
+                mutableState.setIn(dcn.path, newdata);
+                break;
+              }
+            default:
+              {
+                throw new Error("Dependent type not supported: " + dcn.type);
+              }
           }
         }
       };
@@ -169,7 +193,7 @@ var BasicEngine = function (_CommonEngine) {
               mutableState.setIn(cn.path, newcollData);
 
               updateOriginals(mutableState, _collAction.collName, _collAction.id);
-              updateViews(mutableState, state, _collAction.collName, cn);
+              updateDependents(mutableState, state, _collAction.collName, cn);
               break;
             }
 
@@ -233,7 +257,7 @@ var BasicEngine = function (_CommonEngine) {
               mutableState.setIn(_cn.path, _newcollData);
 
               updateOriginals(mutableState, _collAction2.collName, id, doc);
-              updateViews(mutableState, state, _collAction2.collName, _cn);
+              updateDependents(mutableState, state, _collAction2.collName, _cn);
               break;
             }
 
@@ -252,7 +276,7 @@ var BasicEngine = function (_CommonEngine) {
                 mutableState.setIn(_cn2.path, _newcollData2);
 
                 updateOriginals(mutableState, _collAction3.collName, _id, _doc);
-                updateViews(mutableState, state, _collAction3.collName, _cn2);
+                updateDependents(mutableState, state, _collAction3.collName, _cn2);
               }
               break;
             }
@@ -265,7 +289,7 @@ var BasicEngine = function (_CommonEngine) {
 
               mutableState.setIn(_cn3.path, _newcollData3);
               mutableState.deleteIn(["_state", _collAction4.collName, "originals"]);
-              updateViews(mutableState, state, _collAction4.collName, _cn3);
+              updateDependents(mutableState, state, _collAction4.collName, _cn3);
               break;
             }
 
@@ -281,7 +305,7 @@ var BasicEngine = function (_CommonEngine) {
               var _collAction6 = cast(action);
               var _cn4 = getCompiledName(_collAction6.collName);
               mutableState.setIn(["_state", _collAction6.collName, "paused"], false);
-              updateViews(mutableState, state, _collAction6.collName, _cn4);
+              updateDependents(mutableState, state, _collAction6.collName, _cn4);
               break;
             }
 
@@ -304,7 +328,7 @@ var BasicEngine = function (_CommonEngine) {
               }
               mutableState.deleteIn(["_state", _collAction8.collName, "saved"]);
               mutableState.setIn(_cn6.path, _collData4);
-              updateViews(mutableState, state, _collAction8.collName, _cn6);
+              updateDependents(mutableState, state, _collAction8.collName, _cn6);
               break;
             }
 
@@ -334,7 +358,6 @@ var BasicEngine = function (_CommonEngine) {
             {
               //
               // Apply value or custom reducer
-              var changed = false;
               var compiledAction = cs.actions[action.type];
               if (compiledAction) {
                 var name = compiledAction.name;
@@ -352,7 +375,7 @@ var BasicEngine = function (_CommonEngine) {
                       var newValue = reducer(oldValue, valueAction);
                       if (oldValue !== newValue) {
                         mutableState.setIn(_cn7.path, newValue);
-                        changed = true;
+                        updateDependents(mutableState, state, name, _cn7);
                       }
                       break;
                     }
@@ -379,29 +402,33 @@ var BasicEngine = function (_CommonEngine) {
                     }
                 }
               }
-
-              if (changed) for (var _name in cs.names) {
-                var _cn8 = getCompiledName(_name);
-                switch (_cn8.type) {
-                  case 'collection':
-                    {
-                      updateViews(mutableState, state, _name, _cn8);
-                      break;
-                    }
-                  default:
-                    {
-                      break;
-                    }
-                }
-              }
               break;
             }
         }
       };
 
-      return function () {
-        var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : cs.initState;
-        var action = arguments[1];
+      return function (state, action) {
+        if (state === undefined) {
+          state = cs.initState;
+          state = state.withMutations(function (mutableState) {
+            // Refresh all views
+            for (var name in cs.names) {
+              var cn = getCompiledName(name);
+              switch (cn.type) {
+                case 'value':
+                case 'collection':
+                  {
+                    updateDependents(mutableState, state, name, cn);
+                    break;
+                  }
+                default:
+                  {
+                    break;
+                  }
+              }
+            }
+          });
+        }
 
         if (action.collName) {
           validateAction(cast(action));

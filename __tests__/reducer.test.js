@@ -27,7 +27,7 @@ test("Reducer insert, update remove", function() {
     'todosView': {
       type: 'view',
       sourceName: 'todos',
-      props: {},
+      props: [],
       recipe: (seq) => seq,
     },
   };
@@ -37,7 +37,6 @@ test("Reducer insert, update remove", function() {
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
-    _props: {},
     _state: {todos: {paused: false}},
     todosFilter: "Get milk",
     todos: {},
@@ -47,7 +46,6 @@ test("Reducer insert, update remove", function() {
   const action1 = engine.value("todosFilter", "Get sugar");
   const state1 = reducer(state0, action1);
   const expected1 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get sugar",
     todos: {},
@@ -57,7 +55,6 @@ test("Reducer insert, update remove", function() {
   const action2 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
   const state2 = reducer(state1, action2);
   const expected2 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get sugar",
     todos: {id1: {"text": "Get tickets"}},
@@ -68,7 +65,6 @@ test("Reducer insert, update remove", function() {
   const action3 = engine.update("todos", "id1", ensure({"text": "Get tickets to concert"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get sugar",
     todos: {id1: {"text": "Get tickets to concert"}},
@@ -79,7 +75,6 @@ test("Reducer insert, update remove", function() {
   const action4 = engine.remove("todos", "id1");
   const state4 = reducer(state3, action4);
   const expected4 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get sugar",
     todos: {},
@@ -102,7 +97,7 @@ test("Reducer reset", function() {
     'todosView': {
       type: 'view',
       sourceName: 'todos',
-      props: {},
+      props: [],
       recipe: (seq) => seq,
     },
   };
@@ -112,7 +107,6 @@ test("Reducer reset", function() {
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
-    _props: {},
     _state: {todos: {paused: false}},
     todosFilter: "Get milk",
     todos: {},
@@ -122,7 +116,6 @@ test("Reducer reset", function() {
   const action1 = engine.value("todosFilter", "Get sugar");
   const state1 = reducer(state0, action1);
   const expected1 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get sugar",
     todos: {},
@@ -132,7 +125,6 @@ test("Reducer reset", function() {
   const action2 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
   const state2 = reducer(state1, action2);
   const expected2 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get sugar",
     todos: {id1: {"text": "Get tickets"}},
@@ -143,7 +135,6 @@ test("Reducer reset", function() {
   const action3 = engine.insert("todos", "id2", ensure({"text": "Get milk"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get sugar",
     todos: {
@@ -160,7 +151,6 @@ test("Reducer reset", function() {
   const action4 = engine.insert("todos", "id3", ensure({"text": "Get sugar"}));
   const state4 = reducer(state3, action4);
   const expected4 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get sugar",
     todos: {
@@ -179,7 +169,6 @@ test("Reducer reset", function() {
   const action5 = engine.reset("todos");
   const state5 = reducer(state4, action5);
   const expected5 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get sugar",
     todos: {
@@ -199,7 +188,7 @@ test("Reducer pause, resume", function() {
     'todosView': {
       type: 'view',
       sourceName: 'todos',
-      props: {},
+      props: [],
       recipe: (seq) => seq,
     },
   };
@@ -209,7 +198,6 @@ test("Reducer pause, resume", function() {
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
-    _props: {},
     _state: {todos: {paused: false}},
     todos: {},
     todosView: {}
@@ -219,7 +207,6 @@ test("Reducer pause, resume", function() {
   const action1 = engine.pause("todos");
   const state1 = reducer(state0, action1);
   const expected1 = {
-    _props: {},
     _state: {todos: {paused: true}},
     todos: {},
     todosView: {}
@@ -229,7 +216,6 @@ test("Reducer pause, resume", function() {
   const action2 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
   const state2 = reducer(state1, action2);
   const expected2 = {
-    _props: {},
     _state: {todos: {paused: true}},
     todos: {id1: {"text": "Get tickets"}},
     todosView: {}
@@ -239,7 +225,6 @@ test("Reducer pause, resume", function() {
   const action3 = engine.insert("todos", "id2", ensure({"text": "Get milk"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
-    _props: {},
     _state: {todos: {paused: true}},
     todos: {
       id1: {"text": "Get tickets"},
@@ -252,7 +237,6 @@ test("Reducer pause, resume", function() {
   const action4 = engine.insert("todos", "id3", ensure({"text": "Get sugar"}));
   const state4 = reducer(state3, action4);
   const expected4 = {
-    _props: {},
     _state: {todos: {paused: true}},
     todos: {
       id1: {"text": "Get tickets"},
@@ -266,7 +250,6 @@ test("Reducer pause, resume", function() {
   const action5 = engine.resume("todos");
   const state5 = reducer(state4, action5);
   const expected5 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     todos: {
       id1: {"text": "Get tickets"},
@@ -291,7 +274,7 @@ test("Reducer save, restore", function() {
     'todosView': {
       type: 'view',
       sourceName: 'todos',
-      props: {},
+      props: [],
       recipe: (seq) => seq,
     },
   };
@@ -301,7 +284,6 @@ test("Reducer save, restore", function() {
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
-    _props: {},
     _state: {todos: {paused: false}},
     todos: {},
     todosView: {}};
@@ -310,7 +292,6 @@ test("Reducer save, restore", function() {
   const action1 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
   const state1 = reducer(state0, action1);
   const expected1 = {
-    _props: {"todosView": {}},
     _state: {todos: {paused: false}},
     todos: {
       id1: {"text": "Get tickets"},
@@ -324,7 +305,6 @@ test("Reducer save, restore", function() {
   const action2 = engine.save("todos");
   const state2 = reducer(state1, action2);
   const expected2 = {
-    _props: {"todosView": {}},
     _state: {
       todos: {
         paused: false,
@@ -345,7 +325,6 @@ test("Reducer save, restore", function() {
   const action3 = engine.insert("todos", "id2", ensure({"text": "Get milk"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
-    _props: {"todosView": {}},
     _state: {
       todos: {
         paused: false,
@@ -368,7 +347,6 @@ test("Reducer save, restore", function() {
   const action4 = engine.insert("todos", "id3", ensure({"text": "Get sugar"}));
   const state4 = reducer(state3, action4);
   const expected4 = {
-    _props: {"todosView": {}},
     _state: {
       todos: {
         paused: false,
@@ -393,7 +371,6 @@ test("Reducer save, restore", function() {
   const action5 = engine.restore("todos");
   const state5 = reducer(state4, action5);
   const expected5 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     todos: {
       id1: {"text": "Get tickets"},
@@ -414,7 +391,7 @@ test("Reducer saveOriginals, insert, retrieveOriginals", function() {
     'todosView': {
       type: 'view',
       sourceName: 'todos',
-      props: {},
+      props: [],
       recipe: (seq) => seq,
     },
   };
@@ -424,7 +401,6 @@ test("Reducer saveOriginals, insert, retrieveOriginals", function() {
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
-    _props: {},
     _state: {todos: {paused: false}},
     todos: {},
     todosView: {}};
@@ -433,7 +409,6 @@ test("Reducer saveOriginals, insert, retrieveOriginals", function() {
   const action1 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
   const state1 = reducer(state0, action1);
   const expected1 = {
-    _props: {"todosView": {}},
     _state: {todos: {paused: false}},
     todos: {
       id1: {"text": "Get tickets"},
@@ -447,7 +422,6 @@ test("Reducer saveOriginals, insert, retrieveOriginals", function() {
   const action2 = engine.saveOriginals("todos");
   const state2 = reducer(state1, action2);
   const expected2 = {
-    _props: {"todosView": {}},
     _state: {
       todos: {
         "originals": {},
@@ -466,7 +440,6 @@ test("Reducer saveOriginals, insert, retrieveOriginals", function() {
   const action3 = engine.insert("todos", "id2", ensure({"text": "Get milk"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
-    _props: {"todosView": {}},
     _state: {
       todos: {
         "originals": {
@@ -489,7 +462,6 @@ test("Reducer saveOriginals, insert, retrieveOriginals", function() {
   const action4 = engine.insert("todos", "id3", ensure({"text": "Get sugar"}));
   const state4 = reducer(state3, action4);
   const expected4 = {
-    _props: {"todosView": {}},
     _state: {
       todos: {
         "originals": {
@@ -515,7 +487,6 @@ test("Reducer saveOriginals, insert, retrieveOriginals", function() {
   const action5 = engine.retrieveOriginals("todos");
   const state5 = reducer(state4, action5);
   const expected5 = {
-    _props: {"todosView": {}},
     _state: {
       todos: {
         paused: false,
@@ -545,7 +516,7 @@ test("Reducer saveOriginals, insert, update, remove, retrieveOriginals", functio
     'todosView': {
       type: 'view',
       sourceName: 'todos',
-      props: {},
+      props: [],
       recipe: (seq) => seq,
     },
   };
@@ -555,7 +526,6 @@ test("Reducer saveOriginals, insert, update, remove, retrieveOriginals", functio
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
-    _props: {},
     _state: {todos: {paused: false}},
     todos: {},
     todosView: {}};
@@ -564,7 +534,6 @@ test("Reducer saveOriginals, insert, update, remove, retrieveOriginals", functio
   const action1 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
   const state1 = reducer(state0, action1);
   const expected1 = {
-    _props: {"todosView": {}},
     _state: {todos: {paused: false}},
     todos: {
       id1: {"text": "Get tickets"},
@@ -578,7 +547,6 @@ test("Reducer saveOriginals, insert, update, remove, retrieveOriginals", functio
   const action2 = engine.saveOriginals("todos");
   const state2 = reducer(state1, action2);
   const expected2 = {
-    _props: {"todosView": {}},
     _state: {
       todos: {
         "originals": {},
@@ -597,7 +565,6 @@ test("Reducer saveOriginals, insert, update, remove, retrieveOriginals", functio
   const action3 = engine.update("todos", "id1", ensure({"text": "Get milk"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
-    _props: {"todosView": {}},
     _state: {
       todos: {
         "originals": {
@@ -618,7 +585,6 @@ test("Reducer saveOriginals, insert, update, remove, retrieveOriginals", functio
   const action4 = engine.remove("todos", "id1");
   const state4 = reducer(state3, action4);
   const expected4 = {
-    _props: {"todosView": {}},
     _state: {
       todos: {
         "originals": {
@@ -635,7 +601,6 @@ test("Reducer saveOriginals, insert, update, remove, retrieveOriginals", functio
   const action5 = engine.retrieveOriginals("todos");
   const state5 = reducer(state4, action5);
   const expected5 = {
-    _props: {"todosView": {}},
     _state: {
       todos: {
         paused: false,
@@ -661,7 +626,7 @@ test("Reducer batch", function() {
     'todosView': {
       type: 'view',
       sourceName: 'todos',
-      props: {},
+      props: [],
       recipe: (seq) => seq,
     },
   };
@@ -671,7 +636,6 @@ test("Reducer batch", function() {
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
-    _props: {},
     _state: {todos: {paused: false}},
     todosFilter: "Get milk",
     todos: {},
@@ -687,7 +651,6 @@ test("Reducer batch", function() {
   const action4 = engine.batch("todos", List([action1, action2, action3]));
   const state4 = reducer(state0, action4);
   const expected4 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get sugar",
     todos: {
@@ -704,7 +667,6 @@ test("Reducer batch", function() {
   const action5 = engine.reset("todos");
   const state5 = reducer(state4, action5);
   const expected5 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get sugar",
     todos: {
@@ -729,10 +691,8 @@ test("Reducer props", function() {
     'todosView': {
       type: 'view',
       sourceName: 'todos',
-      props: {
-        filter: (state) => state.getIn(['todosFilter']),
-      },
-      recipe: (seq, props) => seq.filter(v=>v.get('text').indexOf(props.filter) >= 0),
+      props: ['todosFilter'],
+      recipe: (seq, props) => seq.filter(v=>v.get('text').indexOf(props.todosFilter) >= 0),
     },
   };
 
@@ -741,7 +701,6 @@ test("Reducer props", function() {
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
-    _props: {},
     _state: {todos: {paused: false}},
     todosFilter: "Get milk",
     todos: {},
@@ -751,7 +710,6 @@ test("Reducer props", function() {
   const action1 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
   const state1 = reducer(state0, action1);
   const expected1 = {
-    _props: {"todosView": {"filter": "Get milk"}},
     _state: {todos: {paused: false}},
     todos: {
       id1: {"text": "Get tickets"},
@@ -765,7 +723,6 @@ test("Reducer props", function() {
   const action2 = engine.insert("todos", "id2", ensure({"text": "Get milk"}));
   const state2 = reducer(state1, action2);
   const expected2 = {
-    _props: {"todosView": {"filter": "Get milk"}},
     _state: {todos: {paused: false}},
     todos: {
       id1: {"text": "Get tickets"},
@@ -781,7 +738,6 @@ test("Reducer props", function() {
   const action3 = engine.insert("todos", "id3", ensure({"text": "Get sugar"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
-    _props: {"todosView": {"filter": "Get milk"}},
     _state: {todos: {paused: false}},
     todos: {
       id1: {"text": "Get tickets"},
@@ -798,7 +754,6 @@ test("Reducer props", function() {
   const action4 = engine.value("todosFilter", "sugar");
   const state4 = reducer(state3, action4);
   const expected4 = {
-    _props: {"todosView": {"filter": "sugar"}},
     _state: {todos: {paused: false}},
     todos: {
       id1: {"text": "Get tickets"},

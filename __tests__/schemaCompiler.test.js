@@ -23,7 +23,7 @@ test("Does not allow $ and . in names", function() {
     },
   };
 
-  expect(() => compileSchema(schema1)).toThrow("Invalid name (can't start with $, can't contain '.' or '\0')");
+  expect(() => compileSchema(schema1)).toThrow("Invalid name (can't start with $ or _, can't contain '.' or '\0')");
 
   const schema2:Schema = {
     '$todosFilter': {
@@ -33,7 +33,7 @@ test("Does not allow $ and . in names", function() {
     },
   };
 
-  expect(() => compileSchema(schema2)).toThrow("Invalid name (can't start with $, can't contain '.' or '\0')");
+  expect(() => compileSchema(schema2)).toThrow("Invalid name (can't start with $ or _, can't contain '.' or '\0')");
 
   const schema3:Schema = {
     'todos\0Filter': {
@@ -43,7 +43,7 @@ test("Does not allow $ and . in names", function() {
     },
   };
 
-  expect(() => compileSchema(schema3)).toThrow("Invalid name (can't start with $, can't contain '.' or '\0')");
+  expect(() => compileSchema(schema3)).toThrow("Invalid name (can't start with $ or _, can't contain '.' or '\0')");
 
   // $ in the middle of the string is all right
   const schema4:Schema = {
@@ -55,6 +55,17 @@ test("Does not allow $ and . in names", function() {
   };
   const compiledSchema4:CompiledSchema = compileSchema(schema4);
   expect(compiledSchema4).toMatchObject({actions: {}, names: {}});
+
+  const schema5:Schema = {
+    '_todosFilter': {
+      type: 'value',
+      initValue: "Get milk",
+      actionType: 'CHANGE_TODOS_FILTER',
+    },
+  };
+
+  expect(() => compileSchema(schema5)).toThrow("Invalid name (can't start with $ or _, can't contain '.' or '\0')");
+
 });
 
 test("Simple Schema Compiler", function() {
@@ -87,7 +98,7 @@ test("Simple Schema Compiler", function() {
     'todosView': {
       type: 'view',
       sourceName: 'todos',
-      props: {},
+      props: [],
       recipe: (seq) => seq
     },
   };
@@ -115,14 +126,14 @@ test("Simple Schema Compiler", function() {
       }
     },
     "initState": cast(fromJS({
-      _props: {},
       _state: {
         todos: {paused: false}
       },
       todosFilter: "Get milk",
       todos: {},
       todosView: {}
-    }))
+    })),
+    "allDependents": ["todosView"],
   };
   expect(cs).toEqual(csExpected);
 });
@@ -168,13 +179,13 @@ test("SubSchema Compiler", function() {
       }
     },
     "initState": cast(fromJS({
-      _props: {},
       _state: {},
       todosFilter: "Get milk",
       calendarSchema: {
         currentMonth: "2017-06"
       }
-    }))
+    })),
+    "allDependents": [],
   };
   expect(cs).toEqual(csExpected);
 });

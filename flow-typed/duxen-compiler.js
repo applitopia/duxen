@@ -52,4 +52,5 @@
    names: CompiledNames,
    actions: CompiledActions,
    initState: State,
+   allDependents: Array<string>
  |};

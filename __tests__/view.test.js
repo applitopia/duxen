@@ -27,13 +27,13 @@ test("view on view", function() {
     'todosView': {
       type: 'view',
       sourceName: 'todos',
-      props: {},
+      props: [],
       recipe: (seq) => seq,
     },
     'todosViewCnt': {
       type: 'view',
       sourceName: 'todosView',
-      props: {},
+      props: [],
       recipe: (seq) => Seq({cnt: seq.count()}),
     },
   };
@@ -43,19 +43,17 @@ test("view on view", function() {
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
-    _props: {},
     _state: {todos: {paused: false}},
     todosFilter: "Get milk",
     todos: {},
     todosView: {},
-    todosViewCnt: {},
+    todosViewCnt: {cnt: 0},
   };
   expect(state0.toJS()).toEqual(expected0);
 
   const action1 = engine.value("todosFilter", "Get sugar");
   const state1 = reducer(state0, action1);
   const expected1 = {
-    _props: {todosView: {}, todosViewCnt: {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get sugar",
     todos: {},
@@ -67,7 +65,6 @@ test("view on view", function() {
   const action2 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
   const state2 = reducer(state1, action2);
   const expected2 = {
-    _props: {todosView: {}, todosViewCnt: {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get sugar",
     todos: {id1: {"text": "Get tickets"}},
@@ -79,7 +76,6 @@ test("view on view", function() {
   const action3 = engine.update("todos", "id1", ensure({"text": "Get tickets to concert"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
-    _props: {todosView: {}, todosViewCnt: {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get sugar",
     todos: {id1: {"text": "Get tickets to concert"}},
@@ -91,7 +87,6 @@ test("view on view", function() {
   const action4 = engine.remove("todos", "id1");
   const state4 = reducer(state3, action4);
   const expected4 = {
-    _props: {todosView: {}, todosViewCnt: {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get sugar",
     todos: {},

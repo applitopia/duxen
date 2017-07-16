@@ -2,6 +2,12 @@
 
 DUXEN
 =====
+[![ghit.me](https://ghit.me/badge.svg?repo=applitopia/duxen)](https://ghit.me/repo/applitopia/duxen)
+[![npm](https://img.shields.io/npm/v/npm.svg)](https://www.npmjs.com/package/duxen)
+[![dependencies]("https://img.shields.io/david/bevry/badges.svg)](https://david-dm.org/bevry/badges)
+[![devDependencies]("https://img.shields.io/david/dev/bevry/badges.svg)](https://david-dm.org/bevry/badges#info=devDependencies)
+
+
 High performance data engine maintaining complex immutable state for reactive applications.
 Fully integrated with [Immutable.js](https://facebook.github.io/immutable-js/), [Redux](https://redux.js.org), and [Meteor](https://meteor.com).
 

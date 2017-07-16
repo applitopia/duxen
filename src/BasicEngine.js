@@ -8,7 +8,7 @@
  *  @flow
  */
 
-import { Map, List, fromJS, is } from 'immutable-sorted';
+import { Map, List } from 'immutable-sorted';
 import CommonEngine from './CommonEngine';
 
 const cast = <T>(value: any): T => (value: T);
@@ -38,8 +38,9 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
       }
     };
 
-    const updateViews = (mutableState: State, state: State, collName: string, cn: CompiledName): void => {
-      const paused = mutableState.getIn(["_state", collName, "paused"]);
+    const updateDependents = (mutableState: State, state: State, sourceName: string, cn: CompiledName): void => {
+      const isColl:boolean = cn.type == 'collection';
+      const paused = isColl ? mutableState.getIn(["_state", sourceName, "paused"]) : false;
 
       if(paused === true) {
         return;
@@ -51,43 +52,62 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
         return;
       }
 
-      const oldPaused = state.getIn(["_state", collName, "paused"]);
       const schemaState:State = mutableState.getIn(cn.schemaPath);
 
       for(let i:number=0, length=va.length; i < length; i++) {
-        const viewName: string = va[i];
-        const vcn:CompiledName = getCompiledName(viewName);
-        const vcne: ViewSchemaEntry = cast(vcn.schemaEntry);
-        const scn:CompiledName = getCompiledName(vcn.namePrefix+vcne.sourceName);
+        const depName: string = va[i];
+        const dcn:CompiledName = getCompiledName(depName);
 
-        // Prepare props
-        const props:Props = {};
-        for(let p:string in vcne.props) {
-          const propRecipe: PropRecipe = vcne.props[p];
-          switch(typeof(propRecipe)) {
-            case 'function': {
-              props[p] = propRecipe(schemaState);
-              break;
+        switch(dcn.type) {
+          case 'formula': {
+            const fcne: FormulaSchemaEntry = cast(dcn.schemaEntry);
+
+            // Prepare props
+            const props:Props = {};
+            for(let pi:number = 0, len:number = fcne.props.length; pi < len; pi++) {
+              const propName: string = fcne.props[pi];
+              switch(typeof(propName)) {
+                case 'string': {
+                  const pcn:CompiledName = getCompiledName(propName);
+                  props[propName] = schemaState.getIn(pcn.subPath);
+                  break;
+                }
+                default: {
+                  throw new Error("Invalid type of propName: "+typeof(propName));
+                }
+              }
             }
-            case 'string': {
-              const pcn:CompiledName = getCompiledName(propRecipe);
-              props[p] = schemaState.getIn(pcn.subPath);
-              break;
-            }
-            default: {
-              throw new Error("Invalid type of propRecipe: "+typeof(propRecipe));
-            }
+            const newValue: StateValue = fcne.recipe(props);
+            mutableState.setIn(dcn.path, newValue);
+            break;
           }
-        }
-        const oldProps = mutableState.getIn(['_props', viewName]);
-        const newProps = fromJS(props);
-        const oldSourceData = state.getIn(scn.path);
-        const newSourceData = mutableState.getIn(scn.path);
-        if(oldSourceData !== newSourceData || !is(oldProps, newProps) || oldPaused !== paused) {
-          const newdata = vcne.recipe(cast(newSourceData.toSeq()), props);
+          case 'view': {
+            const vcne: ViewSchemaEntry = cast(dcn.schemaEntry);
+            const scn:CompiledName = getCompiledName(dcn.namePrefix+vcne.sourceName);
 
-          mutableState.setIn(['_props', viewName], newProps);
-          mutableState.setIn(vcn.path, newdata);
+            // Prepare props
+            const props:Props = {};
+            for(let pi:number = 0, len:number = vcne.props.length; pi < len; pi++) {
+              const propName: string = vcne.props[pi];
+              switch(typeof(propName)) {
+                case 'string': {
+                  const pcn:CompiledName = getCompiledName(propName);
+                  props[propName] = schemaState.getIn(pcn.subPath);
+                  break;
+                }
+                default: {
+                  throw new Error("Invalid type of propName: "+typeof(propName));
+                }
+              }
+            }
+            const newSourceData = mutableState.getIn(scn.path);
+            const newdata = vcne.recipe(cast(newSourceData.toSeq()), props);
+            mutableState.setIn(dcn.path, newdata);
+            break;
+          }
+          default: {
+            throw new Error("Dependent type not supported: "+dcn.type);
+          }
         }
       }
     };
@@ -133,7 +153,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
           mutableState.setIn(cn.path, newcollData);
 
           updateOriginals(mutableState, collAction.collName, collAction.id);
-          updateViews(mutableState, state, collAction.collName, cn);
+          updateDependents(mutableState, state, collAction.collName, cn);
           break;
         }
 
@@ -192,7 +212,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
           mutableState.setIn(cn.path, newcollData);
 
           updateOriginals(mutableState, collAction.collName, id, doc);
-          updateViews(mutableState, state, collAction.collName, cn);
+          updateDependents(mutableState, state, collAction.collName, cn);
           break;
         }
 
@@ -210,7 +230,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
             mutableState.setIn(cn.path, newcollData);
 
             updateOriginals(mutableState, collAction.collName, id, doc);
-            updateViews(mutableState, state, collAction.collName, cn);
+            updateDependents(mutableState, state, collAction.collName, cn);
           }
           break;
         }
@@ -222,7 +242,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
 
           mutableState.setIn(cn.path, newcollData);
           mutableState.deleteIn(["_state", collAction.collName, "originals"]);
-          updateViews(mutableState, state, collAction.collName, cn);
+          updateDependents(mutableState, state, collAction.collName, cn);
           break;
         }
 
@@ -236,7 +256,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
           const collAction:PauseAction = cast(action);
           const cn:CompiledName = getCompiledName(collAction.collName);
           mutableState.setIn(["_state", collAction.collName, "paused"], false);
-          updateViews(mutableState, state, collAction.collName, cn);
+          updateDependents(mutableState, state, collAction.collName, cn);
           break;
         }
 
@@ -257,7 +277,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
           }
           mutableState.deleteIn(["_state", collAction.collName, "saved"]);
           mutableState.setIn(cn.path, collData);
-          updateViews(mutableState, state, collAction.collName, cn);
+          updateDependents(mutableState, state, collAction.collName, cn);
           break;
         }
 
@@ -285,7 +305,6 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
           //
           // Apply value or custom reducer
           //
-          let changed:boolean = false;
           const compiledAction:CompiledAction = cs.actions[action.type];
           if(compiledAction) {
             const name:string = compiledAction.name;
@@ -302,7 +321,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
                 const newValue:StateValue = reducer(oldValue, valueAction);
                 if(oldValue !== newValue) {
                   mutableState.setIn(cn.path, newValue);
-                  changed = true;
+                  updateDependents(mutableState, state, name, cn);
                 }
                 break;
               }
@@ -327,13 +346,22 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
               }
             }
           }
+          break;
+        }
+      }
+    };
 
-          if(changed)
+    return (state: State, action: Action) => {
+      if(state === undefined) {
+        state = cs.initState;
+        state = state.withMutations((mutableState: State): void => {
+          // Refresh all views
           for(let name:string in cs.names) {
             const cn:CompiledName = getCompiledName(name);
             switch(cn.type) {
+              case 'value':
               case 'collection': {
-                updateViews(mutableState, state, name, cn);
+                updateDependents(mutableState, state, name, cn);
                 break;
               }
               default: {
@@ -341,12 +369,9 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
               }
             }
           }
-          break;
-        }
+        });
       }
-    };
 
-    return (state: State=cs.initState, action: Action) => {
       if(action.collName) {
         validateAction(cast(action));
       }

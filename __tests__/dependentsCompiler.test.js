@@ -87,13 +87,13 @@ test("Simple Schema Compiler", function() {
     'todosView': {
       type: 'view',
       sourceName: 'todos',
-      props: {},
+      props: [],
       recipe: (seq) => seq
     },
     'todosViewCnt': {
       type: 'view',
       sourceName: 'todosView',
-      props: {},
+      props: [],
       recipe: (seq) => seq
     },
   };
@@ -135,14 +135,14 @@ test("Simple Schema Compiler", function() {
     "actions": {
     },
     "initState": cast(fromJS({
-      _props: {},
       _state: {
         todos: {paused: false}
       },
       todos: {},
       todosView: {},
       todosViewCnt: {}
-    }))
+    })),
+    "allDependents": ["todosView", "todosViewCnt"],
   };
   expect(cs).toEqual(csExpected);
 });

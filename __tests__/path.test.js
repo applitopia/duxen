@@ -28,7 +28,7 @@ test("Reducer value is aware of path", function() {
     'todosView': {
       type: 'view',
       sourceName: 'todos',
-      props: {},
+      props: [],
       recipe: (seq) => seq,
     },
   };
@@ -38,7 +38,6 @@ test("Reducer value is aware of path", function() {
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
-    _props: {},
     _state: {todos: {paused: false}},
     a: {
       b: {
@@ -55,7 +54,6 @@ test("Reducer value is aware of path", function() {
   const action1 = engine.value("todosFilter", "Get sugar");
   const state1 = reducer(state0, action1);
   const expected1 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     a: {
       b: {
@@ -72,7 +70,6 @@ test("Reducer value is aware of path", function() {
   const action2 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
   const state2 = reducer(state1, action2);
   const expected2 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     a: {
       b: {
@@ -89,7 +86,6 @@ test("Reducer value is aware of path", function() {
   const action3 = engine.update("todos", "id1", ensure({"text": "Get tickets to concert"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     a: {
       b: {
@@ -106,7 +102,6 @@ test("Reducer value is aware of path", function() {
   const action4 = engine.remove("todos", "id1");
   const state4 = reducer(state3, action4);
   const expected4 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     a: {
       b: {
@@ -138,7 +133,7 @@ test("Reducer value, collection, view are aware of path", function() {
       type: 'view',
       path: 'views.are.here.todosView',
       sourceName: 'todos',
-      props: {},
+      props: [],
       recipe: (seq) => seq,
     },
   };
@@ -148,7 +143,6 @@ test("Reducer value, collection, view are aware of path", function() {
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
-    _props: {},
     _state: {todos: {paused: false}},
     a: {
       b: {
@@ -177,7 +171,6 @@ test("Reducer value, collection, view are aware of path", function() {
   const action1 = engine.value("todosFilter", "Get sugar");
   const state1 = reducer(state0, action1);
   const expected1 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     a: {
       b: {
@@ -206,7 +199,6 @@ test("Reducer value, collection, view are aware of path", function() {
   const action2 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
   const state2 = reducer(state1, action2);
   const expected2 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     a: {
       b: {
@@ -235,7 +227,6 @@ test("Reducer value, collection, view are aware of path", function() {
   const action3 = engine.update("todos", "id1", ensure({"text": "Get tickets to concert"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     a: {
       b: {
@@ -264,7 +255,6 @@ test("Reducer value, collection, view are aware of path", function() {
   const action4 = engine.remove("todos", "id1");
   const state4 = reducer(state3, action4);
   const expected4 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     a: {
       b: {

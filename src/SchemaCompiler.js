@@ -100,9 +100,43 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
     names: {},
     actions: {},
     initState: Map(),
+    allDependents: [],
   };
 
-  const compileValueSchemaEntry = (name: string, entry: ValueSchemaEntry, namePrefix: string): void => {
+  const verifyNames = (name: string, namePrefix: string): void => {
+    if(typeof(name) !== 'string') {
+      throw new Error("wrong name: "+name);
+    }
+
+    if(name.length === 0) {
+      throw new Error("empty name");
+    }
+
+    if(typeof(namePrefix) !== 'string') {
+      throw new Error("wrong namePrefix: "+namePrefix);
+    }
+  };
+
+  const verifyProps = (props: PropsRecipe): void => {
+    if(!Array.isArray(props)) {
+      throw new Error("Props are not in Array");
+    }
+    for(let pi:number = 0, len:number = props.length; pi < len; pi++) {
+      const propName: string = props[pi];
+      switch(typeof(propName)) {
+        case 'string': {
+          break;
+        }
+        default: {
+          throw new Error("Invalid type of propName: "+typeof(propName));
+        }
+      }
+    }
+  };
+
+  const compileValue = (name: string, entry: ValueSchemaEntry, namePrefix: string): void => {
+    verifyNames(name, namePrefix);
+
     let actionType:CustomActionType = entry.actionType;
       if(!actionType) {
       throw new Error("Missing actionType in value schema: "+JSON.stringify(entry));
@@ -124,7 +158,30 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
     cs.actions[actionType] = {type: "value", name, actionType, reducer};
   };
 
-  const compileCustomSchemaEntry = (name: string, entry: CustomSchemaEntry, prefix: string): void => {
+  const compileFormula = (name: string, entry: FormulaSchemaEntry, namePrefix: string): void => {
+    verifyNames(name, namePrefix);
+    verifyProps(entry.props);
+
+    if(!entry.props) {
+      throw new Error("missing props: "+name);
+    }
+  };
+
+  const compileCollection = (name: string, entry: CollectionSchemaEntry, namePrefix: string): void => {
+    verifyNames(name, namePrefix);
+  };
+
+  const compileView = (name: string, entry: ViewSchemaEntry, namePrefix: string): void => {
+    verifyNames(name, namePrefix);
+    verifyProps(entry.props);
+
+    const sourceName:string = entry.sourceName;
+    if(!sourceName) {
+      throw new Error("missing sourceName in view schema: "+name);
+    }
+  };
+
+  const compileCustom = (name: string, entry: CustomSchemaEntry, prefix: string): void => {
     let actionType:CustomActionType = entry.actionType;
     if(!actionType) {
       throw new Error("Missing actionType in custom schema: "+JSON.stringify(entry));
@@ -159,8 +216,8 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
   const compile = (schema: Schema, schemaName: string, schemaPathName: string): void => {
 
     for(let name: string in schema) {
-      if(name.match(/^\$|\.|\0/)) {
-        throw Error("Invalid name (can't start with $, can't contain '.' or '\0'): "+name);
+      if(name.match(/^[$_]|\.|\0/)) {
+        throw Error("Invalid name (can't start with $ or _, can't contain '.' or '\0'): "+name);
       }
 
       const entry: SchemaEntry = schema[name];
@@ -197,24 +254,27 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
 
       case 'value': {
         cn.initValue = entry.initValue;
-        compileValueSchemaEntry(name, entry, namePrefix);
+        compileValue(name, entry, namePrefix);
+        break;
+      }
+
+      case 'formula': {
+        compileFormula(name, entry, namePrefix);
         break;
       }
 
       case 'collection': {
+        compileCollection(name, entry, namePrefix);
         break;
       }
 
       case 'view': {
-        const sourceName:string = entry.sourceName;
-        if(!sourceName) {
-          throw new Error("missing sourceName in view schema: "+name);
-        }
+        compileView(name, entry, namePrefix);
         break;
       }
 
       case 'custom': {
-        compileCustomSchemaEntry(name, entry, namePrefix);
+        compileCustom(name, entry, namePrefix);
         break;
       }
 
@@ -231,11 +291,20 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
 
     // Build dependents
     const deps: Array<[string, string]> = [];
+    const allDeps: Array<[string, string]> = [];
     for(let name: string in cs.names) {
       const cn:CompiledName = cs.names[name];
       const cnse:SchemaEntry = cn.schemaEntry;
 
       switch(cnse.type) {
+        case 'formula': {
+          // Add props to the dependencies as well
+          for(let i:number = 0, len:number = cnse.props.length; i < len; i++) {
+            deps.push([cnse.props[i], name]);
+          }
+          allDeps.push(["allDeps", name]);
+          break;
+        }
         case 'view': {
           if(!cnse.sourceName) {
             throw new Error("Source collection or view name is not specified for: "+name);
@@ -247,6 +316,12 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
             throw new Error("Source name not found in schema: "+srcName);
           }
           deps.push([srcName, name]);
+          allDeps.push(["allDeps", name]);
+
+          // Add props to the dependencies as well
+          for(let i:number = 0, len:number = cnse.props.length; i < len; i++) {
+            deps.push([cnse.props[i], name]);
+          }
           break;
         }
         default: {
@@ -260,6 +335,11 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
       const sn:CompiledName = cs.names[name];
       sn.dependents = a;
     }
+
+    const allCd: {[string]: Array<string>} = compileDependencies(allDeps);
+    if(allCd.allDeps) {
+      cs.allDependents = allCd.allDeps;
+    }
   };
 
   //
@@ -269,7 +349,6 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
 
     if(!rootMap) {
       rootMap = map;
-      map.set('_props', Map());
       map.set('_state', Map());
     }
     for(let name: string in schema) {
@@ -301,6 +380,10 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
       }
       case 'view': {
         map.setIn(cn.subPath, Map());
+        break;
+      }
+      case 'formula': {
+        map.setIn(cn.subPath, undefined);
         break;
       }
 

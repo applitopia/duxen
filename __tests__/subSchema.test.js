@@ -34,7 +34,6 @@ test("Initial state - subschema value", function() {
   const state:State = reducer(undefined, {type: "INIT"});
 
   const expected = {
-    "_props": {},
     "_state": {},
     "calendarSchema": {
       "currentMonth": "2017-06"
@@ -76,7 +75,6 @@ test("Reducer - subschema value", function() {
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
-    "_props": {},
     "_state": {},
     "calendarSchema": {
       "currentMonth": "2017-06"
@@ -88,7 +86,6 @@ test("Reducer - subschema value", function() {
   const action1 = engine.value("todosFilter", "Get sugar");
   const state1 = reducer(state0, action1);
   const expected1 = {
-    "_props": {},
     "_state": {},
     "calendarSchema": {
       "currentMonth": "2017-06"
@@ -100,7 +97,6 @@ test("Reducer - subschema value", function() {
   const action2 = engine.value("calendarSchema.currentMonth", "2017-07");
   const state2 = reducer(state1, action2);
   const expected2 = {
-    "_props": {},
     "_state": {},
     "calendarSchema": {
       "currentMonth": "2017-07"
@@ -138,7 +134,6 @@ test("Reducer - subschema custom", function() {
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
-    "_props": {},
     "_state": {},
     "calendarSchema": {
     },
@@ -148,7 +143,6 @@ test("Reducer - subschema custom", function() {
   const action1 = engine.custom('customNextPage');
   const state1 = reducer(state0, action1);
   const expected1 = {
-    "_props": {},
     "_state": {},
     "calendarSchema": {
     },
@@ -159,7 +153,6 @@ test("Reducer - subschema custom", function() {
   const action2 = engine.custom('calendarSchema.customNextPage');
   const state2 = reducer(state0, action2);
   const expected2 = {
-    "_props": {},
     "_state": {},
     "calendarSchema": {
       "pager": {"pageNo": 1},

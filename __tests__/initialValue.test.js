@@ -24,7 +24,6 @@ test("Initial state - value", function() {
   const state:State = reducer(undefined, {type: "INIT"});
 
   expect(state.toJS()).toEqual({
-    '_props': {},
     '_state': {},
     "todosFilter": "Get milk"
   });
@@ -42,7 +41,6 @@ test("Initial state - collection", function() {
   const state:State = reducer(undefined, {type: "INIT"});
 
   expect(state.toJS()).toEqual({
-    '_props': {},
     "_state": {"todos": {"paused": false}},
     "todos": {}
   });
@@ -56,7 +54,7 @@ test("Initial state - view", function() {
     'todosView': {
       type: 'view',
       sourceName: 'todos',
-      props: {},
+      props: [],
       recipe: (seq) => seq
     },
   };
@@ -66,7 +64,6 @@ test("Initial state - view", function() {
   const state:State = reducer(undefined, {type: "INIT"});
 
   expect(state.toJS()).toEqual({
-    '_props': {},
     '_state': {"todos": {"paused": false}},
     "todos": {},
     "todosView": {}
@@ -99,7 +96,6 @@ test("Initial state - custom", function() {
   const state:State = reducer(undefined, {type: "INIT"});
 
   expect(state.toJS()).toEqual({
-    '_props': {},
     '_state': {}
   });
 });

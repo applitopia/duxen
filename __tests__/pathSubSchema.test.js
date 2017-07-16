@@ -30,7 +30,7 @@ test("Subschema and value, collection, view with path", function() {
       type: 'view',
       path: 'views.are.here.todosView',
       sourceName: 'todos',
-      props: {},
+      props: [],
       recipe: (seq) => seq,
     },
     'customNextPage': {
@@ -57,7 +57,6 @@ test("Subschema and value, collection, view with path", function() {
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
-    _props: {},
     _state: {
       "todosApp.todos": {paused: false}
     },
@@ -90,9 +89,6 @@ test("Subschema and value, collection, view with path", function() {
   const action1 = engine.value("todosApp.todosFilter", "Get sugar");
   const state1 = reducer(state0, action1);
   const expected1 = {
-    _props: {
-      "todosApp.todosView": {}
-    },
     _state: {
       "todosApp.todos": {paused: false}
     },
@@ -125,9 +121,6 @@ test("Subschema and value, collection, view with path", function() {
   const action2 = engine.insert("todosApp.todos", "id1", ensure({"text": "Get tickets"}));
   const state2 = reducer(state1, action2);
   const expected2 = {
-    _props: {
-      "todosApp.todosView": {}
-    },
     _state: {
       "todosApp.todos": {paused: false}
     },
@@ -160,9 +153,6 @@ test("Subschema and value, collection, view with path", function() {
   const action3 = engine.update("todosApp.todos", "id1", ensure({"text": "Get tickets to concert"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
-    _props: {
-      "todosApp.todosView": {}
-    },
     _state: {
       "todosApp.todos": {paused: false}
     },
@@ -195,9 +185,6 @@ test("Subschema and value, collection, view with path", function() {
   const action4 = engine.remove("todosApp.todos", "id1");
   const state4 = reducer(state3, action4);
   const expected4 = {
-    _props: {
-      "todosApp.todosView": {}
-    },
     _state: {
       "todosApp.todos": {paused: false}
     },
@@ -230,9 +217,6 @@ test("Subschema and value, collection, view with path", function() {
   const action5 = engine.remove("todosApp.todos", "id1");
   const state5 = reducer(state4, action5);
   const expected5 = {
-    _props: {
-      "todosApp.todosView": {}
-    },
     _state: {
       "todosApp.todos": {paused: false}
     },
@@ -280,7 +264,7 @@ test("Subschema with path, and value, collection, view with path", function() {
       type: 'view',
       path: 'views.are.here.todosView',
       sourceName: 'todos',
-      props: {},
+      props: [],
       recipe: (seq) => seq,
     },
     'customNextPage': {
@@ -308,7 +292,6 @@ test("Subschema with path, and value, collection, view with path", function() {
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
-    _props: {},
     _state: {
       "todosApp.todos": {paused: false}
     },
@@ -349,9 +332,6 @@ test("Subschema with path, and value, collection, view with path", function() {
   const action1 = engine.value("todosApp.todosFilter", "Get sugar");
   const state1 = reducer(state0, action1);
   const expected1 = {
-    _props: {
-      "todosApp.todosView": {}
-    },
     _state: {
       "todosApp.todos": {paused: false}
     },
@@ -392,9 +372,6 @@ test("Subschema with path, and value, collection, view with path", function() {
   const action2 = engine.insert("todosApp.todos", "id1", ensure({"text": "Get tickets"}));
   const state2 = reducer(state1, action2);
   const expected2 = {
-    _props: {
-      "todosApp.todosView": {}
-    },
     _state: {
       "todosApp.todos": {paused: false}
     },
@@ -435,9 +412,6 @@ test("Subschema with path, and value, collection, view with path", function() {
   const action3 = engine.update("todosApp.todos", "id1", ensure({"text": "Get tickets to concert"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
-    _props: {
-      "todosApp.todosView": {}
-    },
     _state: {
       "todosApp.todos": {paused: false}
     },
@@ -478,9 +452,6 @@ test("Subschema with path, and value, collection, view with path", function() {
   const action4 = engine.remove("todosApp.todos", "id1");
   const state4 = reducer(state3, action4);
   const expected4 = {
-    _props: {
-      "todosApp.todosView": {}
-    },
     _state: {
       "todosApp.todos": {paused: false}
     },
@@ -521,9 +492,6 @@ test("Subschema with path, and value, collection, view with path", function() {
   const action5 = engine.remove("todosApp.todos", "id1");
   const state5 = reducer(state4, action5);
   const expected5 = {
-    _props: {
-      "todosApp.todosView": {}
-    },
     _state: {
       "todosApp.todos": {paused: false}
     },

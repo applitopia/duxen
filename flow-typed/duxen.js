@@ -69,6 +69,7 @@ declare type Reducer = (state: ?State, action: Action)=>State;
 //
 declare type SchemaEntryType =
   'value' |
+  'formula' |
   'collection' |
   'view' |
   'custom' |
@@ -86,15 +87,21 @@ declare type CollectionSchemaEntry = {|
   path?: string
 |};
 declare type Props = {[string]: StateValue};
-declare type PropRecipe = string | (state: State)=>StateValue;
-declare type PropsRecipe = {[string]: PropRecipe};
+declare type PropsRecipe = Array<string>;
+declare type FormulaRecipe = (props: Props) => StateValue;
 declare type ViewRecipe = (seq: Seq<StateKey, StateValue>, props: Props) => Seq<StateKey, StateValue>;
+
+declare type FormulaSchemaEntry = {|
+  type: 'formula',
+  path?: string,
+  props: PropsRecipe,
+  recipe: FormulaRecipe
+|};
 
 declare type ViewSchemaEntry = {|
   type: 'view',
   sourceName: string,
   path?: string,
-  recalcOn?: [CustomActionType],
   props: PropsRecipe,
   recipe: ViewRecipe
 |};
@@ -113,7 +120,7 @@ declare type SubSchemaEntry = {|
   schema: Schema
 |};
 
-declare type SchemaEntry = ValueSchemaEntry | CollectionSchemaEntry | ViewSchemaEntry | CustomSchemaEntry | SubSchemaEntry;
+declare type SchemaEntry = ValueSchemaEntry | FormulaSchemaEntry | CollectionSchemaEntry | ViewSchemaEntry | CustomSchemaEntry | SubSchemaEntry;
 
 declare type Schema = {
   [string]: SchemaEntry

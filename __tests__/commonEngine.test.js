@@ -27,7 +27,7 @@ test("common engine", function() {
     'todosView': {
       type: 'view',
       sourceName: 'todos',
-      props: {},
+      props: [],
       recipe: (seq) => seq,
     },
   };
@@ -37,7 +37,6 @@ test("common engine", function() {
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
-    _props: {},
     _state: {todos: {paused: false}},
     todosFilter: "Get milk",
     todos: {},
@@ -52,7 +51,6 @@ test("common engine", function() {
   const action2 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
   const state2 = reducer(state0, action2);
   const expected2 = {
-    _props: {"todosView": {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get milk",
     todos: {
@@ -67,7 +65,6 @@ test("common engine", function() {
   const action3 = engine.insert("todos", "id2", ensure({"text": "Get milk"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
-    _props: {"todosView": {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get milk",
     todos: {
@@ -84,7 +81,6 @@ test("common engine", function() {
   const action4 = engine.insert("todos", "id3", ensure({"text": "Get sugar"}));
   const state4 = reducer(state3, action4);
   const expected4 = {
-    _props: {"todosView": {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get milk",
     todos: {

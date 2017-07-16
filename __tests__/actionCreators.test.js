@@ -37,7 +37,7 @@ test("action creators", function() {
     'todosView': {
       type: 'view',
       sourceName: 'todos',
-      props: {},
+      props: [],
       recipe: (seq) => seq
     },
   };

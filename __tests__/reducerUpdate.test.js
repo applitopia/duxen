@@ -27,7 +27,7 @@ test("Reducer update, replace, $set, $inc", function() {
     'todosView': {
       type: 'view',
       sourceName: 'todos',
-      props: {},
+      props: [],
       recipe: (seq) => seq,
     },
   };
@@ -37,7 +37,6 @@ test("Reducer update, replace, $set, $inc", function() {
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
-    _props: {},
     _state: {todos: {paused: false}},
     todosFilter: "Get milk",
     todos: {},
@@ -47,7 +46,6 @@ test("Reducer update, replace, $set, $inc", function() {
   const action1 = engine.value("todosFilter", "Get sugar");
   const state1 = reducer(state0, action1);
   const expected1 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get sugar",
     todos: {},
@@ -57,7 +55,6 @@ test("Reducer update, replace, $set, $inc", function() {
   const action2 = engine.insert("todos", "id1", {"text": "Get tickets", cnt: 0});
   const state2 = reducer(state1, action2);
   const expected2 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get sugar",
     todos: {id1: {"text": "Get tickets", cnt: 0}},
@@ -68,7 +65,6 @@ test("Reducer update, replace, $set, $inc", function() {
   const action3 = engine.update("todos", "id1", {"text": "Get tickets to concert", cnt: 0});
   const state3 = reducer(state2, action3);
   const expected3 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get sugar",
     todos: {id1: {"text": "Get tickets to concert", cnt: 0}},
@@ -81,7 +77,6 @@ test("Reducer update, replace, $set, $inc", function() {
   const action4 = engine.update("todos", "id1", {$set: {cnt: 5}});
   const state4 = reducer(state3, action4);
   const expected4 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get sugar",
     todos: {id1: {"text": "Get tickets to concert", cnt: 5}},
@@ -92,7 +87,6 @@ test("Reducer update, replace, $set, $inc", function() {
   const action5 = engine.update("todos", "id1", {$inc: {cnt: 1}});
   const state5 = reducer(state4, action5);
   const expected5 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get sugar",
     todos: {id1: {"text": "Get tickets to concert", cnt: 6}},
@@ -103,7 +97,6 @@ test("Reducer update, replace, $set, $inc", function() {
   const action6 = engine.update("todos", "id1", {$mul: {cnt: 2}});
   const state6 = reducer(state5, action6);
   const expected6 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get sugar",
     todos: {id1: {"text": "Get tickets to concert", cnt: 12}},
@@ -114,7 +107,6 @@ test("Reducer update, replace, $set, $inc", function() {
   const action100 = engine.update("todos", "id1", {$unset: {cnt: true}});
   const state100 = reducer(state6, action100);
   const expected100 = {
-    _props: {todosView: {}},
     _state: {todos: {paused: false}},
     todosFilter: "Get sugar",
     todos: {id1: {"text": "Get tickets to concert"}},
