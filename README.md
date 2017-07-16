@@ -3,9 +3,9 @@
 DUXEN
 =====
 [![ghit.me](https://ghit.me/badge.svg?repo=applitopia/duxen)](https://ghit.me/repo/applitopia/duxen)
-[![npm](https://img.shields.io/npm/v/npm.svg)](https://www.npmjs.com/package/duxen)
-[![dependencies]("https://img.shields.io/david/bevry/badges.svg)](https://david-dm.org/bevry/badges)
-[![devDependencies]("https://img.shields.io/david/dev/bevry/badges.svg)](https://david-dm.org/bevry/badges#info=devDependencies)
+[![npm version](https://badge.fury.io/js/duxen.svg)](https://badge.fury.io/js/duxen)
+[![dependencies]("https://img.shields.io/david/applitopia/duxen.svg)](https://david-dm.org/applitopia/duxen)
+[![devDependencies]("https://img.shields.io/david/dev/applitopia/duxen.svg)](https://david-dm.org/applitopia/duxen#info=devDependencies)
 
 
 High performance data engine maintaining complex immutable state for reactive applications.
