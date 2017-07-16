@@ -7,6 +7,7 @@ DUXEN
 [![npm version](https://badge.fury.io/js/duxen.svg)](https://badge.fury.io/js/duxen)
 [![dependencies](https://img.shields.io/david/applitopia/duxen.svg)](https://david-dm.org/applitopia/duxen)
 [![devDependencies](https://img.shields.io/david/dev/applitopia/duxen.svg)](https://david-dm.org/applitopia/duxen?type=dev)
+[![Gitter](https://img.shields.io/gitter/room/applitopia/duxen.svg)](https://gitter.im/duxen/Lobby)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 High performance data engine maintaining complex immutable state for reactive applications.
