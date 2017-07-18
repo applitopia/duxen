@@ -78,6 +78,9 @@ test("action creators", function() {
   const batchAction:BatchAction = engine.batch("todos", actions);
   expect(batchAction).toEqual({"type": "DUXEN_BATCH", "collName": "todos", actions});
 
+  const refreshAction:refreshAction = engine.refresh();
+  expect(refreshAction).toEqual({"type": "DUXEN_REFRESH"});
+
   const valueAction:ValueAction = engine.value("todosFilter", "Get sugar");
   expect(valueAction).toEqual({"type": "CHANGE_TODOS_FILTER", "value": "Get sugar"});
 

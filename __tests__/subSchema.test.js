@@ -48,7 +48,8 @@ test("Initial state - subschema value", function() {
     },
     "todosFilter": "Get milk"
   };
-  expect(engine.cleanState(state).toJS()).toEqual(expectedClean);
+  expect(engine.printableState(state).toJS()).toEqual(expectedClean);
+  expect(engine.persistableState(state).toJS()).toEqual(expectedClean);
 });
 
 test("Reducer - subschema value", function() {

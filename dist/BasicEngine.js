@@ -150,6 +150,25 @@ var BasicEngine = function (_CommonEngine) {
         }
       };
 
+      var refresh = function refresh(mutableState, state) {
+        // Refresh all views
+        for (var name in cs.names) {
+          var cn = getCompiledName(name);
+          switch (cn.type) {
+            case 'value':
+            case 'collection':
+              {
+                updateDependents(mutableState, state, name, cn);
+                break;
+              }
+            default:
+              {
+                break;
+              }
+          }
+        }
+      };
+
       var updateOriginals = function updateOriginals(mutableState, collName, id, doc) {
         var collData = mutableState.getIn(["_state", collName, "originals"]);
 
@@ -354,6 +373,12 @@ var BasicEngine = function (_CommonEngine) {
               break;
             }
 
+          case 'DUXEN_REFRESH':
+            {
+              refresh(mutableState, state);
+              break;
+            }
+
           default:
             {
               //
@@ -410,23 +435,8 @@ var BasicEngine = function (_CommonEngine) {
       return function (state, action) {
         if (state === undefined) {
           state = cs.initState;
-          state = state.withMutations(function (mutableState) {
-            // Refresh all views
-            for (var name in cs.names) {
-              var cn = getCompiledName(name);
-              switch (cn.type) {
-                case 'value':
-                case 'collection':
-                  {
-                    updateDependents(mutableState, state, name, cn);
-                    break;
-                  }
-                default:
-                  {
-                    break;
-                  }
-              }
-            }
+          return state.withMutations(function (mutableState) {
+            state = refresh(mutableState, state);
           });
         }
 

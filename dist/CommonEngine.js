@@ -89,23 +89,29 @@ var CommonEngine = function () {
         listener(action);
       }
     }
+  }, {
+    key: '_getCompiledName',
+    value: function _getCompiledName(name) {
+      var cn = this.compiledSchema.names[name];
+
+      if (!cn) {
+        throw new Error("Name not found in schema: " + name);
+      }
+
+      return cn;
+    }
 
     // Extract a value from state
 
   }, {
     key: 'get',
     value: function get(state, name) {
-      var compiledName = this.compiledSchema.names[name];
-
-      if (!compiledName) {
-        throw new Error("Name not found in schema: " + name);
-      }
-
-      return state.getIn(compiledName.path);
+      var cn = this._getCompiledName(name);
+      return state.getIn(cn.path);
     }
 
     //
-    // Subscribe to all action created by this engine
+    // Subscribe to all actions created by this engine
     //
     // Returns a function to unsubscribe
     //
@@ -137,11 +143,34 @@ var CommonEngine = function () {
     //
 
   }, {
-    key: 'cleanState',
-    value: function cleanState(state) {
+    key: 'printableState',
+    value: function printableState(state) {
       return state.withMutations(function (mutableState) {
-        mutableState.delete("_props");
         mutableState.delete("_state");
+      });
+    }
+  }, {
+    key: 'persistableState',
+    value: function persistableState(state) {
+      var _this2 = this;
+
+      return (0, _immutableSorted.Map)().withMutations(function (mutableState) {
+        for (var name in _this2.compiledSchema.names) {
+          var cn = _this2._getCompiledName(name);
+          switch (cn.type) {
+            case 'value':
+            case 'collection':
+              {
+                mutableState.setIn(cn.path, state.getIn(cn.path));
+                break;
+              }
+            default:
+              {
+                // ignore
+                break;
+              }
+          }
+        }
       });
     }
 
@@ -277,6 +306,15 @@ var CommonEngine = function () {
       var action = {
         type: 'DUXEN_RETRIEVE_ORIGINALS',
         collName: collName
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'refresh',
+    value: function refresh() {
+      var action = {
+        type: 'DUXEN_REFRESH'
       };
       this._action(action);
       return action;

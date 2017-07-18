@@ -8,7 +8,7 @@
  *  @flow
  */
 
-import { List, fromJS } from 'immutable-sorted';
+import { Map, List, fromJS } from 'immutable-sorted';
 import { compileSchema } from './SchemaCompiler';
 
 const cast = <T>(value: any): T => (value: T);
@@ -69,19 +69,24 @@ export default class CommonEngine implements EngineInterface {
     }
   }
 
-  // Extract a value from state
-  get(state: State, name: string): StateValue {
-    const compiledName:CompiledName = this.compiledSchema.names[name];
+  _getCompiledName(name: string): CompiledName {
+    const cn:CompiledName = this.compiledSchema.names[name];
 
-    if(!compiledName) {
+    if(!cn) {
       throw new Error("Name not found in schema: "+name);
     }
 
-    return state.getIn(compiledName.path);
+    return cn;
+  }
+
+  // Extract a value from state
+  get(state: State, name: string): StateValue {
+    const cn:CompiledName = this._getCompiledName(name);
+    return state.getIn(cn.path);
   }
 
   //
-  // Subscribe to all action created by this engine
+  // Subscribe to all actions created by this engine
   //
   // Returns a function to unsubscribe
   //
@@ -106,10 +111,28 @@ export default class CommonEngine implements EngineInterface {
   //
   // Remove all internal items from the state
   //
-  cleanState(state: State): State {
+  printableState(state: State): State {
     return state.withMutations((mutableState: State): void => {
-      mutableState.delete("_props");
       mutableState.delete("_state");
+    });
+  }
+
+  persistableState(state: State): State {
+    return Map().withMutations((mutableState: State): void => {
+      for(let name:string in this.compiledSchema.names) {
+        const cn:CompiledName = this._getCompiledName(name);
+        switch(cn.type) {
+          case 'value':
+          case 'collection': {
+            mutableState.setIn(cn.path, state.getIn(cn.path));
+            break;
+          }
+          default: {
+            // ignore
+            break;
+          }
+        }
+      }
     });
   }
 
@@ -232,6 +255,14 @@ export default class CommonEngine implements EngineInterface {
     const action:RetrieveOriginalsAction = {
       type: 'DUXEN_RETRIEVE_ORIGINALS',
       collName,
+    };
+    this._action(action);
+    return action;
+  }
+
+  refresh(): RefreshAction {
+    const action:RefreshAction = {
+      type: 'DUXEN_REFRESH',
     };
     this._action(action);
     return action;

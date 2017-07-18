@@ -112,6 +112,23 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
       }
     };
 
+    const refresh = (mutableState: State, state: State): void => {
+      // Refresh all views
+      for(let name:string in cs.names) {
+        const cn:CompiledName = getCompiledName(name);
+        switch(cn.type) {
+          case 'value':
+          case 'collection': {
+            updateDependents(mutableState, state, name, cn);
+            break;
+          }
+          default: {
+            break;
+          }
+        }
+      }
+    };
+
     const updateOriginals = (mutableState: State, collName: string, id: StateKey, doc?: CollDocument): void => {
       const collData: CollData = mutableState.getIn(["_state", collName, "originals"]);
 
@@ -301,6 +318,11 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
           break;
         }
 
+        case 'DUXEN_REFRESH': {
+          refresh(mutableState, state);
+          break;
+        }
+
         default: {
           //
           // Apply value or custom reducer
@@ -354,21 +376,8 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
     return (state: State, action: Action) => {
       if(state === undefined) {
         state = cs.initState;
-        state = state.withMutations((mutableState: State): void => {
-          // Refresh all views
-          for(let name:string in cs.names) {
-            const cn:CompiledName = getCompiledName(name);
-            switch(cn.type) {
-              case 'value':
-              case 'collection': {
-                updateDependents(mutableState, state, name, cn);
-                break;
-              }
-              default: {
-                break;
-              }
-            }
-          }
+        return state.withMutations((mutableState: State): void => {
+          state = refresh(mutableState, state);
         });
       }
 

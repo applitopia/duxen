@@ -52,9 +52,10 @@ declare type CollAction = BatchAction | InsertAction | UpdateAction | RemoveActi
   PauseAction | ResumeAction | ResetAction | SaveAction | RestoreAction |
   SaveOriginalsAction | RetrieveOriginalsAction;
 
+declare type RefreshAction = {type: 'DUXEN_REFRESH'};
 declare type ValueAction = {type: CustomActionType, value: StateValue};
 declare type CustomAction = {type: CustomActionType};
-declare type Action = CollAction | ValueAction | CustomAction;
+declare type Action = CollAction | RefreshAction | ValueAction | CustomAction;
 
 //
 // State & Reducer
@@ -129,7 +130,8 @@ declare type Schema = {
 declare interface EngineInterface {
   // Utility functions
   get(state: State, name: string): StateValue;
-  cleanState(state: State): State;
+  printableState(state: State): State;
+  persistableState(state: State): State;
   subscribe(listener: (Action)=>void): ()=>void;
 
   // Action creators
@@ -144,6 +146,8 @@ declare interface EngineInterface {
   restore(collName: string): RestoreAction;
   saveOriginals(collName: string): SaveOriginalsAction;
   retrieveOriginals(collName: string): RetrieveOriginalsAction;
+
+  refresh() : RefreshAction;
 
   batch(collName: string, actions: List<CollAction>): BatchAction;
   value(valueName: string, value: StateValue): ValueAction;
