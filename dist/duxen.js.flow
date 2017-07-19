@@ -90,7 +90,7 @@ declare type CollectionSchemaEntry = {|
 declare type Props = {[string]: StateValue};
 declare type PropsRecipe = Array<string>;
 declare type FormulaRecipe = (props: Props) => StateValue;
-declare type ViewRecipe = (seq: Seq<StateKey, StateValue>, props: Props) => Seq<StateKey, StateValue>;
+declare type ViewRecipe = (seq: Seq<StateKey, CollData>, props: Props) => Seq<StateKey, CollData>;
 
 declare type FormulaSchemaEntry = {|
   type: 'formula',

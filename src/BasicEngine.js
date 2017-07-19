@@ -38,24 +38,10 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
       }
     };
 
-    const updateDependents = (mutableState: State, state: State, sourceName: string, cn: CompiledName): void => {
-      const isColl:boolean = cn.type == 'collection';
-      const paused = isColl ? mutableState.getIn(["_state", sourceName, "paused"]) : false;
+    const updateDependentsList = (mutableState: State, state: State, deps: Array<string>): void => {
 
-      if(paused === true) {
-        return;
-      }
-
-      const va:Array<string> =cn.dependents;
-
-      if(!va) {
-        return;
-      }
-
-      const schemaState:State = mutableState.getIn(cn.schemaPath);
-
-      for(let i:number=0, length=va.length; i < length; i++) {
-        const depName: string = va[i];
+      for(let i:number=0, length=deps.length; i < length; i++) {
+        const depName: string = deps[i];
         const dcn:CompiledName = getCompiledName(depName);
 
         switch(dcn.type) {
@@ -68,8 +54,8 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
               const propName: string = fcne.props[pi];
               switch(typeof(propName)) {
                 case 'string': {
-                  const pcn:CompiledName = getCompiledName(propName);
-                  props[propName] = schemaState.getIn(pcn.subPath);
+                  const pcn:CompiledName = getCompiledName(dcn.namePrefix+propName);
+                  props[propName] = mutableState.getIn(pcn.path);
                   break;
                 }
                 default: {
@@ -91,8 +77,8 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
               const propName: string = vcne.props[pi];
               switch(typeof(propName)) {
                 case 'string': {
-                  const pcn:CompiledName = getCompiledName(propName);
-                  props[propName] = schemaState.getIn(pcn.subPath);
+                  const pcn:CompiledName = getCompiledName(dcn.namePrefix+propName);
+                  props[propName] = mutableState.getIn(pcn.path);
                   break;
                 }
                 default: {
@@ -112,21 +98,26 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
       }
     };
 
+    const updateDependents = (mutableState: State, state: State, cn: CompiledName): void => {
+      const isColl:boolean = cn.type == 'collection';
+      const paused = isColl ? mutableState.getIn(["_state", cn.name, "paused"]) : false;
+
+      if(paused === true) {
+        return;
+      }
+
+      const deps:Array<string> =cn.dependents;
+
+      if(!deps) {
+        return;
+      }
+
+      updateDependentsList(mutableState, state, deps);
+    };
+
     const refresh = (mutableState: State, state: State): void => {
       // Refresh all views
-      for(let name:string in cs.names) {
-        const cn:CompiledName = getCompiledName(name);
-        switch(cn.type) {
-          case 'value':
-          case 'collection': {
-            updateDependents(mutableState, state, name, cn);
-            break;
-          }
-          default: {
-            break;
-          }
-        }
-      }
+      updateDependentsList(mutableState, state, cs.allDependents);
     };
 
     const updateOriginals = (mutableState: State, collName: string, id: StateKey, doc?: CollDocument): void => {
@@ -170,7 +161,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
           mutableState.setIn(cn.path, newcollData);
 
           updateOriginals(mutableState, collAction.collName, collAction.id);
-          updateDependents(mutableState, state, collAction.collName, cn);
+          updateDependents(mutableState, state, cn);
           break;
         }
 
@@ -229,7 +220,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
           mutableState.setIn(cn.path, newcollData);
 
           updateOriginals(mutableState, collAction.collName, id, doc);
-          updateDependents(mutableState, state, collAction.collName, cn);
+          updateDependents(mutableState, state, cn);
           break;
         }
 
@@ -247,7 +238,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
             mutableState.setIn(cn.path, newcollData);
 
             updateOriginals(mutableState, collAction.collName, id, doc);
-            updateDependents(mutableState, state, collAction.collName, cn);
+            updateDependents(mutableState, state, cn);
           }
           break;
         }
@@ -259,7 +250,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
 
           mutableState.setIn(cn.path, newcollData);
           mutableState.deleteIn(["_state", collAction.collName, "originals"]);
-          updateDependents(mutableState, state, collAction.collName, cn);
+          updateDependents(mutableState, state, cn);
           break;
         }
 
@@ -273,7 +264,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
           const collAction:PauseAction = cast(action);
           const cn:CompiledName = getCompiledName(collAction.collName);
           mutableState.setIn(["_state", collAction.collName, "paused"], false);
-          updateDependents(mutableState, state, collAction.collName, cn);
+          updateDependents(mutableState, state, cn);
           break;
         }
 
@@ -294,7 +285,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
           }
           mutableState.deleteIn(["_state", collAction.collName, "saved"]);
           mutableState.setIn(cn.path, collData);
-          updateDependents(mutableState, state, collAction.collName, cn);
+          updateDependents(mutableState, state, cn);
           break;
         }
 
@@ -343,7 +334,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
                 const newValue:StateValue = reducer(oldValue, valueAction);
                 if(oldValue !== newValue) {
                   mutableState.setIn(cn.path, newValue);
-                  updateDependents(mutableState, state, name, cn);
+                  updateDependents(mutableState, state, cn);
                 }
                 break;
               }

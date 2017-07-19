@@ -318,7 +318,7 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
           {
             // Add props to the dependencies as well
             for (var i = 0, len = cnse.props.length; i < len; i++) {
-              deps.push([cnse.props[i], _name]);
+              deps.push([_cn.namePrefix + cnse.props[i], _name]);
             }
             allDeps.push(["allDeps", _name]);
             break;
@@ -339,7 +339,7 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
 
             // Add props to the dependencies as well
             for (var _i4 = 0, _len = cnse.props.length; _i4 < _len; _i4++) {
-              deps.push([cnse.props[_i4], _name]);
+              deps.push([_cn.namePrefix + cnse.props[_i4], _name]);
             }
             break;
           }
@@ -353,10 +353,14 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
     for (var _name2 in cd) {
       var a = cd[_name2];
       var _sn = cs.names[_name2];
+      if (!_sn) {
+        throw new Error("Missing compiled name: " + _name2);
+      }
       _sn.dependents = a;
     }
 
-    var allCd = compileDependencies(allDeps);
+    var allDepsCombined = allDeps.concat(deps);
+    var allCd = compileDependencies(allDepsCombined);
     if (allCd.allDeps) {
       cs.allDependents = allCd.allDeps;
     }

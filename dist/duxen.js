@@ -70,24 +70,10 @@ var BasicEngine = function (_CommonEngine) {
         }
       };
 
-      var updateDependents = function updateDependents(mutableState, state, sourceName, cn) {
-        var isColl = cn.type == 'collection';
-        var paused = isColl ? mutableState.getIn(["_state", sourceName, "paused"]) : false;
+      var updateDependentsList = function updateDependentsList(mutableState, state, deps) {
 
-        if (paused === true) {
-          return;
-        }
-
-        var va = cn.dependents;
-
-        if (!va) {
-          return;
-        }
-
-        var schemaState = mutableState.getIn(cn.schemaPath);
-
-        for (var i = 0, length = va.length; i < length; i++) {
-          var depName = va[i];
+        for (var i = 0, length = deps.length; i < length; i++) {
+          var depName = deps[i];
           var dcn = getCompiledName(depName);
 
           switch (dcn.type) {
@@ -102,8 +88,8 @@ var BasicEngine = function (_CommonEngine) {
                   switch (typeof propName === 'undefined' ? 'undefined' : _typeof(propName)) {
                     case 'string':
                       {
-                        var pcn = getCompiledName(propName);
-                        props[propName] = schemaState.getIn(pcn.subPath);
+                        var pcn = getCompiledName(dcn.namePrefix + propName);
+                        props[propName] = mutableState.getIn(pcn.path);
                         break;
                       }
                     default:
@@ -128,8 +114,8 @@ var BasicEngine = function (_CommonEngine) {
                   switch (typeof _propName === 'undefined' ? 'undefined' : _typeof(_propName)) {
                     case 'string':
                       {
-                        var _pcn = getCompiledName(_propName);
-                        _props[_propName] = schemaState.getIn(_pcn.subPath);
+                        var _pcn = getCompiledName(dcn.namePrefix + _propName);
+                        _props[_propName] = mutableState.getIn(_pcn.path);
                         break;
                       }
                     default:
@@ -151,23 +137,26 @@ var BasicEngine = function (_CommonEngine) {
         }
       };
 
+      var updateDependents = function updateDependents(mutableState, state, cn) {
+        var isColl = cn.type == 'collection';
+        var paused = isColl ? mutableState.getIn(["_state", cn.name, "paused"]) : false;
+
+        if (paused === true) {
+          return;
+        }
+
+        var deps = cn.dependents;
+
+        if (!deps) {
+          return;
+        }
+
+        updateDependentsList(mutableState, state, deps);
+      };
+
       var refresh = function refresh(mutableState, state) {
         // Refresh all views
-        for (var name in cs.names) {
-          var cn = getCompiledName(name);
-          switch (cn.type) {
-            case 'value':
-            case 'collection':
-              {
-                updateDependents(mutableState, state, name, cn);
-                break;
-              }
-            default:
-              {
-                break;
-              }
-          }
-        }
+        updateDependentsList(mutableState, state, cs.allDependents);
       };
 
       var updateOriginals = function updateOriginals(mutableState, collName, id, doc) {
@@ -213,7 +202,7 @@ var BasicEngine = function (_CommonEngine) {
               mutableState.setIn(cn.path, newcollData);
 
               updateOriginals(mutableState, _collAction.collName, _collAction.id);
-              updateDependents(mutableState, state, _collAction.collName, cn);
+              updateDependents(mutableState, state, cn);
               break;
             }
 
@@ -277,7 +266,7 @@ var BasicEngine = function (_CommonEngine) {
               mutableState.setIn(_cn.path, _newcollData);
 
               updateOriginals(mutableState, _collAction2.collName, id, doc);
-              updateDependents(mutableState, state, _collAction2.collName, _cn);
+              updateDependents(mutableState, state, _cn);
               break;
             }
 
@@ -296,7 +285,7 @@ var BasicEngine = function (_CommonEngine) {
                 mutableState.setIn(_cn2.path, _newcollData2);
 
                 updateOriginals(mutableState, _collAction3.collName, _id, _doc);
-                updateDependents(mutableState, state, _collAction3.collName, _cn2);
+                updateDependents(mutableState, state, _cn2);
               }
               break;
             }
@@ -309,7 +298,7 @@ var BasicEngine = function (_CommonEngine) {
 
               mutableState.setIn(_cn3.path, _newcollData3);
               mutableState.deleteIn(["_state", _collAction4.collName, "originals"]);
-              updateDependents(mutableState, state, _collAction4.collName, _cn3);
+              updateDependents(mutableState, state, _cn3);
               break;
             }
 
@@ -325,7 +314,7 @@ var BasicEngine = function (_CommonEngine) {
               var _collAction6 = cast(action);
               var _cn4 = getCompiledName(_collAction6.collName);
               mutableState.setIn(["_state", _collAction6.collName, "paused"], false);
-              updateDependents(mutableState, state, _collAction6.collName, _cn4);
+              updateDependents(mutableState, state, _cn4);
               break;
             }
 
@@ -348,7 +337,7 @@ var BasicEngine = function (_CommonEngine) {
               }
               mutableState.deleteIn(["_state", _collAction8.collName, "saved"]);
               mutableState.setIn(_cn6.path, _collData4);
-              updateDependents(mutableState, state, _collAction8.collName, _cn6);
+              updateDependents(mutableState, state, _cn6);
               break;
             }
 
@@ -401,7 +390,7 @@ var BasicEngine = function (_CommonEngine) {
                       var newValue = reducer(oldValue, valueAction);
                       if (oldValue !== newValue) {
                         mutableState.setIn(_cn7.path, newValue);
-                        updateDependents(mutableState, state, name, _cn7);
+                        updateDependents(mutableState, state, _cn7);
                       }
                       break;
                     }
@@ -1377,7 +1366,7 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
           {
             // Add props to the dependencies as well
             for (var i = 0, len = cnse.props.length; i < len; i++) {
-              deps.push([cnse.props[i], _name]);
+              deps.push([_cn.namePrefix + cnse.props[i], _name]);
             }
             allDeps.push(["allDeps", _name]);
             break;
@@ -1398,7 +1387,7 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
 
             // Add props to the dependencies as well
             for (var _i4 = 0, _len = cnse.props.length; _i4 < _len; _i4++) {
-              deps.push([cnse.props[_i4], _name]);
+              deps.push([_cn.namePrefix + cnse.props[_i4], _name]);
             }
             break;
           }
@@ -1412,10 +1401,14 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
     for (var _name2 in cd) {
       var a = cd[_name2];
       var _sn = cs.names[_name2];
+      if (!_sn) {
+        throw new Error("Missing compiled name: " + _name2);
+      }
       _sn.dependents = a;
     }
 
-    var allCd = compileDependencies(allDeps);
+    var allDepsCombined = allDeps.concat(deps);
+    var allCd = compileDependencies(allDepsCombined);
     if (allCd.allDeps) {
       cs.allDependents = allCd.allDeps;
     }

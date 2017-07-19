@@ -300,7 +300,7 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
         case 'formula': {
           // Add props to the dependencies as well
           for(let i:number = 0, len:number = cnse.props.length; i < len; i++) {
-            deps.push([cnse.props[i], name]);
+            deps.push([cn.namePrefix+cnse.props[i], name]);
           }
           allDeps.push(["allDeps", name]);
           break;
@@ -320,7 +320,7 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
 
           // Add props to the dependencies as well
           for(let i:number = 0, len:number = cnse.props.length; i < len; i++) {
-            deps.push([cnse.props[i], name]);
+            deps.push([cn.namePrefix+cnse.props[i], name]);
           }
           break;
         }
@@ -333,10 +333,14 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
     for(let name: string in cd) {
       const a: Array<string> = cd[name];
       const sn:CompiledName = cs.names[name];
+      if(!sn) {
+        throw new Error("Missing compiled name: "+name);
+      }
       sn.dependents = a;
     }
 
-    const allCd: {[string]: Array<string>} = compileDependencies(allDeps);
+    const allDepsCombined: Array<[string, string]> = allDeps.concat(deps);
+    const allCd: {[string]: Array<string>} = compileDependencies(allDepsCombined);
     if(allCd.allDeps) {
       cs.allDependents = allCd.allDeps;
     }
