@@ -20,7 +20,6 @@ test("Reducer value is aware of path", function() {
       type: 'value',
       path: 'a.b.c.todosFilter',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
     'todos': {
       type: 'collection',
@@ -123,7 +122,6 @@ test("Reducer value, collection, view are aware of path", function() {
       type: 'value',
       path: 'a.b.c.todosFilter',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
     'todos': {
       type: 'collection',

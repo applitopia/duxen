@@ -57,6 +57,10 @@ export default class CommonEngine implements EngineInterface {
     this._verifyName(valueName, 'value');
   }
 
+  _verifyCustomValueName(valueName: string) {
+    this._verifyName(valueName, 'customValue');
+  }
+
   _verifyCustomName(customName: string) {
     this._verifyName(customName, 'custom');
   }
@@ -271,9 +275,22 @@ export default class CommonEngine implements EngineInterface {
   value(valueName: string, value: StateValue): ValueAction {
     this._verifyValueName(valueName);
 
+    value = ensure(value);
+    const action:ValueAction = {
+      type: 'DUXEN_VALUE',
+      valueName,
+      value,
+    };
+    this._action(action);
+    return action;
+  }
+
+  customValue(valueName: string, value: StateValue): CustomValueAction {
+    this._verifyCustomValueName(valueName);
+
     const cs:CompiledSchema = this.compiledSchema;
     const cn:CompiledName = cs.names[valueName];
-    const valueEntry:ValueSchemaEntry = cast(cn.schemaEntry);
+    const valueEntry:CustomValueSchemaEntry = cast(cn.schemaEntry);
     const actionType: CustomActionType = valueEntry.actionType;
 
     if(!actionType) {
@@ -281,12 +298,14 @@ export default class CommonEngine implements EngineInterface {
     }
 
     if(valueEntry.action) {
-      return valueEntry.action(value);
+      const action:CustomValueAction = valueEntry.action(value);
+      this._action(action);
+      return action;
     }
 
     value = ensure(value);
 
-    const action:ValueAction = {
+    const action:CustomValueAction = {
       type: cn.namePrefix+actionType,
       value,
     };

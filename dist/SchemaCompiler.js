@@ -144,8 +144,13 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
 
   var compileValue = function compileValue(name, entry, namePrefix) {
     verifyNames(name, namePrefix);
+  };
+
+  var compileCustomValue = function compileCustomValue(name, entry, namePrefix) {
+    verifyNames(name, namePrefix);
 
     var actionType = entry.actionType;
+
     if (!actionType) {
       throw new Error("Missing actionType in value schema: " + JSON.stringify(entry));
     }
@@ -163,7 +168,7 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
       }
     };
 
-    cs.actions[actionType] = { type: "value", name: name, actionType: actionType, reducer: reducer };
+    cs.actions[actionType] = { type: "customValue", name: name, actionType: actionType, reducer: reducer };
   };
 
   var compileFormula = function compileFormula(name, entry, namePrefix) {
@@ -266,6 +271,13 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
           {
             cn.initValue = entry.initValue;
             compileValue(name, entry, namePrefix);
+            break;
+          }
+
+        case 'customValue':
+          {
+            cn.initValue = entry.initValue;
+            compileCustomValue(name, entry, namePrefix);
             break;
           }
 
@@ -388,6 +400,11 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
 
         switch (entry.type) {
           case 'value':
+            {
+              map.setIn(cn.subPath, cn.initValue);
+              break;
+            }
+          case 'customValue':
             {
               map.setIn(cn.subPath, cn.initValue);
               break;

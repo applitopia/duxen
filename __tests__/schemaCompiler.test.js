@@ -19,7 +19,6 @@ test("Does not allow $ and . in names", function() {
     'todos.Filter': {
       type: 'value',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
   };
 
@@ -29,7 +28,6 @@ test("Does not allow $ and . in names", function() {
     '$todosFilter': {
       type: 'value',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
   };
 
@@ -39,7 +37,6 @@ test("Does not allow $ and . in names", function() {
     'todos\0Filter': {
       type: 'value',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
   };
 
@@ -50,7 +47,6 @@ test("Does not allow $ and . in names", function() {
     'todos$Filter': {
       type: 'value',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
   };
   const compiledSchema4:CompiledSchema = compileSchema(schema4);
@@ -60,7 +56,6 @@ test("Does not allow $ and . in names", function() {
     '_todosFilter': {
       type: 'value',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
   };
 
@@ -73,7 +68,6 @@ test("Simple Schema Compiler", function() {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
     'customNextPage': {
       type: 'custom',
@@ -112,12 +106,6 @@ test("Simple Schema Compiler", function() {
       "todosView": {"name": "todosView", "type": "view", namePrefix: "", path: ["todosView"], schemaPath: [], subPath: ["todosView"], schemaEntry: schema.todosView, dependents: []}
     },
     "actions": {
-      "CHANGE_TODOS_FILTER": {
-        "type": "value",
-        "name": "todosFilter",
-        "actionType": "CHANGE_TODOS_FILTER",
-        "reducer": cast(cs.actions["CHANGE_TODOS_FILTER"].reducer)
-      },
       "CUSTOM_NEXT_PAGE": {
         "type": "custom",
         "name": "customNextPage",
@@ -143,7 +131,6 @@ test("SubSchema Compiler", function() {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
     "calendarSchema": {
       type: 'schema',
@@ -151,7 +138,6 @@ test("SubSchema Compiler", function() {
         'currentMonth': {
           type: 'value',
           initValue: "2017-06",
-          actionType: 'CHANGE_CURRENT_MONTH',
         },
       },
     }
@@ -165,18 +151,6 @@ test("SubSchema Compiler", function() {
       "todosFilter": {"name": "todosFilter", "type": "value", "initValue": "Get milk", namePrefix: "", path: ["todosFilter"], schemaPath: [], subPath: ["todosFilter"], schemaEntry: schema.todosFilter, dependents: []}
     },
     "actions": {
-      "calendarSchema.CHANGE_CURRENT_MONTH": {
-        "type": "value",
-        "name": "calendarSchema.currentMonth",
-        "actionType": "calendarSchema.CHANGE_CURRENT_MONTH",
-        "reducer": cast(cs.actions["calendarSchema.CHANGE_CURRENT_MONTH"].reducer)
-      },
-      "CHANGE_TODOS_FILTER": {
-        "type": "value",
-        "name": "todosFilter",
-        "actionType": "CHANGE_TODOS_FILTER",
-        "reducer": cast(cs.actions["CHANGE_TODOS_FILTER"].reducer)
-      }
     },
     "initState": cast(fromJS({
       _state: {},

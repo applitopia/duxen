@@ -19,7 +19,6 @@ test("Reducer insert, update remove", function() {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
     'todos': {
       type: 'collection',
@@ -89,7 +88,6 @@ test("Reducer reset", function() {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
     'todos': {
       type: 'collection',
@@ -618,7 +616,6 @@ test("Reducer batch", function() {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
     'todos': {
       type: 'collection',
@@ -683,7 +680,6 @@ test("Reducer props", function() {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
     'todos': {
       type: 'collection',

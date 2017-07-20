@@ -15,7 +15,6 @@ test("Initial state - subschema value", function() {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
     "calendarSchema": {
       type: 'schema',
@@ -23,7 +22,6 @@ test("Initial state - subschema value", function() {
         'currentMonth': {
           type: 'value',
           initValue: "2017-06",
-          actionType: 'CHANGE_CURRENT_MONTH',
         },
       },
     }
@@ -57,7 +55,6 @@ test("Reducer - subschema value", function() {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
     "calendarSchema": {
       type: 'schema',
@@ -65,7 +62,6 @@ test("Reducer - subschema value", function() {
         'currentMonth': {
           type: 'value',
           initValue: "2017-06",
-          actionType: 'CHANGE_CURRENT_MONTH',
         },
       },
     }

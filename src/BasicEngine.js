@@ -314,6 +314,21 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
           break;
         }
 
+        case 'DUXEN_VALUE': {
+          const valueAction:ValueAction = cast(action);
+          const cn:CompiledName = getCompiledName(valueAction.valueName);
+          const oldValue:?StateValue = state.getIn(cn.path);
+          if(oldValue === undefined) {
+            throw Error("Lost value in state:"+valueAction.valueName);
+          }
+          const newValue:StateValue = valueAction.value;
+          if(oldValue !== newValue) {
+            mutableState.setIn(cn.path, newValue);
+            updateDependents(mutableState, state, cn);
+          }
+          break;
+        }
+
         default: {
           //
           // Apply value or custom reducer
@@ -324,7 +339,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
             const cn:CompiledName = getCompiledName(name);
 
             switch(compiledAction.type) {
-              case 'value': {
+              case 'customValue': {
                 const valueAction:ValueAction = cast(action);
                 const oldValue:StateValue | void = state.getIn(cn.path);
                 if(oldValue === undefined) {

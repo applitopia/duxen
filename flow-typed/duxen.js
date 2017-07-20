@@ -34,28 +34,32 @@ declare type CollActionType =
   'DUXEN_RESTORE' |
   'DUXEN_SAVE_ORIGINALS' |
   'DUXEN_RETRIEVE_ORIGINALS' ;
+declare type DuxenActionType =
+    'DUXEN_REFRESH' |
+    'DUXEN_VALUE';
 declare type CustomActionType = string;
-declare type ActionType = CollActionType | CustomActionType;
+declare type ActionType = CollActionType | DuxenActionType | CustomActionType;
 
-declare type InsertAction = {type: 'DUXEN_INSERT', collName: string, id: StateKey, doc: CollDocument};
-declare type UpdateAction = {type: 'DUXEN_UPDATE', collName: string, id: StateKey, doc: CollDocument};
-declare type RemoveAction = {type: 'DUXEN_REMOVE', collName: string, id: StateKey};
-declare type ResetAction = {type: 'DUXEN_RESET', collName: string};
-declare type PauseAction = {type: 'DUXEN_PAUSE', collName: string};
-declare type ResumeAction = {type: 'DUXEN_RESUME', collName: string};
-declare type SaveAction = {type: 'DUXEN_SAVE', collName: string};
-declare type RestoreAction = {type: 'DUXEN_RESTORE', collName: string};
-declare type SaveOriginalsAction = {type: 'DUXEN_SAVE_ORIGINALS', collName: string};
-declare type RetrieveOriginalsAction = {type: 'DUXEN_RETRIEVE_ORIGINALS', collName: string};
-declare type BatchAction = {type: 'DUXEN_BATCH', collName: string, actions: List<CollAction>};
+declare type InsertAction = {| type: 'DUXEN_INSERT', collName: string, id: StateKey, doc: CollDocument |};
+declare type UpdateAction = {| type: 'DUXEN_UPDATE', collName: string, id: StateKey, doc: CollDocument |};
+declare type RemoveAction = {| type: 'DUXEN_REMOVE', collName: string, id: StateKey |};
+declare type ResetAction = {| type: 'DUXEN_RESET', collName: string |};
+declare type PauseAction = {| type: 'DUXEN_PAUSE', collName: string |};
+declare type ResumeAction = {| type: 'DUXEN_RESUME', collName: string |};
+declare type SaveAction = {| type: 'DUXEN_SAVE', collName: string |};
+declare type RestoreAction = {| type: 'DUXEN_RESTORE', collName: string |};
+declare type SaveOriginalsAction = {| type: 'DUXEN_SAVE_ORIGINALS', collName: string |};
+declare type RetrieveOriginalsAction = {| type: 'DUXEN_RETRIEVE_ORIGINALS', collName: string |};
+declare type BatchAction = {| type: 'DUXEN_BATCH', collName: string, actions: List<CollAction> |};
 declare type CollAction = BatchAction | InsertAction | UpdateAction | RemoveAction |
   PauseAction | ResumeAction | ResetAction | SaveAction | RestoreAction |
   SaveOriginalsAction | RetrieveOriginalsAction;
 
-declare type RefreshAction = {type: 'DUXEN_REFRESH'};
-declare type ValueAction = {type: CustomActionType, value: StateValue};
+declare type RefreshAction = {| type: 'DUXEN_REFRESH' |};
+declare type ValueAction = {| type: 'DUXEN_VALUE', valueName: string, value: StateValue |};
+declare type CustomValueAction = {type: CustomActionType, value: StateValue};
 declare type CustomAction = {type: CustomActionType};
-declare type Action = CollAction | RefreshAction | ValueAction | CustomAction;
+declare type Action = CollAction | RefreshAction | ValueAction | CustomValueAction | CustomAction;
 
 //
 // State & Reducer
@@ -70,6 +74,7 @@ declare type Reducer = (state: ?State, action: Action)=>State;
 //
 declare type SchemaEntryType =
   'value' |
+  'customValue' |
   'formula' |
   'collection' |
   'view' |
@@ -79,9 +84,14 @@ declare type ValueSchemaEntry = {|
   type: 'value',
   path?: string,
   initValue: StateValue,
+|};
+declare type CustomValueSchemaEntry = {|
+  type: 'customValue',
+  path?: string,
+  initValue: StateValue,
   actionType: CustomActionType,
-  action?: (StateValue)=>ValueAction,
-  reducer?: ValueReducer
+  action: (StateValue)=>CustomValueAction,
+  reducer: ValueReducer
 |};
 declare type CollectionSchemaEntry = {|
   type: 'collection',
@@ -121,7 +131,7 @@ declare type SubSchemaEntry = {|
   schema: Schema
 |};
 
-declare type SchemaEntry = ValueSchemaEntry | FormulaSchemaEntry | CollectionSchemaEntry | ViewSchemaEntry | CustomSchemaEntry | SubSchemaEntry;
+declare type SchemaEntry = ValueSchemaEntry | CustomValueSchemaEntry | FormulaSchemaEntry | CollectionSchemaEntry | ViewSchemaEntry | CustomSchemaEntry | SubSchemaEntry;
 
 declare type Schema = {
   [string]: SchemaEntry
@@ -151,6 +161,7 @@ declare interface EngineInterface {
 
   batch(collName: string, actions: List<CollAction>): BatchAction;
   value(valueName: string, value: StateValue): ValueAction;
+  customValue(valueName: string, value: StateValue): CustomValueAction;
   custom(type: CustomActionType): CustomAction;
 
   // Reducer

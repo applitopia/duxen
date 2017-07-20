@@ -74,6 +74,11 @@ var CommonEngine = function () {
       this._verifyName(valueName, 'value');
     }
   }, {
+    key: '_verifyCustomValueName',
+    value: function _verifyCustomValueName(valueName) {
+      this._verifyName(valueName, 'customValue');
+    }
+  }, {
     key: '_verifyCustomName',
     value: function _verifyCustomName(customName) {
       this._verifyName(customName, 'custom');
@@ -324,6 +329,20 @@ var CommonEngine = function () {
     value: function value(valueName, _value) {
       this._verifyValueName(valueName);
 
+      _value = ensure(_value);
+      var action = {
+        type: 'DUXEN_VALUE',
+        valueName: valueName,
+        value: _value
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'customValue',
+    value: function customValue(valueName, value) {
+      this._verifyCustomValueName(valueName);
+
       var cs = this.compiledSchema;
       var cn = cs.names[valueName];
       var valueEntry = cast(cn.schemaEntry);
@@ -334,14 +353,16 @@ var CommonEngine = function () {
       }
 
       if (valueEntry.action) {
-        return valueEntry.action(_value);
+        var _action2 = valueEntry.action(value);
+        this._action(_action2);
+        return _action2;
       }
 
-      _value = ensure(_value);
+      value = ensure(value);
 
       var action = {
         type: cn.namePrefix + actionType,
-        value: _value
+        value: value
       };
       this._action(action);
       return action;

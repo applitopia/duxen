@@ -369,6 +369,22 @@ var BasicEngine = function (_CommonEngine) {
               break;
             }
 
+          case 'DUXEN_VALUE':
+            {
+              var valueAction = cast(action);
+              var _cn7 = getCompiledName(valueAction.valueName);
+              var oldValue = state.getIn(_cn7.path);
+              if (oldValue === undefined) {
+                throw Error("Lost value in state:" + valueAction.valueName);
+              }
+              var newValue = valueAction.value;
+              if (oldValue !== newValue) {
+                mutableState.setIn(_cn7.path, newValue);
+                updateDependents(mutableState, state, _cn7);
+              }
+              break;
+            }
+
           default:
             {
               //
@@ -376,21 +392,21 @@ var BasicEngine = function (_CommonEngine) {
               var compiledAction = cs.actions[action.type];
               if (compiledAction) {
                 var name = compiledAction.name;
-                var _cn7 = getCompiledName(name);
+                var _cn8 = getCompiledName(name);
 
                 switch (compiledAction.type) {
-                  case 'value':
+                  case 'customValue':
                     {
-                      var valueAction = cast(action);
-                      var oldValue = state.getIn(_cn7.path);
-                      if (oldValue === undefined) {
+                      var _valueAction = cast(action);
+                      var _oldValue = state.getIn(_cn8.path);
+                      if (_oldValue === undefined) {
                         throw Error("Lost value in state:" + name);
                       }
                       var reducer = compiledAction.reducer;
-                      var newValue = reducer(oldValue, valueAction);
-                      if (oldValue !== newValue) {
-                        mutableState.setIn(_cn7.path, newValue);
-                        updateDependents(mutableState, state, _cn7);
+                      var _newValue = reducer(_oldValue, _valueAction);
+                      if (_oldValue !== _newValue) {
+                        mutableState.setIn(_cn8.path, _newValue);
+                        updateDependents(mutableState, state, _cn8);
                       }
                       break;
                     }
@@ -398,14 +414,14 @@ var BasicEngine = function (_CommonEngine) {
                     {
                       var customAction = cast(action);
                       var _reducer = compiledAction.reducer;
-                      if (_cn7.path.length > 0) {
-                        var subState = mutableState.getIn(_cn7.path);
+                      if (_cn8.path.length > 0) {
+                        var subState = mutableState.getIn(_cn8.path);
                         if (!subState) {
-                          throw new Error("Missing path in state:" + JSON.stringify(_cn7.path));
+                          throw new Error("Missing path in state:" + JSON.stringify(_cn8.path));
                         }
                         var mutableSubState = subState.asMutable();
                         _reducer(mutableSubState, customAction);
-                        mutableState.setIn(_cn7.path, mutableSubState);
+                        mutableState.setIn(_cn8.path, mutableSubState);
                       } else {
                         _reducer(mutableState, customAction);
                       }
@@ -520,6 +536,11 @@ var CommonEngine = function () {
     key: '_verifyValueName',
     value: function _verifyValueName(valueName) {
       this._verifyName(valueName, 'value');
+    }
+  }, {
+    key: '_verifyCustomValueName',
+    value: function _verifyCustomValueName(valueName) {
+      this._verifyName(valueName, 'customValue');
     }
   }, {
     key: '_verifyCustomName',
@@ -772,6 +793,20 @@ var CommonEngine = function () {
     value: function value(valueName, _value) {
       this._verifyValueName(valueName);
 
+      _value = ensure(_value);
+      var action = {
+        type: 'DUXEN_VALUE',
+        valueName: valueName,
+        value: _value
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'customValue',
+    value: function customValue(valueName, value) {
+      this._verifyCustomValueName(valueName);
+
       var cs = this.compiledSchema;
       var cn = cs.names[valueName];
       var valueEntry = cast(cn.schemaEntry);
@@ -782,14 +817,16 @@ var CommonEngine = function () {
       }
 
       if (valueEntry.action) {
-        return valueEntry.action(_value);
+        var _action2 = valueEntry.action(value);
+        this._action(_action2);
+        return _action2;
       }
 
-      _value = ensure(_value);
+      value = ensure(value);
 
       var action = {
         type: cn.namePrefix + actionType,
-        value: _value
+        value: value
       };
       this._action(action);
       return action;
@@ -1192,8 +1229,13 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
 
   var compileValue = function compileValue(name, entry, namePrefix) {
     verifyNames(name, namePrefix);
+  };
+
+  var compileCustomValue = function compileCustomValue(name, entry, namePrefix) {
+    verifyNames(name, namePrefix);
 
     var actionType = entry.actionType;
+
     if (!actionType) {
       throw new Error("Missing actionType in value schema: " + JSON.stringify(entry));
     }
@@ -1211,7 +1253,7 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
       }
     };
 
-    cs.actions[actionType] = { type: "value", name: name, actionType: actionType, reducer: reducer };
+    cs.actions[actionType] = { type: "customValue", name: name, actionType: actionType, reducer: reducer };
   };
 
   var compileFormula = function compileFormula(name, entry, namePrefix) {
@@ -1314,6 +1356,13 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
           {
             cn.initValue = entry.initValue;
             compileValue(name, entry, namePrefix);
+            break;
+          }
+
+        case 'customValue':
+          {
+            cn.initValue = entry.initValue;
+            compileCustomValue(name, entry, namePrefix);
             break;
           }
 
@@ -1436,6 +1485,11 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
 
         switch (entry.type) {
           case 'value':
+            {
+              map.setIn(cn.subPath, cn.initValue);
+              break;
+            }
+          case 'customValue':
             {
               map.setIn(cn.subPath, cn.initValue);
               break;

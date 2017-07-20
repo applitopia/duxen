@@ -19,7 +19,6 @@ test("common engine", function() {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
     'todos': {
       type: 'collection',
@@ -111,10 +110,21 @@ test("action subscribe", function() {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
     'todos': {
       type: 'collection',
+    },
+    'customPageNumber': {
+      type: 'customValue',
+      actionType: 'CUSTOM_PAGE_NUMBER',
+      initValue: 1,
+      action: (pageNo) => ({type: 'CUSTOM_PAGE_NUMBER', value: pageNo}),
+      // eslint-disable-next-line no-unused-vars
+      reducer: (mutableState: State, action: Action): void => {
+        const customAction:CustomAction = cast(action);
+        const pageNo:number = cast(customAction).pageNo;
+        mutableState.setIn(["pager", "pageNo"], pageNo);
+      }
     },
     'customNextPage': {
       type: 'custom',
@@ -172,8 +182,14 @@ test("action subscribe", function() {
   const batchAction:BatchAction = engine.batch("todos", actions);
   expect(batchAction).toEqual({"type": "DUXEN_BATCH", "collName": "todos", actions});
 
+  const refreshAction:RefreshAction = engine.refresh();
+  expect(refreshAction).toEqual({"type": "DUXEN_REFRESH"});
+
   const valueAction:ValueAction = engine.value("todosFilter", "Get sugar");
-  expect(valueAction).toEqual({"type": "CHANGE_TODOS_FILTER", "value": "Get sugar"});
+  expect(valueAction).toEqual({"type": "DUXEN_VALUE", "valueName": "todosFilter", "value": "Get sugar"});
+
+  const customValueAction:CustomValueAction = engine.customValue("customPageNumber", 127);
+  expect(customValueAction).toEqual({"type": "CUSTOM_PAGE_NUMBER", "value": 127});
 
   const customAction:CustomAction = engine.custom("customNextPage");
   expect(customAction).toEqual({"type": "CUSTOM_NEXT_PAGE"});
@@ -190,7 +206,9 @@ test("action subscribe", function() {
     "DUXEN_SAVE_ORIGINALS": true,
     "DUXEN_RETRIEVE_ORIGINALS": true,
     "DUXEN_BATCH": true,
-    "CHANGE_TODOS_FILTER": true,
+    "DUXEN_REFRESH": true,
+    "DUXEN_VALUE": true,
+    "CUSTOM_PAGE_NUMBER": true,
     "CUSTOM_NEXT_PAGE": true
   };
 

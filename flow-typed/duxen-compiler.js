@@ -28,8 +28,8 @@
    [string]: CompiledName
  };
 
- declare type CompiledValueAction = {|
-   type: "value",
+ declare type CompiledCustomValueAction = {|
+   type: "customValue",
    name: string,
    actionType: CustomActionType,
    reducer: ValueReducer
@@ -42,7 +42,7 @@
    reducer: CustomReducer
  |};
 
- declare type CompiledAction = CompiledValueAction | CompiledCustomAction;
+ declare type CompiledAction = CompiledCustomValueAction | CompiledCustomAction;
 
  declare type CompiledActions = {
    [CustomActionType]: CompiledAction

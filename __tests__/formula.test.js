@@ -17,7 +17,6 @@ test("formula", function() {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
     'todosFilterUp': {
       type: 'formula',

@@ -136,9 +136,14 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
 
   const compileValue = (name: string, entry: ValueSchemaEntry, namePrefix: string): void => {
     verifyNames(name, namePrefix);
+  };
+
+  const compileCustomValue = (name: string, entry: CustomValueSchemaEntry, namePrefix: string): void => {
+    verifyNames(name, namePrefix);
 
     let actionType:CustomActionType = entry.actionType;
-      if(!actionType) {
+
+    if(!actionType) {
       throw new Error("Missing actionType in value schema: "+JSON.stringify(entry));
     }
     actionType = namePrefix+actionType;
@@ -155,7 +160,7 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
         }
     };
 
-    cs.actions[actionType] = {type: "value", name, actionType, reducer};
+    cs.actions[actionType] = {type: "customValue", name, actionType, reducer};
   };
 
   const compileFormula = (name: string, entry: FormulaSchemaEntry, namePrefix: string): void => {
@@ -252,11 +257,17 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
 
       switch(entry.type) {
 
-      case 'value': {
-        cn.initValue = entry.initValue;
-        compileValue(name, entry, namePrefix);
-        break;
-      }
+        case 'value': {
+          cn.initValue = entry.initValue;
+          compileValue(name, entry, namePrefix);
+          break;
+        }
+
+        case 'customValue': {
+          cn.initValue = entry.initValue;
+          compileCustomValue(name, entry, namePrefix);
+          break;
+        }
 
       case 'formula': {
         compileFormula(name, entry, namePrefix);
@@ -367,6 +378,10 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
 
       switch(entry.type) {
       case 'value': {
+        map.setIn(cn.subPath, cn.initValue);
+        break;
+      }
+      case 'customValue': {
         map.setIn(cn.subPath, cn.initValue);
         break;
       }

@@ -18,7 +18,6 @@ test("Meteor Driver - dispatch, insert, update, remove", function() {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
     'todos': {
       type: 'collection',
@@ -92,7 +91,6 @@ test("Meteor Driver - dispatch, insert, update, remove", function() {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
     'todos': {
       type: 'collection',

@@ -19,7 +19,6 @@ test("Reducer update, replace, $set, $inc", function() {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
     'todos': {
       type: 'collection',

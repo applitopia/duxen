@@ -19,7 +19,6 @@ test("action creators", function() {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
     'customNextPage': {
       type: 'custom',
@@ -82,7 +81,7 @@ test("action creators", function() {
   expect(refreshAction).toEqual({"type": "DUXEN_REFRESH"});
 
   const valueAction:ValueAction = engine.value("todosFilter", "Get sugar");
-  expect(valueAction).toEqual({"type": "CHANGE_TODOS_FILTER", "value": "Get sugar"});
+  expect(valueAction).toEqual({"type": "DUXEN_VALUE", "valueName": "todosFilter", "value": "Get sugar"});
 
   const customAction:CustomAction = engine.custom("customNextPage");
   expect(customAction).toEqual({"type": "CUSTOM_NEXT_PAGE"});
@@ -94,7 +93,6 @@ test("SubSchema Action creators", function() {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
     "calendarSchema": {
       type: 'schema',
@@ -102,7 +100,6 @@ test("SubSchema Action creators", function() {
         'currentMonth': {
           type: 'value',
           initValue: "2017-06",
-          actionType: 'CHANGE_CURRENT_MONTH',
         },
         'customNextPage': {
           type: 'custom',
@@ -121,10 +118,10 @@ test("SubSchema Action creators", function() {
   const engine:EngineInterface = new createEngine(schema);
 
   const valueAction:ValueAction = engine.value("todosFilter", "Get sugar");
-  expect(valueAction).toEqual({"type": "CHANGE_TODOS_FILTER", "value": "Get sugar"});
+  expect(valueAction).toEqual({"type": "DUXEN_VALUE", "valueName": "todosFilter", "value": "Get sugar"});
 
   const valueAction2:ValueAction = engine.value("calendarSchema.currentMonth", "2017-07");
-  expect(valueAction2).toEqual({"type": "calendarSchema.CHANGE_CURRENT_MONTH", "value": "2017-07"});
+  expect(valueAction2).toEqual({"type": "DUXEN_VALUE", "valueName": "calendarSchema.currentMonth", "value": "2017-07"});
 
   const customAction:CustomAction = engine.custom("calendarSchema.customNextPage");
   expect(customAction).toEqual({"type": "calendarSchema.CUSTOM_NEXT_PAGE"});

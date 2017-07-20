@@ -15,7 +15,6 @@ test("Initial state - value", function() {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
   };
 

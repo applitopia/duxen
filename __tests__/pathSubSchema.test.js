@@ -20,7 +20,6 @@ test("Subschema and value, collection, view with path", function() {
       type: 'value',
       path: 'a.b.c.todosFilter',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
     'todos': {
       type: 'collection',
@@ -254,7 +253,6 @@ test("Subschema with path, and value, collection, view with path", function() {
       type: 'value',
       path: 'a.b.c.todosFilter',
       initValue: "Get milk",
-      actionType: 'CHANGE_TODOS_FILTER',
     },
     'todos': {
       type: 'collection',

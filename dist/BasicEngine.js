@@ -368,6 +368,22 @@ var BasicEngine = function (_CommonEngine) {
               break;
             }
 
+          case 'DUXEN_VALUE':
+            {
+              var valueAction = cast(action);
+              var _cn7 = getCompiledName(valueAction.valueName);
+              var oldValue = state.getIn(_cn7.path);
+              if (oldValue === undefined) {
+                throw Error("Lost value in state:" + valueAction.valueName);
+              }
+              var newValue = valueAction.value;
+              if (oldValue !== newValue) {
+                mutableState.setIn(_cn7.path, newValue);
+                updateDependents(mutableState, state, _cn7);
+              }
+              break;
+            }
+
           default:
             {
               //
@@ -375,21 +391,21 @@ var BasicEngine = function (_CommonEngine) {
               var compiledAction = cs.actions[action.type];
               if (compiledAction) {
                 var name = compiledAction.name;
-                var _cn7 = getCompiledName(name);
+                var _cn8 = getCompiledName(name);
 
                 switch (compiledAction.type) {
-                  case 'value':
+                  case 'customValue':
                     {
-                      var valueAction = cast(action);
-                      var oldValue = state.getIn(_cn7.path);
-                      if (oldValue === undefined) {
+                      var _valueAction = cast(action);
+                      var _oldValue = state.getIn(_cn8.path);
+                      if (_oldValue === undefined) {
                         throw Error("Lost value in state:" + name);
                       }
                       var reducer = compiledAction.reducer;
-                      var newValue = reducer(oldValue, valueAction);
-                      if (oldValue !== newValue) {
-                        mutableState.setIn(_cn7.path, newValue);
-                        updateDependents(mutableState, state, _cn7);
+                      var _newValue = reducer(_oldValue, _valueAction);
+                      if (_oldValue !== _newValue) {
+                        mutableState.setIn(_cn8.path, _newValue);
+                        updateDependents(mutableState, state, _cn8);
                       }
                       break;
                     }
@@ -397,14 +413,14 @@ var BasicEngine = function (_CommonEngine) {
                     {
                       var customAction = cast(action);
                       var _reducer = compiledAction.reducer;
-                      if (_cn7.path.length > 0) {
-                        var subState = mutableState.getIn(_cn7.path);
+                      if (_cn8.path.length > 0) {
+                        var subState = mutableState.getIn(_cn8.path);
                         if (!subState) {
-                          throw new Error("Missing path in state:" + JSON.stringify(_cn7.path));
+                          throw new Error("Missing path in state:" + JSON.stringify(_cn8.path));
                         }
                         var mutableSubState = subState.asMutable();
                         _reducer(mutableSubState, customAction);
-                        mutableState.setIn(_cn7.path, mutableSubState);
+                        mutableState.setIn(_cn8.path, mutableSubState);
                       } else {
                         _reducer(mutableState, customAction);
                       }
