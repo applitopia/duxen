@@ -3,8 +3,8 @@
 DUXEN
 =====
 [![ghit.me](https://ghit.me/badge.svg?repo=applitopia/duxen)](https://ghit.me/repo/applitopia/duxen)
-[![jest](https://img.shields.io/badge/jest-passed-brightgreen.svg)](https://facebook.github.io/jest/)
 [![npm version](https://badge.fury.io/js/duxen.svg)](https://badge.fury.io/js/duxen)
+[![jest](https://img.shields.io/badge/tested_with-jest-brightgreen.svg)](https://facebook.github.io/jest/)
 [![dependencies](https://img.shields.io/david/applitopia/duxen.svg)](https://david-dm.org/applitopia/duxen)
 [![devDependencies](https://img.shields.io/david/dev/applitopia/duxen.svg)](https://david-dm.org/applitopia/duxen?type=dev)
 [![Gitter](https://img.shields.io/gitter/room/applitopia/duxen.svg)](https://gitter.im/duxen/Lobby)
