@@ -17,6 +17,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _immutableSorted = require('immutable-sorted');
 
+var _seqen = require('seqen');
+
+var cast = function cast(value) {
+  return value;
+};
+
 // deps is array of [sourceName, dependentName]
 var compileDependencies = exports.compileDependencies = function compileDependencies(deps) {
   // dt is dependecy table
@@ -262,7 +268,16 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
         throw Error("Duplicate name in schema: " + name);
       }
 
-      var cn = { name: name, type: entry.type, namePrefix: namePrefix, path: path, schemaPath: schemaPath, subPath: subPath, schemaEntry: entry, dependents: [] };
+      var cn = {
+        name: name,
+        type: entry.type,
+        namePrefix: namePrefix,
+        path: path,
+        schemaPath: schemaPath,
+        subPath: subPath,
+        schemaEntry: entry,
+        dependents: []
+      };
       cs.names[name] = cn;
 
       switch (entry.type) {
@@ -295,6 +310,8 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
 
         case 'view':
           {
+            var vse = cast(entry);
+            cn.seqen = new _seqen.Seqen(vse.recipe);
             compileView(name, entry, namePrefix);
             break;
           }

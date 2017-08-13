@@ -42,7 +42,8 @@
   },
   "homepage": "https://github.com/applitopia/duxen#readme",
   "dependencies": {
-    "immutable-sorted": "^0.1.0"
+    "immutable-sorted": "^0.1.0",
+    "seqen": "^0.0.2"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",

@@ -124,8 +124,14 @@ var BasicEngine = function (_CommonEngine) {
                   }
                 }
                 var newSourceData = mutableState.getIn(scn.path);
-                var newdata = vcne.recipe(cast(newSourceData.toSeq()), _props);
-                mutableState.setIn(dcn.path, newdata);
+
+                if (dcn.seqen) {
+                  var newdata = dcn.seqen.process(newSourceData, _props);
+
+                  mutableState.setIn(dcn.path, newdata);
+                } else {
+                  throw new Error("Missing seqen for view: " + scn.name);
+                }
                 break;
               }
             default:

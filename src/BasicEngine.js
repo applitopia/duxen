@@ -86,9 +86,15 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
                 }
               }
             }
-            const newSourceData = mutableState.getIn(scn.path);
-            const newdata = vcne.recipe(cast(newSourceData.toSeq()), props);
-            mutableState.setIn(dcn.path, newdata);
+            const newSourceData:CollData = mutableState.getIn(scn.path);
+
+            if(dcn.seqen) {
+              const newdata:CollData = dcn.seqen.process(newSourceData, props);
+
+              mutableState.setIn(dcn.path, newdata);
+            } else {
+              throw new Error("Missing seqen for view: "+scn.name);
+            }
             break;
           }
           default: {

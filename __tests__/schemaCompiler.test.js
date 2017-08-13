@@ -98,6 +98,7 @@ test("Simple Schema Compiler", function() {
   };
 
   const cs:CompiledSchema = compileSchema(schema);
+  delete cs.names.todosView.seqen;
   const csExpected:CompiledSchema = {
     "names": {
       "customNextPage": {"name": "customNextPage", "type": "custom", namePrefix: "", path: [], schemaPath: [], subPath: [], schemaEntry: schema.customNextPage, dependents: []},
@@ -144,6 +145,7 @@ test("SubSchema Compiler", function() {
   };
 
   const cs:CompiledSchema = compileSchema(schema);
+  delete cs.names.todosFilter.seqen;
   const csExpected:CompiledSchema = {
     "names": {
       "calendarSchema": {"name": "calendarSchema", "type": "schema", namePrefix: "", path: ["calendarSchema"], schemaPath: [], subPath: ["calendarSchema"], schemaEntry: schema.calendarSchema, dependents: []},

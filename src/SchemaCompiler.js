@@ -9,6 +9,9 @@
  */
 
 import { Map } from 'immutable-sorted';
+import { Seqen } from 'seqen';
+
+const cast = <T>(value: any): T => (value: T);
 
 // deps is array of [sourceName, dependentName]
 export const compileDependencies = (deps: Array<[string, string]>): {[string]: Array<string>} => {
@@ -252,7 +255,16 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
         throw Error("Duplicate name in schema: "+name);
       }
 
-      const cn:CompiledName = {name, type: entry.type, namePrefix, path, schemaPath, subPath, schemaEntry: entry, dependents: []};
+      const cn:CompiledName = {
+        name,
+        type: entry.type,
+        namePrefix,
+        path,
+        schemaPath,
+        subPath,
+        schemaEntry: entry,
+        dependents: []
+      };
       cs.names[name] = cn;
 
       switch(entry.type) {
@@ -269,34 +281,36 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
           break;
         }
 
-      case 'formula': {
-        compileFormula(name, entry, namePrefix);
-        break;
-      }
+        case 'formula': {
+          compileFormula(name, entry, namePrefix);
+          break;
+        }
 
-      case 'collection': {
-        compileCollection(name, entry, namePrefix);
-        break;
-      }
+        case 'collection': {
+          compileCollection(name, entry, namePrefix);
+          break;
+        }
 
-      case 'view': {
-        compileView(name, entry, namePrefix);
-        break;
-      }
+        case 'view': {
+          const vse: ViewSchemaEntry = cast(entry);
+          cn.seqen = new Seqen(vse.recipe);
+          compileView(name, entry, namePrefix);
+          break;
+        }
 
-      case 'custom': {
-        compileCustom(name, entry, namePrefix);
-        break;
-      }
+        case 'custom': {
+          compileCustom(name, entry, namePrefix);
+          break;
+        }
 
-      case 'schema': {
-        compile(entry.schema, name, pathName);
-        break;
-      }
+        case 'schema': {
+          compile(entry.schema, name, pathName);
+          break;
+        }
 
-      default: {
-        throw new Error("Invalid SchemaEntry type: "+entry.type);
-      }
+        default: {
+          throw new Error("Invalid SchemaEntry type: "+entry.type);
+        }
       }
     }
 

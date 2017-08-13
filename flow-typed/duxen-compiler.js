@@ -21,7 +21,8 @@
    schemaPath: Array<string>,
    subPath: Array<string>,
    schemaEntry: SchemaEntry,
-   dependents: Array<string>
+   dependents: Array<string>,
+   seqen?: Seqen<StateKey, CollDocument, StateKey, CollDocument>
  |};
 
  declare type CompiledNames = {

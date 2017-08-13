@@ -99,6 +99,8 @@ test("Simple Schema Compiler", function() {
   };
 
   const cs:CompiledSchema = compileSchema(schema);
+  delete cs.names.todosView.seqen;
+  delete cs.names.todosViewCnt.seqen;
   const csExpected:CompiledSchema = {
     "names": {
       "todos": {

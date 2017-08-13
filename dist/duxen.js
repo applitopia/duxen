@@ -125,8 +125,14 @@ var BasicEngine = function (_CommonEngine) {
                   }
                 }
                 var newSourceData = mutableState.getIn(scn.path);
-                var newdata = vcne.recipe(cast(newSourceData.toSeq()), _props);
-                mutableState.setIn(dcn.path, newdata);
+
+                if (dcn.seqen) {
+                  var newdata = dcn.seqen.process(newSourceData, _props);
+
+                  mutableState.setIn(dcn.path, newdata);
+                } else {
+                  throw new Error("Missing seqen for view: " + scn.name);
+                }
                 break;
               }
             default:
@@ -1102,6 +1108,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _immutableSorted = require('immutable-sorted');
 
+var _seqen = require('seqen');
+
+var cast = function cast(value) {
+  return value;
+};
+
 // deps is array of [sourceName, dependentName]
 var compileDependencies = exports.compileDependencies = function compileDependencies(deps) {
   // dt is dependecy table
@@ -1347,7 +1359,16 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
         throw Error("Duplicate name in schema: " + name);
       }
 
-      var cn = { name: name, type: entry.type, namePrefix: namePrefix, path: path, schemaPath: schemaPath, subPath: subPath, schemaEntry: entry, dependents: [] };
+      var cn = {
+        name: name,
+        type: entry.type,
+        namePrefix: namePrefix,
+        path: path,
+        schemaPath: schemaPath,
+        subPath: subPath,
+        schemaEntry: entry,
+        dependents: []
+      };
       cs.names[name] = cn;
 
       switch (entry.type) {
@@ -1380,6 +1401,8 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
 
         case 'view':
           {
+            var vse = cast(entry);
+            cn.seqen = new _seqen.Seqen(vse.recipe);
             compileView(name, entry, namePrefix);
             break;
           }
@@ -1534,7 +1557,7 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
 
   return cs;
 };
-},{"immutable-sorted":6}],5:[function(require,module,exports){
+},{"immutable-sorted":6,"seqen":9}],5:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10023,4 +10046,70 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}]},{},[5]);
+},{}],8:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  Copyright (c) 2017, Applitopia, Inc.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  All rights reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  This source code is licensed under the MIT-style license found in the
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  LICENSE file in the root directory of this source tree.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+var _immutableSorted = require('immutable-sorted');
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Seqen = function () {
+  function Seqen(recipe) {
+    _classCallCheck(this, Seqen);
+
+    this.recipe = recipe;
+  }
+
+  _createClass(Seqen, [{
+    key: 'process',
+    value: function process(collection, props) {
+      return this.recipe(collection.toKeyedSeq(), props);
+    }
+  }]);
+
+  return Seqen;
+}();
+
+exports.default = Seqen;
+},{"immutable-sorted":6}],9:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Seqen = undefined;
+
+var _Seqen = require('./Seqen');
+
+var _Seqen2 = _interopRequireDefault(_Seqen);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.Seqen = _Seqen2.default; /**
+                                  *  Copyright (c) 2017, Applitopia, Inc.
+                                  *  All rights reserved.
+                                  *
+                                  *  This source code is licensed under the MIT-style license found in the
+                                  *  LICENSE file in the root directory of this source tree.
+                                  *
+                                  *  
+                                  */
+
+exports.default = {
+  Seqen: _Seqen2.default
+};
+},{"./Seqen":8}]},{},[5]);
