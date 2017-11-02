@@ -418,23 +418,23 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
         switch (entry.type) {
           case 'value':
             {
-              map.setIn(cn.subPath, cn.initValue);
+              map.setIn(cast(cn.subPath), cn.initValue);
               break;
             }
           case 'customValue':
             {
-              map.setIn(cn.subPath, cn.initValue);
+              map.setIn(cast(cn.subPath), cn.initValue);
               break;
             }
           case 'collection':
             {
-              map.setIn(cn.subPath, (0, _immutableSorted.Map)());
+              map.setIn(cast(cn.subPath), (0, _immutableSorted.Map)());
               rootMap.setIn(["_state", name, "paused"], false);
               break;
             }
           case 'schema':
             {
-              map.setIn(cn.subPath, compileInitState(entry.schema, prefix + name + ".", rootMap));
+              map.setIn(cast(cn.subPath), compileInitState(entry.schema, prefix + name + ".", rootMap));
               break;
             }
           case 'custom':
@@ -443,12 +443,12 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
             }
           case 'view':
             {
-              map.setIn(cn.subPath, (0, _immutableSorted.Map)());
+              map.setIn(cast(cn.subPath), (0, _immutableSorted.Map)());
               break;
             }
           case 'formula':
             {
-              map.setIn(cn.subPath, undefined);
+              map.setIn(cast(cn.subPath), undefined);
               break;
             }
 
