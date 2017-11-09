@@ -42,7 +42,7 @@ test("Reducer update, replace, $set, $inc", function() {
     todosView: {}};
   expect(state0.toJS()).toEqual(expected0);
 
-  const action1 = engine.value("todosFilter", "Get sugar");
+  const action1 = engine.actionFactory().value("todosFilter", "Get sugar");
   const state1 = reducer(state0, action1);
   const expected1 = {
     _state: {todos: {paused: false}},
@@ -51,7 +51,7 @@ test("Reducer update, replace, $set, $inc", function() {
     todosView: {}};
   expect(state1.toJS()).toEqual(expected1);
 
-  const action2 = engine.insert("todos", "id1", {"text": "Get tickets", cnt: 0});
+  const action2 = engine.actionFactory().insert("todos", "id1", {"text": "Get tickets", cnt: 0});
   const state2 = reducer(state1, action2);
   const expected2 = {
     _state: {todos: {paused: false}},
@@ -61,7 +61,7 @@ test("Reducer update, replace, $set, $inc", function() {
   };
   expect(state2.toJS()).toEqual(expected2);
 
-  const action3 = engine.update("todos", "id1", {"text": "Get tickets to concert", cnt: 0});
+  const action3 = engine.actionFactory().update("todos", "id1", {"text": "Get tickets to concert", cnt: 0});
   const state3 = reducer(state2, action3);
   const expected3 = {
     _state: {todos: {paused: false}},
@@ -73,7 +73,7 @@ test("Reducer update, replace, $set, $inc", function() {
   expect(is(state3.get('todos').get('id1'), ensure({"text": "Get tickets to concert", cnt: 0}))).toBe(true);
   expect(is(state3.get('todosView').get('id1'), ensure({"text": "Get tickets to concert", cnt: 0}))).toBe(true);
 
-  const action4 = engine.update("todos", "id1", {$set: {cnt: 5}});
+  const action4 = engine.actionFactory().update("todos", "id1", {$set: {cnt: 5}});
   const state4 = reducer(state3, action4);
   const expected4 = {
     _state: {todos: {paused: false}},
@@ -83,7 +83,7 @@ test("Reducer update, replace, $set, $inc", function() {
   };
   expect(state4.toJS()).toEqual(expected4);
 
-  const action5 = engine.update("todos", "id1", {$inc: {cnt: 1}});
+  const action5 = engine.actionFactory().update("todos", "id1", {$inc: {cnt: 1}});
   const state5 = reducer(state4, action5);
   const expected5 = {
     _state: {todos: {paused: false}},
@@ -93,7 +93,7 @@ test("Reducer update, replace, $set, $inc", function() {
   };
   expect(state5.toJS()).toEqual(expected5);
 
-  const action6 = engine.update("todos", "id1", {$mul: {cnt: 2}});
+  const action6 = engine.actionFactory().update("todos", "id1", {$mul: {cnt: 2}});
   const state6 = reducer(state5, action6);
   const expected6 = {
     _state: {todos: {paused: false}},
@@ -103,7 +103,7 @@ test("Reducer update, replace, $set, $inc", function() {
   };
   expect(state6.toJS()).toEqual(expected6);
 
-  const action100 = engine.update("todos", "id1", {$unset: {cnt: true}});
+  const action100 = engine.actionFactory().update("todos", "id1", {$unset: {cnt: true}});
   const state100 = reducer(state6, action100);
   const expected100 = {
     _state: {todos: {paused: false}},

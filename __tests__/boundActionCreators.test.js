@@ -42,7 +42,7 @@ test("action creators", function() {
   };
 
   const engine:EngineInterface = createEngine(schema);
-  const actionFactory:ActionFactoryInterface = engine.actionFactory();
+  const actionFactory:ActionFactoryInterface = engine.boundActionFactory((action)=>action);
 
   const insertAction:InsertAction = actionFactory.insert("todos", "id1", ensure({"text": "Get tickets"}));
   expect(insertAction).toEqual({"type": "DUXEN_INSERT", "collName": "todos", "id": "id1", "doc": fromJS({"text": "Get tickets"})});
@@ -117,7 +117,7 @@ test("SubSchema Action creators", function() {
   };
 
   const engine:EngineInterface = new createEngine(schema);
-  const actionFactory:ActionFactoryInterface = engine.actionFactory();
+  const actionFactory:ActionFactoryInterface = engine.boundActionFactory((action)=>action);
 
   const valueAction:ValueAction = actionFactory.value("todosFilter", "Get sugar");
   expect(valueAction).toEqual({"type": "DUXEN_VALUE", "valueName": "todosFilter", "value": "Get sugar"});
@@ -144,9 +144,35 @@ test("SubSchema Coll Action creators", function() {
   };
 
   const engine:EngineInterface = new createEngine(schema);
-  const actionFactory:ActionFactoryInterface = engine.actionFactory();
+  const actionFactory:ActionFactoryInterface = engine.boundActionFactory((action)=>action);
 
   const insertAction:InsertAction = actionFactory.insert("todoSchema.todos", "id1", {text: "Get sugar"});
+  expect(insertAction).toEqual({"type": "DUXEN_INSERT", collName: "todoSchema.todos", id: "id1", doc: fromJS({text: "Get sugar"})});
+
+});
+
+test("SubEngine Coll Action creators", function() {
+  const schema:Schema = {
+    'todoSchema': {
+      type: "schema",
+      schema: {
+        'todos': {
+          type: 'collection',
+          path: "a.b.c",
+        },
+      }
+    }
+  };
+
+  const engine:EngineInterface = new createEngine(schema);
+  const subEngine:EngineInterface = engine.subEngine("todoSchema");
+  const actionFactory:ActionFactoryInterface = subEngine.boundActionFactory((action)=>action);
+
+  expect(() =>  engine.subEngine("todoSchemaa")).toThrow("Missing name in schema:");
+
+  expect(() =>  engine.subEngine("todoSchema.todos")).toThrow("Not a schema:");
+
+  const insertAction:InsertAction = actionFactory.insert("todos", "id1", {text: "Get sugar"});
   expect(insertAction).toEqual({"type": "DUXEN_INSERT", collName: "todoSchema.todos", id: "id1", doc: fromJS({text: "Get sugar"})});
 
 });

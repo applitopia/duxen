@@ -52,6 +52,7 @@ test("Subschema and value, collection, view with path", function() {
   };
 
   const engine:EngineInterface = new createEngine(schema);
+  const subEngine:EngineInterface = engine.subEngine("todosApp");
   const reducer:Reducer = engine.reducer();
 
   const state0:State = reducer(undefined, {type: "INIT"});
@@ -85,7 +86,7 @@ test("Subschema and value, collection, view with path", function() {
   };
   expect(state0.toJS()).toEqual(expected0);
 
-  const action1 = engine.actionFactory().value("todosApp.todosFilter", "Get sugar");
+  const action1 = subEngine.actionFactory().value("todosFilter", "Get sugar");
   const state1 = reducer(state0, action1);
   const expected1 = {
     _state: {
@@ -117,7 +118,7 @@ test("Subschema and value, collection, view with path", function() {
   };
   expect(state1.toJS()).toEqual(expected1);
 
-  const action2 = engine.actionFactory().insert("todosApp.todos", "id1", ensure({"text": "Get tickets"}));
+  const action2 = subEngine.actionFactory().insert("todos", "id1", ensure({"text": "Get tickets"}));
   const state2 = reducer(state1, action2);
   const expected2 = {
     _state: {
@@ -149,7 +150,7 @@ test("Subschema and value, collection, view with path", function() {
   };
   expect(state2.toJS()).toEqual(expected2);
 
-  const action3 = engine.actionFactory().update("todosApp.todos", "id1", ensure({"text": "Get tickets to concert"}));
+  const action3 = subEngine.actionFactory().update("todos", "id1", ensure({"text": "Get tickets to concert"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
     _state: {
@@ -181,7 +182,7 @@ test("Subschema and value, collection, view with path", function() {
   };
   expect(state3.toJS()).toEqual(expected3);
 
-  const action4 = engine.actionFactory().remove("todosApp.todos", "id1");
+  const action4 = subEngine.actionFactory().remove("todos", "id1");
   const state4 = reducer(state3, action4);
   const expected4 = {
     _state: {
@@ -213,7 +214,7 @@ test("Subschema and value, collection, view with path", function() {
   };
   expect(state4.toJS()).toEqual(expected4);
 
-  const action5 = engine.actionFactory().remove("todosApp.todos", "id1");
+  const action5 = subEngine.actionFactory().remove("todos", "id1");
   const state5 = reducer(state4, action5);
   const expected5 = {
     _state: {
@@ -286,6 +287,7 @@ test("Subschema with path, and value, collection, view with path", function() {
   };
 
   const engine:EngineInterface = new createEngine(schema);
+  const subEngine:EngineInterface = engine.subEngine("todosApp");
   const reducer:Reducer = engine.reducer();
 
   const state0:State = reducer(undefined, {type: "INIT"});
@@ -327,7 +329,11 @@ test("Subschema with path, and value, collection, view with path", function() {
   };
   expect(state0.toJS()).toEqual(expected0);
 
-  const action1 = engine.actionFactory().value("todosApp.todosFilter", "Get sugar");
+  const state0s:State = subEngine.get(state0, "todosFilter");
+  const expected0s = "Get milk";
+  expect(state0s).toEqual(expected0s);
+
+  const action1 = subEngine.actionFactory().value("todosFilter", "Get sugar");
   const state1 = reducer(state0, action1);
   const expected1 = {
     _state: {
@@ -367,7 +373,11 @@ test("Subschema with path, and value, collection, view with path", function() {
   };
   expect(state1.toJS()).toEqual(expected1);
 
-  const action2 = engine.actionFactory().insert("todosApp.todos", "id1", ensure({"text": "Get tickets"}));
+  const state1s = subEngine.get(state1, "todosFilter");
+  const expected1s = "Get sugar";
+  expect(state1s).toEqual(expected1s);
+
+  const action2 = subEngine.actionFactory().insert("todos", "id1", ensure({"text": "Get tickets"}));
   const state2 = reducer(state1, action2);
   const expected2 = {
     _state: {
@@ -407,7 +417,7 @@ test("Subschema with path, and value, collection, view with path", function() {
   };
   expect(state2.toJS()).toEqual(expected2);
 
-  const action3 = engine.actionFactory().update("todosApp.todos", "id1", ensure({"text": "Get tickets to concert"}));
+  const action3 = subEngine.actionFactory().update("todos", "id1", ensure({"text": "Get tickets to concert"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
     _state: {
@@ -447,7 +457,7 @@ test("Subschema with path, and value, collection, view with path", function() {
   };
   expect(state3.toJS()).toEqual(expected3);
 
-  const action4 = engine.actionFactory().remove("todosApp.todos", "id1");
+  const action4 = subEngine.actionFactory().remove("todos", "id1");
   const state4 = reducer(state3, action4);
   const expected4 = {
     _state: {
@@ -487,7 +497,7 @@ test("Subschema with path, and value, collection, view with path", function() {
   };
   expect(state4.toJS()).toEqual(expected4);
 
-  const action5 = engine.actionFactory().remove("todosApp.todos", "id1");
+  const action5 = subEngine.actionFactory().remove("todos", "id1");
   const state5 = reducer(state4, action5);
   const expected5 = {
     _state: {

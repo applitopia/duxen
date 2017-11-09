@@ -53,7 +53,7 @@ var BasicEngine = function (_CommonEngine) {
     value: function reducer() {
       var _this2 = this;
 
-      var cs = this.compiledSchema;
+      var cs = this._compiledSchema;
 
       var failed = function failed(s) {
         throw new Error("Schema compilation error: " + s);

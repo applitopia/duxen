@@ -5,6 +5,315 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  Copyright (c) 2017, Applitopia, Inc.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  All rights reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  This source code is licensed under the MIT-style license found in the
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  LICENSE file in the root directory of this source tree.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+var _immutableSorted = require('immutable-sorted');
+
+var _CommonEngine = require('./CommonEngine');
+
+var _CommonEngine2 = _interopRequireDefault(_CommonEngine);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var cast = function cast(value) {
+  return value;
+};
+var ensure = function ensure(value) {
+  return cast((0, _immutableSorted.fromJS)(value));
+};
+
+var ActionFactory = function () {
+  function ActionFactory(engine) {
+    _classCallCheck(this, ActionFactory);
+
+    this.engine = engine;
+  }
+
+  _createClass(ActionFactory, [{
+    key: '_verifyName',
+    value: function _verifyName(name, type) {
+      var cs = this.engine._compiledSchema;
+
+      var cn = cs.names[name];
+
+      if (!cn) {
+        throw new Error("Missing name in schema: " + name);
+      }
+
+      if (cn.type !== type) {
+        throw new Error("Not a " + type + ": " + name);
+      }
+    }
+  }, {
+    key: '_verifyCollection',
+    value: function _verifyCollection(collName) {
+      this._verifyName(collName, 'collection');
+    }
+  }, {
+    key: '_verifyValueName',
+    value: function _verifyValueName(valueName) {
+      this._verifyName(valueName, 'value');
+    }
+  }, {
+    key: '_verifyCustomValueName',
+    value: function _verifyCustomValueName(valueName) {
+      this._verifyName(valueName, 'customValue');
+    }
+  }, {
+    key: '_verifyCustomName',
+    value: function _verifyCustomName(customName) {
+      this._verifyName(customName, 'custom');
+    }
+
+    // Dispatch an action to listeners
+
+  }, {
+    key: '_action',
+    value: function _action(action) {
+      var listeners = this.engine._listeners;
+      for (var i = 0; i < listeners.length; i++) {
+        var listener = listeners[i];
+        listener(action);
+      }
+    }
+
+    //
+    // Action creators
+    //
+
+  }, {
+    key: 'batch',
+    value: function batch(collName, actions) {
+      this._verifyCollection(collName);
+      var action = {
+        type: 'DUXEN_BATCH',
+        collName: collName,
+        actions: (0, _immutableSorted.List)(actions)
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'insert',
+    value: function insert(collName, id, doc) {
+      this._verifyCollection(collName);
+      id = ensure(id);
+      doc = ensure(doc);
+      var action = {
+        type: 'DUXEN_INSERT',
+        collName: collName,
+        id: id,
+        doc: doc
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'update',
+    value: function update(collName, id, doc) {
+      this._verifyCollection(collName);
+      id = ensure(id);
+      doc = ensure(doc);
+      var action = {
+        type: 'DUXEN_UPDATE',
+        collName: collName,
+        id: id,
+        doc: doc
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'remove',
+    value: function remove(collName, id) {
+      this._verifyCollection(collName);
+      id = ensure(id);
+      var action = {
+        type: 'DUXEN_REMOVE',
+        collName: collName,
+        id: id
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'reset',
+    value: function reset(collName) {
+      this._verifyCollection(collName);
+      var action = {
+        type: 'DUXEN_RESET',
+        collName: collName
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'pause',
+    value: function pause(collName) {
+      this._verifyCollection(collName);
+      var action = {
+        type: 'DUXEN_PAUSE',
+        collName: collName
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'resume',
+    value: function resume(collName) {
+      this._verifyCollection(collName);
+      var action = {
+        type: 'DUXEN_RESUME',
+        collName: collName
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'save',
+    value: function save(collName) {
+      this._verifyCollection(collName);
+      var action = {
+        type: 'DUXEN_SAVE',
+        collName: collName
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'restore',
+    value: function restore(collName) {
+      this._verifyCollection(collName);
+      var action = {
+        type: 'DUXEN_RESTORE',
+        collName: collName
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'saveOriginals',
+    value: function saveOriginals(collName) {
+      this._verifyCollection(collName);
+      var action = {
+        type: 'DUXEN_SAVE_ORIGINALS',
+        collName: collName
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'retrieveOriginals',
+    value: function retrieveOriginals(collName) {
+      this._verifyCollection(collName);
+      var action = {
+        type: 'DUXEN_RETRIEVE_ORIGINALS',
+        collName: collName
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'refresh',
+    value: function refresh() {
+      var action = {
+        type: 'DUXEN_REFRESH'
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'value',
+    value: function value(valueName, _value) {
+      this._verifyValueName(valueName);
+
+      _value = ensure(_value);
+      var action = {
+        type: 'DUXEN_VALUE',
+        valueName: valueName,
+        value: _value
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'customValue',
+    value: function customValue(valueName, value) {
+      this._verifyCustomValueName(valueName);
+
+      var cs = this.engine._compiledSchema;
+      var cn = cs.names[valueName];
+      var valueEntry = cast(cn.schemaEntry);
+      var actionType = valueEntry.actionType;
+
+      if (!actionType) {
+        throw new Error("Missing actionType in value schema: " + JSON.stringify(valueEntry));
+      }
+
+      if (valueEntry.action) {
+        var _action2 = valueEntry.action(value);
+        this._action(_action2);
+        return _action2;
+      }
+
+      value = ensure(value);
+
+      var action = {
+        type: cn.namePrefix + actionType,
+        value: value
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'custom',
+    value: function custom(customName) {
+      this._verifyCustomName(customName);
+      var cs = this.engine._compiledSchema;
+      var cn = cs.names[customName];
+      var customEntry = cast(cn.schemaEntry);
+      var actionType = customEntry.actionType;
+
+      if (!actionType) {
+        throw new Error("Missing actionType in custom schema: " + JSON.stringify(customEntry));
+      }
+
+      if (!customEntry.action) {
+        throw new Error("Missing action in custom schema: " + JSON.stringify(customEntry));
+      }
+
+      var action = customEntry.action();
+
+      if (action.type !== undefined && action.type !== actionType) {
+        throw new Error("Inconsistent custom action type: " + JSON.stringify(action.type) + " vs " + actionType);
+      }
+      action.type = cn.namePrefix + actionType;
+      this._action(action);
+      return action;
+    }
+  }]);
+
+  return ActionFactory;
+}();
+
+exports.default = ActionFactory;
+},{"./CommonEngine":4,"immutable-sorted":10}],2:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -54,7 +363,7 @@ var BasicEngine = function (_CommonEngine) {
     value: function reducer() {
       var _this2 = this;
 
-      var cs = this.compiledSchema;
+      var cs = this._compiledSchema;
 
       var failed = function failed(s) {
         throw new Error("Schema compilation error: " + s);
@@ -467,7 +776,152 @@ var BasicEngine = function (_CommonEngine) {
 }(_CommonEngine3.default);
 
 exports.default = BasicEngine;
-},{"./CommonEngine":2,"immutable-sorted":6}],2:[function(require,module,exports){
+},{"./CommonEngine":4,"immutable-sorted":10}],3:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  Copyright (c) 2017, Applitopia, Inc.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  All rights reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  This source code is licensed under the MIT-style license found in the
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  LICENSE file in the root directory of this source tree.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+var _immutableSorted = require('immutable-sorted');
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var BoundActionFactory = function () {
+  function BoundActionFactory(dispatch, actionFactory) {
+    _classCallCheck(this, BoundActionFactory);
+
+    this._dispatch = dispatch;
+    this._actionFactory = actionFactory;
+  }
+
+  //
+  // Action creators
+  //
+
+
+  _createClass(BoundActionFactory, [{
+    key: 'batch',
+    value: function batch(collName, actions) {
+      var action = this._actionFactory.batch(collName, actions);
+      this._dispatch(action);
+      return action;
+    }
+  }, {
+    key: 'insert',
+    value: function insert(collName, id, doc) {
+      var action = this._actionFactory.insert(collName, id, doc);
+      this._dispatch(action);
+      return action;
+    }
+  }, {
+    key: 'update',
+    value: function update(collName, id, doc) {
+      var action = this._actionFactory.update(collName, id, doc);
+      this._dispatch(action);
+      return action;
+    }
+  }, {
+    key: 'remove',
+    value: function remove(collName, id) {
+      var action = this._actionFactory.remove(collName, id);
+      this._dispatch(action);
+      return action;
+    }
+  }, {
+    key: 'reset',
+    value: function reset(collName) {
+      var action = this._actionFactory.reset(collName);
+      this._dispatch(action);
+      return action;
+    }
+  }, {
+    key: 'pause',
+    value: function pause(collName) {
+      var action = this._actionFactory.pause(collName);
+      this._dispatch(action);
+      return action;
+    }
+  }, {
+    key: 'resume',
+    value: function resume(collName) {
+      var action = this._actionFactory.resume(collName);
+      this._dispatch(action);
+      return action;
+    }
+  }, {
+    key: 'save',
+    value: function save(collName) {
+      var action = this._actionFactory.save(collName);
+      this._dispatch(action);
+      return action;
+    }
+  }, {
+    key: 'restore',
+    value: function restore(collName) {
+      var action = this._actionFactory.restore(collName);
+      this._dispatch(action);
+      return action;
+    }
+  }, {
+    key: 'saveOriginals',
+    value: function saveOriginals(collName) {
+      var action = this._actionFactory.saveOriginals(collName);
+      this._dispatch(action);
+      return action;
+    }
+  }, {
+    key: 'retrieveOriginals',
+    value: function retrieveOriginals(collName) {
+      var action = this._actionFactory.retrieveOriginals(collName);
+      this._dispatch(action);
+      return action;
+    }
+  }, {
+    key: 'refresh',
+    value: function refresh() {
+      var action = this._actionFactory.refresh();
+      this._dispatch(action);
+      return action;
+    }
+  }, {
+    key: 'value',
+    value: function value(valueName, _value) {
+      var action = this._actionFactory.value(valueName, _value);
+      this._dispatch(action);
+      return action;
+    }
+  }, {
+    key: 'customValue',
+    value: function customValue(valueName, value) {
+      var action = this._actionFactory.customValue(valueName, value);
+      this._dispatch(action);
+      return action;
+    }
+  }, {
+    key: 'custom',
+    value: function custom(customName) {
+      var action = this._actionFactory.custom(customName);
+      this._dispatch(action);
+      return action;
+    }
+  }]);
+
+  return BoundActionFactory;
+}();
+
+exports.default = BoundActionFactory;
+},{"immutable-sorted":10}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -488,40 +942,27 @@ var _immutableSorted = require('immutable-sorted');
 
 var _SchemaCompiler = require('./SchemaCompiler');
 
+var _SubEngine = require('./SubEngine');
+
+var _SubEngine2 = _interopRequireDefault(_SubEngine);
+
+var _ActionFactory = require('./ActionFactory');
+
+var _ActionFactory2 = _interopRequireDefault(_ActionFactory);
+
+var _BoundActionFactory = require('./BoundActionFactory');
+
+var _BoundActionFactory2 = _interopRequireDefault(_BoundActionFactory);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var cast = function cast(value) {
-  return value;
-};
-var ensure = function ensure(value) {
-  return cast((0, _immutableSorted.fromJS)(value));
-};
-
 var CommonEngine = function () {
-  function CommonEngine(schema) {
-    _classCallCheck(this, CommonEngine);
-
-    this.compiledSchema = (0, _SchemaCompiler.compileSchema)(schema);
-    this.listeners = [];
-  }
-
   _createClass(CommonEngine, [{
-    key: '_getNameType',
-    value: function _getNameType(name) {
-      var cs = this.compiledSchema;
-
-      var cn = cs.names[name];
-
-      if (!cn) {
-        throw new Error("Missing name in schema: " + name);
-      }
-
-      return cn.type;
-    }
-  }, {
     key: '_verifyName',
     value: function _verifyName(name, type) {
-      var cs = this.compiledSchema;
+      var cs = this._compiledSchema;
 
       var cn = cs.names[name];
 
@@ -533,41 +974,20 @@ var CommonEngine = function () {
         throw new Error("Not a " + type + ": " + name);
       }
     }
-  }, {
-    key: '_verifyCollection',
-    value: function _verifyCollection(collName) {
-      this._verifyName(collName, 'collection');
-    }
-  }, {
-    key: '_verifyValueName',
-    value: function _verifyValueName(valueName) {
-      this._verifyName(valueName, 'value');
-    }
-  }, {
-    key: '_verifyCustomValueName',
-    value: function _verifyCustomValueName(valueName) {
-      this._verifyName(valueName, 'customValue');
-    }
-  }, {
-    key: '_verifyCustomName',
-    value: function _verifyCustomName(customName) {
-      this._verifyName(customName, 'custom');
-    }
+  }]);
 
-    // Dispatch an action to listeners
+  function CommonEngine(schema) {
+    _classCallCheck(this, CommonEngine);
 
-  }, {
-    key: '_action',
-    value: function _action(action) {
-      for (var i = 0; i < this.listeners.length; i++) {
-        var listener = this.listeners[i];
-        listener(action);
-      }
-    }
-  }, {
+    this._compiledSchema = (0, _SchemaCompiler.compileSchema)(schema);
+    this._actionFactory = new _ActionFactory2.default(this);
+    this._listeners = [];
+  }
+
+  _createClass(CommonEngine, [{
     key: '_getCompiledName',
     value: function _getCompiledName(name) {
-      var cn = this.compiledSchema.names[name];
+      var cn = this._compiledSchema.names[name];
 
       if (!cn) {
         throw new Error("Name not found in schema: " + name);
@@ -575,12 +995,28 @@ var CommonEngine = function () {
 
       return cn;
     }
+  }, {
+    key: '_getNameType',
+    value: function _getNameType(name) {
+      var cs = this._compiledSchema;
+
+      var cn = cs.names[name];
+
+      if (!cn) {
+        throw new Error("Missing name in schema: " + name);
+      }
+
+      return cn.type;
+    }
 
     // Extract a value from state
 
   }, {
     key: 'get',
     value: function get(state, name) {
+      if (!name) {
+        return state;
+      }
       var cn = this._getCompiledName(name);
       return state.getIn(cn.path);
     }
@@ -602,13 +1038,13 @@ var CommonEngine = function () {
 
       var stillSubscribed = true;
 
-      this.listeners.push(listener);
+      this._listeners.push(listener);
 
       return function () {
         if (stillSubscribed) {
           stillSubscribed = false;
-          var index = _this.listeners.indexOf(listener);
-          _this.listeners.splice(index, 1);
+          var index = _this._listeners.indexOf(listener);
+          _this._listeners.splice(index, 1);
         }
       };
     }
@@ -630,7 +1066,7 @@ var CommonEngine = function () {
       var _this2 = this;
 
       return (0, _immutableSorted.Map)().withMutations(function (mutableState) {
-        for (var name in _this2.compiledSchema.names) {
+        for (var name in _this2._compiledSchema.names) {
           var cn = _this2._getCompiledName(name);
           switch (cn.type) {
             case 'value':
@@ -649,219 +1085,26 @@ var CommonEngine = function () {
       });
     }
 
-    //
-    // Action creators
-    //
+    // SubEngine
 
   }, {
-    key: 'batch',
-    value: function batch(collName, actions) {
-      this._verifyCollection(collName);
-      var action = {
-        type: 'DUXEN_BATCH',
-        collName: collName,
-        actions: (0, _immutableSorted.List)(actions)
-      };
-      this._action(action);
-      return action;
+    key: 'subEngine',
+    value: function subEngine(subSchemaPath) {
+      this._verifyName(subSchemaPath, 'schema');
+      return new _SubEngine2.default(this, subSchemaPath);
     }
-  }, {
-    key: 'insert',
-    value: function insert(collName, id, doc) {
-      this._verifyCollection(collName);
-      id = ensure(id);
-      doc = ensure(doc);
-      var action = {
-        type: 'DUXEN_INSERT',
-        collName: collName,
-        id: id,
-        doc: doc
-      };
-      this._action(action);
-      return action;
-    }
-  }, {
-    key: 'update',
-    value: function update(collName, id, doc) {
-      this._verifyCollection(collName);
-      id = ensure(id);
-      doc = ensure(doc);
-      var action = {
-        type: 'DUXEN_UPDATE',
-        collName: collName,
-        id: id,
-        doc: doc
-      };
-      this._action(action);
-      return action;
-    }
-  }, {
-    key: 'remove',
-    value: function remove(collName, id) {
-      this._verifyCollection(collName);
-      id = ensure(id);
-      var action = {
-        type: 'DUXEN_REMOVE',
-        collName: collName,
-        id: id
-      };
-      this._action(action);
-      return action;
-    }
-  }, {
-    key: 'reset',
-    value: function reset(collName) {
-      this._verifyCollection(collName);
-      var action = {
-        type: 'DUXEN_RESET',
-        collName: collName
-      };
-      this._action(action);
-      return action;
-    }
-  }, {
-    key: 'pause',
-    value: function pause(collName) {
-      this._verifyCollection(collName);
-      var action = {
-        type: 'DUXEN_PAUSE',
-        collName: collName
-      };
-      this._action(action);
-      return action;
-    }
-  }, {
-    key: 'resume',
-    value: function resume(collName) {
-      this._verifyCollection(collName);
-      var action = {
-        type: 'DUXEN_RESUME',
-        collName: collName
-      };
-      this._action(action);
-      return action;
-    }
-  }, {
-    key: 'save',
-    value: function save(collName) {
-      this._verifyCollection(collName);
-      var action = {
-        type: 'DUXEN_SAVE',
-        collName: collName
-      };
-      this._action(action);
-      return action;
-    }
-  }, {
-    key: 'restore',
-    value: function restore(collName) {
-      this._verifyCollection(collName);
-      var action = {
-        type: 'DUXEN_RESTORE',
-        collName: collName
-      };
-      this._action(action);
-      return action;
-    }
-  }, {
-    key: 'saveOriginals',
-    value: function saveOriginals(collName) {
-      this._verifyCollection(collName);
-      var action = {
-        type: 'DUXEN_SAVE_ORIGINALS',
-        collName: collName
-      };
-      this._action(action);
-      return action;
-    }
-  }, {
-    key: 'retrieveOriginals',
-    value: function retrieveOriginals(collName) {
-      this._verifyCollection(collName);
-      var action = {
-        type: 'DUXEN_RETRIEVE_ORIGINALS',
-        collName: collName
-      };
-      this._action(action);
-      return action;
-    }
-  }, {
-    key: 'refresh',
-    value: function refresh() {
-      var action = {
-        type: 'DUXEN_REFRESH'
-      };
-      this._action(action);
-      return action;
-    }
-  }, {
-    key: 'value',
-    value: function value(valueName, _value) {
-      this._verifyValueName(valueName);
 
-      _value = ensure(_value);
-      var action = {
-        type: 'DUXEN_VALUE',
-        valueName: valueName,
-        value: _value
-      };
-      this._action(action);
-      return action;
+    // ActionFactory
+
+  }, {
+    key: 'actionFactory',
+    value: function actionFactory() {
+      return this._actionFactory;
     }
   }, {
-    key: 'customValue',
-    value: function customValue(valueName, value) {
-      this._verifyCustomValueName(valueName);
-
-      var cs = this.compiledSchema;
-      var cn = cs.names[valueName];
-      var valueEntry = cast(cn.schemaEntry);
-      var actionType = valueEntry.actionType;
-
-      if (!actionType) {
-        throw new Error("Missing actionType in value schema: " + JSON.stringify(valueEntry));
-      }
-
-      if (valueEntry.action) {
-        var _action2 = valueEntry.action(value);
-        this._action(_action2);
-        return _action2;
-      }
-
-      value = ensure(value);
-
-      var action = {
-        type: cn.namePrefix + actionType,
-        value: value
-      };
-      this._action(action);
-      return action;
-    }
-  }, {
-    key: 'custom',
-    value: function custom(customName) {
-      this._verifyCustomName(customName);
-      var cs = this.compiledSchema;
-      var cn = cs.names[customName];
-      var customEntry = cast(cn.schemaEntry);
-      var actionType = customEntry.actionType;
-
-      if (!actionType) {
-        throw new Error("Missing actionType in custom schema: " + JSON.stringify(customEntry));
-      }
-
-      if (!customEntry.action) {
-        throw new Error("Missing action in custom schema: " + JSON.stringify(customEntry));
-      }
-
-      var action = customEntry.action();
-
-      if (action.type !== undefined && action.type !== actionType) {
-        throw new Error("Inconsistent custom action type: " + JSON.stringify(action.type) + " vs " + actionType);
-      }
-      action.type = cn.namePrefix + actionType;
-      this._action(action);
-      return action;
+    key: 'boundActionFactory',
+    value: function boundActionFactory(dispatch) {
+      return new _BoundActionFactory2.default(dispatch, this.actionFactory());
     }
 
     //
@@ -879,7 +1122,7 @@ var CommonEngine = function () {
 }();
 
 exports.default = CommonEngine;
-},{"./SchemaCompiler":4,"immutable-sorted":6}],3:[function(require,module,exports){
+},{"./ActionFactory":1,"./BoundActionFactory":3,"./SchemaCompiler":6,"./SubEngine":8,"immutable-sorted":10}],5:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -934,6 +1177,7 @@ var MeteorCollection = exports.MeteorCollection = function () {
 
     this._name = name;
     this._engine = engine;
+    this._actionFactory = engine.actionFactory();
     this._dispatch = dispatch;
     this._getData = getData;
     this._getOriginals = getOriginals;
@@ -957,7 +1201,7 @@ var MeteorCollection = exports.MeteorCollection = function () {
     key: 'flush',
     value: function flush() {
       if (this._pending.length > 0) {
-        var batch = this._engine.batch(this._name, this._pending);
+        var batch = this._actionFactory.batch(this._name, this._pending);
         this._dispatch(batch);
         this._pending = [];
       }
@@ -969,11 +1213,11 @@ var MeteorCollection = exports.MeteorCollection = function () {
       if (!mongoId) {
         this._ids = (0, _immutableSorted.Set)().asMutable();
         this._pending = [];
-        var action = this._engine.reset(this._name);
+        var action = this._actionFactory.reset(this._name);
         this._dispatch(action);
       } else {
         this._ids.remove(mongoId);
-        var _action = this._engine.remove(this._name, mongoId);
+        var _action = this._actionFactory.remove(this._name, mongoId);
         this.dispatch(_action);
       }
     }
@@ -985,7 +1229,7 @@ var MeteorCollection = exports.MeteorCollection = function () {
         throw new Error("Empty mongoID: " + JSON.stringify(replace));
       }
       this._ids.add(mongoId);
-      var action = this._engine.insert(this._name, mongoId, replace);
+      var action = this._actionFactory.insert(this._name, mongoId, replace);
       this.dispatch(action);
     }
   }, {
@@ -995,7 +1239,7 @@ var MeteorCollection = exports.MeteorCollection = function () {
       if (!mongoId) {
         throw new Error("Selector not supported:" + JSON.stringify(selector));
       }
-      var action = this._engine.update(this._name, mongoId, replace);
+      var action = this._actionFactory.update(this._name, mongoId, replace);
       this.dispatch(action);
     }
   }, {
@@ -1025,7 +1269,7 @@ var MeteorCollection = exports.MeteorCollection = function () {
     value: function pauseObservers() {
       this._paused = true;
       this._pending = [];
-      var action = this._engine.pause(this._name);
+      var action = this._actionFactory.pause(this._name);
       this.dispatch(action);
     }
   }, {
@@ -1033,13 +1277,13 @@ var MeteorCollection = exports.MeteorCollection = function () {
     value: function resumeObservers() {
       this.flush();
       this._paused = false;
-      var action = this._engine.resume(this._name);
+      var action = this._actionFactory.resume(this._name);
       this.dispatch(action);
     }
   }, {
     key: 'saveOriginals',
     value: function saveOriginals() {
-      var action = this._engine.saveOriginals(this._name);
+      var action = this._actionFactory.saveOriginals(this._name);
       this.dispatch(action);
     }
   }, {
@@ -1047,7 +1291,7 @@ var MeteorCollection = exports.MeteorCollection = function () {
     value: function retrieveOriginals() {
       this.flush();
       var collData = this._getOriginals();
-      var action = this._engine.retrieveOriginals(this._name);
+      var action = this._actionFactory.retrieveOriginals(this._name);
       this.dispatch(action);
       if (collData) {
         return (0, _immutableSorted.Seq)(collData).map(function (v) {
@@ -1088,7 +1332,7 @@ var MeteorDriver = exports.MeteorDriver = function () {
 
   return MeteorDriver;
 }();
-},{"immutable-sorted":6}],4:[function(require,module,exports){
+},{"immutable-sorted":10}],6:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1557,7 +1801,266 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
 
   return cs;
 };
-},{"immutable-sorted":6,"seqen":9}],5:[function(require,module,exports){
+},{"immutable-sorted":10,"seqen":13}],7:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  Copyright (c) 2017, Applitopia, Inc.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  All rights reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  This source code is licensed under the MIT-style license found in the
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  LICENSE file in the root directory of this source tree.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+var _immutableSorted = require('immutable-sorted');
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var SubActionFactory = function () {
+  function SubActionFactory(actionFactory, subSchemaPath) {
+    _classCallCheck(this, SubActionFactory);
+
+    this._actionFactory = actionFactory;
+    this._subSchemaPath = subSchemaPath;
+    this._prefix = subSchemaPath + '.';
+  }
+
+  //
+  // Action creators
+  //
+
+
+  _createClass(SubActionFactory, [{
+    key: 'batch',
+    value: function batch(collName, actions) {
+      collName = this._prefix + collName;
+      var action = this._actionFactory.batch(collName, actions);
+      return action;
+    }
+  }, {
+    key: 'insert',
+    value: function insert(collName, id, doc) {
+      collName = this._prefix + collName;
+      var action = this._actionFactory.insert(collName, id, doc);
+      return action;
+    }
+  }, {
+    key: 'update',
+    value: function update(collName, id, doc) {
+      collName = this._prefix + collName;
+      var action = this._actionFactory.update(collName, id, doc);
+      return action;
+    }
+  }, {
+    key: 'remove',
+    value: function remove(collName, id) {
+      collName = this._prefix + collName;
+      var action = this._actionFactory.remove(collName, id);
+      return action;
+    }
+  }, {
+    key: 'reset',
+    value: function reset(collName) {
+      collName = this._prefix + collName;
+      var action = this._actionFactory.reset(collName);
+      return action;
+    }
+  }, {
+    key: 'pause',
+    value: function pause(collName) {
+      collName = this._prefix + collName;
+      var action = this._actionFactory.pause(collName);
+      return action;
+    }
+  }, {
+    key: 'resume',
+    value: function resume(collName) {
+      collName = this._prefix + collName;
+      var action = this._actionFactory.resume(collName);
+      return action;
+    }
+  }, {
+    key: 'save',
+    value: function save(collName) {
+      collName = this._prefix + collName;
+      var action = this._actionFactory.save(collName);
+      return action;
+    }
+  }, {
+    key: 'restore',
+    value: function restore(collName) {
+      collName = this._prefix + collName;
+      var action = this._actionFactory.restore(collName);
+      return action;
+    }
+  }, {
+    key: 'saveOriginals',
+    value: function saveOriginals(collName) {
+      collName = this._prefix + collName;
+      var action = this._actionFactory.saveOriginals(collName);
+      return action;
+    }
+  }, {
+    key: 'retrieveOriginals',
+    value: function retrieveOriginals(collName) {
+      collName = this._prefix + collName;
+      var action = this._actionFactory.retrieveOriginals(collName);
+      return action;
+    }
+  }, {
+    key: 'refresh',
+    value: function refresh() {
+      var action = this._actionFactory.refresh();
+      return action;
+    }
+  }, {
+    key: 'value',
+    value: function value(valueName, _value) {
+      valueName = this._prefix + valueName;
+      var action = this._actionFactory.value(valueName, _value);
+      return action;
+    }
+  }, {
+    key: 'customValue',
+    value: function customValue(valueName, value) {
+      valueName = this._prefix + valueName;
+      var action = this._actionFactory.customValue(valueName, value);
+      return action;
+    }
+  }, {
+    key: 'custom',
+    value: function custom(customName) {
+      customName = this._prefix + customName;
+      var action = this._actionFactory.custom(customName);
+      return action;
+    }
+  }]);
+
+  return SubActionFactory;
+}();
+
+exports.default = SubActionFactory;
+},{"immutable-sorted":10}],8:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  Copyright (c) 2017, Applitopia, Inc.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  All rights reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  This source code is licensed under the MIT-style license found in the
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  LICENSE file in the root directory of this source tree.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+var _SubActionFactory = require('./SubActionFactory');
+
+var _SubActionFactory2 = _interopRequireDefault(_SubActionFactory);
+
+var _BoundActionFactory = require('./BoundActionFactory');
+
+var _BoundActionFactory2 = _interopRequireDefault(_BoundActionFactory);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var SubEngine = function () {
+  function SubEngine(engine, subSchemaPath) {
+    _classCallCheck(this, SubEngine);
+
+    this._engine = engine;
+    this._subSchemaPath = subSchemaPath;
+    this._prefix = subSchemaPath + '.';
+    this._actionFactory = new _SubActionFactory2.default(this._engine.actionFactory(), this._subSchemaPath);
+  }
+
+  // Extract a value from state
+
+
+  _createClass(SubEngine, [{
+    key: 'get',
+    value: function get(state, name) {
+      var prefix = name ? this._prefix + name : this._subSchemaPath;
+      return this._engine.get(state, prefix);
+    }
+
+    //
+    // Subscribe to all actions created by this engine
+    //
+    // Returns a function to unsubscribe
+    //
+
+  }, {
+    key: 'subscribe',
+    value: function subscribe(listener) {
+      return this._engine.subscribe(listener);
+    }
+
+    //
+    // Remove all internal items from the state
+    //
+
+  }, {
+    key: 'printableState',
+    value: function printableState(state) {
+      var subState = this.get(state, this._subSchemaPath);
+      return this._engine.printableState(subState);
+    }
+  }, {
+    key: 'persistableState',
+    value: function persistableState(state) {
+      var subState = this.get(state, this._subSchemaPath);
+      return this._engine.persistableState(subState);
+    }
+
+    // SubEngine
+
+  }, {
+    key: 'subEngine',
+    value: function subEngine(subSchemaPath) {
+      return this._engine.subEngine(this._prefix + subSchemaPath);
+    }
+
+    // ActionFactory
+
+  }, {
+    key: 'actionFactory',
+    value: function actionFactory() {
+      return this._actionFactory;
+    }
+  }, {
+    key: 'boundActionFactory',
+    value: function boundActionFactory(dispatch) {
+      return new _BoundActionFactory2.default(dispatch, this.actionFactory());
+    }
+
+    //
+    // Compile the reducer
+    //
+
+  }, {
+    key: 'reducer',
+    value: function reducer() {
+      throw new Error("Reducer is not implemented in SubEngine");
+    }
+  }]);
+
+  return SubEngine;
+}();
+
+exports.default = SubEngine;
+},{"./BoundActionFactory":3,"./SubActionFactory":7}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1594,7 +2097,7 @@ exports.MeteorDriver = _MeteorDriver.MeteorDriver;
 exports.default = {
   createEngine: createEngine
 };
-},{"./BasicEngine":1,"./MeteorDriver":3}],6:[function(require,module,exports){
+},{"./BasicEngine":2,"./MeteorDriver":5}],10:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2014-present, Facebook, Inc.
@@ -10131,7 +10634,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 })));
 
 }).call(this,require('_process'))
-},{"_process":7}],7:[function(require,module,exports){
+},{"_process":11}],11:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -10317,7 +10820,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],8:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10356,7 +10859,7 @@ var Seqen = function () {
 }();
 
 exports.default = Seqen;
-},{"immutable-sorted":10}],9:[function(require,module,exports){
+},{"immutable-sorted":14}],13:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10383,7 +10886,7 @@ exports.Seqen = _Seqen2.default; /**
 exports.default = {
   Seqen: _Seqen2.default
 };
-},{"./Seqen":8}],10:[function(require,module,exports){
+},{"./Seqen":12}],14:[function(require,module,exports){
 (function (process){
 /**
  *  Copyright (c) 2014-2015, Facebook, Inc.
@@ -18649,4 +19152,4 @@ Object.defineProperty(exports, '__esModule', { value: true });
 })));
 
 }).call(this,require('_process'))
-},{"_process":7}]},{},[5]);
+},{"_process":11}]},{},[9]);

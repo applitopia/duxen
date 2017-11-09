@@ -36,7 +36,7 @@ test("formula", function() {
   };
   expect(state0.toJS()).toEqual(expected0);
 
-  const action1 = engine.value("todosFilter", "Get sugar");
+  const action1 = engine.actionFactory().value("todosFilter", "Get sugar");
   const state1 = reducer(state0, action1);
   const expected1 = {
     _state: {},
@@ -45,7 +45,7 @@ test("formula", function() {
   };
   expect(state1.toJS()).toEqual(expected1);
 
-  const action2 = engine.value("todosFilter", "Get cookies");
+  const action2 = engine.actionFactory().value("todosFilter", "Get cookies");
   const state2 = reducer(state1, action2);
   const expected2 = {
     _state: {},

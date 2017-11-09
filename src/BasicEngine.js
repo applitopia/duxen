@@ -24,7 +24,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
   //
   reducer(): Reducer {
 
-    const cs:CompiledSchema = this.compiledSchema;
+    const cs:CompiledSchema = this._compiledSchema;
 
     const failed = (s: string) => {throw new Error("Schema compilation error: "+s)};
 

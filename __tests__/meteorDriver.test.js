@@ -44,7 +44,7 @@ test("Meteor Driver - dispatch, insert, update, remove", function() {
     todosView: {}};
   expect(state0.toJS()).toEqual(expected0);
 
-  const action1 = engine.value("todosFilter", "Get sugar");
+  const action1 = engine.actionFactory().value("todosFilter", "Get sugar");
   meteorCollection.dispatch(action1)
   const state1 = store.getState();
   const expected1 = {
@@ -118,7 +118,7 @@ test("Meteor Driver - dispatch, insert, update, remove", function() {
   };
   expect(state0.toJS()).toEqual(expected0);
 
-  const action1 = engine.value("todosFilter", "Get sugar");
+  const action1 = engine.actionFactory().value("todosFilter", "Get sugar");
   meteorCollection.dispatch(action1)
   const state1 = store.getState();
   const expected1 = {

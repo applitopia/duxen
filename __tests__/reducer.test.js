@@ -42,7 +42,7 @@ test("Reducer insert, update remove", function() {
     todosView: {}};
   expect(state0.toJS()).toEqual(expected0);
 
-  const action1 = engine.value("todosFilter", "Get sugar");
+  const action1 = engine.actionFactory().value("todosFilter", "Get sugar");
   const state1 = reducer(state0, action1);
   const expected1 = {
     _state: {todos: {paused: false}},
@@ -51,7 +51,7 @@ test("Reducer insert, update remove", function() {
     todosView: {}};
   expect(state1.toJS()).toEqual(expected1);
 
-  const action2 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
+  const action2 = engine.actionFactory().insert("todos", "id1", ensure({"text": "Get tickets"}));
   const state2 = reducer(state1, action2);
   const expected2 = {
     _state: {todos: {paused: false}},
@@ -61,7 +61,7 @@ test("Reducer insert, update remove", function() {
   };
   expect(state2.toJS()).toEqual(expected2);
 
-  const action3 = engine.update("todos", "id1", ensure({"text": "Get tickets to concert"}));
+  const action3 = engine.actionFactory().update("todos", "id1", ensure({"text": "Get tickets to concert"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
     _state: {todos: {paused: false}},
@@ -71,7 +71,7 @@ test("Reducer insert, update remove", function() {
   };
   expect(state3.toJS()).toEqual(expected3);
 
-  const action4 = engine.remove("todos", "id1");
+  const action4 = engine.actionFactory().remove("todos", "id1");
   const state4 = reducer(state3, action4);
   const expected4 = {
     _state: {todos: {paused: false}},
@@ -111,7 +111,7 @@ test("Reducer reset", function() {
     todosView: {}};
   expect(state0.toJS()).toEqual(expected0);
 
-  const action1 = engine.value("todosFilter", "Get sugar");
+  const action1 = engine.actionFactory().value("todosFilter", "Get sugar");
   const state1 = reducer(state0, action1);
   const expected1 = {
     _state: {todos: {paused: false}},
@@ -120,7 +120,7 @@ test("Reducer reset", function() {
     todosView: {}};
   expect(state1.toJS()).toEqual(expected1);
 
-  const action2 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
+  const action2 = engine.actionFactory().insert("todos", "id1", ensure({"text": "Get tickets"}));
   const state2 = reducer(state1, action2);
   const expected2 = {
     _state: {todos: {paused: false}},
@@ -130,7 +130,7 @@ test("Reducer reset", function() {
   };
   expect(state2.toJS()).toEqual(expected2);
 
-  const action3 = engine.insert("todos", "id2", ensure({"text": "Get milk"}));
+  const action3 = engine.actionFactory().insert("todos", "id2", ensure({"text": "Get milk"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
     _state: {todos: {paused: false}},
@@ -146,7 +146,7 @@ test("Reducer reset", function() {
   };
   expect(state3.toJS()).toEqual(expected3);
 
-  const action4 = engine.insert("todos", "id3", ensure({"text": "Get sugar"}));
+  const action4 = engine.actionFactory().insert("todos", "id3", ensure({"text": "Get sugar"}));
   const state4 = reducer(state3, action4);
   const expected4 = {
     _state: {todos: {paused: false}},
@@ -164,7 +164,7 @@ test("Reducer reset", function() {
   };
   expect(state4.toJS()).toEqual(expected4);
 
-  const action5 = engine.reset("todos");
+  const action5 = engine.actionFactory().reset("todos");
   const state5 = reducer(state4, action5);
   const expected5 = {
     _state: {todos: {paused: false}},
@@ -202,7 +202,7 @@ test("Reducer pause, resume", function() {
   };
   expect(state0.toJS()).toEqual(expected0);
 
-  const action1 = engine.pause("todos");
+  const action1 = engine.actionFactory().pause("todos");
   const state1 = reducer(state0, action1);
   const expected1 = {
     _state: {todos: {paused: true}},
@@ -211,7 +211,7 @@ test("Reducer pause, resume", function() {
   };
   expect(state1.toJS()).toEqual(expected1);
 
-  const action2 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
+  const action2 = engine.actionFactory().insert("todos", "id1", ensure({"text": "Get tickets"}));
   const state2 = reducer(state1, action2);
   const expected2 = {
     _state: {todos: {paused: true}},
@@ -220,7 +220,7 @@ test("Reducer pause, resume", function() {
   };
   expect(state2.toJS()).toEqual(expected2);
 
-  const action3 = engine.insert("todos", "id2", ensure({"text": "Get milk"}));
+  const action3 = engine.actionFactory().insert("todos", "id2", ensure({"text": "Get milk"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
     _state: {todos: {paused: true}},
@@ -232,7 +232,7 @@ test("Reducer pause, resume", function() {
   };
   expect(state3.toJS()).toEqual(expected3);
 
-  const action4 = engine.insert("todos", "id3", ensure({"text": "Get sugar"}));
+  const action4 = engine.actionFactory().insert("todos", "id3", ensure({"text": "Get sugar"}));
   const state4 = reducer(state3, action4);
   const expected4 = {
     _state: {todos: {paused: true}},
@@ -245,7 +245,7 @@ test("Reducer pause, resume", function() {
   };
   expect(state4.toJS()).toEqual(expected4);
 
-  const action5 = engine.resume("todos");
+  const action5 = engine.actionFactory().resume("todos");
   const state5 = reducer(state4, action5);
   const expected5 = {
     _state: {todos: {paused: false}},
@@ -287,7 +287,7 @@ test("Reducer save, restore", function() {
     todosView: {}};
   expect(state0.toJS()).toEqual(expected0);
 
-  const action1 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
+  const action1 = engine.actionFactory().insert("todos", "id1", ensure({"text": "Get tickets"}));
   const state1 = reducer(state0, action1);
   const expected1 = {
     _state: {todos: {paused: false}},
@@ -300,7 +300,7 @@ test("Reducer save, restore", function() {
   };
   expect(state1.toJS()).toEqual(expected1);
 
-  const action2 = engine.save("todos");
+  const action2 = engine.actionFactory().save("todos");
   const state2 = reducer(state1, action2);
   const expected2 = {
     _state: {
@@ -320,7 +320,7 @@ test("Reducer save, restore", function() {
   };
   expect(state2.toJS()).toEqual(expected2);
 
-  const action3 = engine.insert("todos", "id2", ensure({"text": "Get milk"}));
+  const action3 = engine.actionFactory().insert("todos", "id2", ensure({"text": "Get milk"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
     _state: {
@@ -342,7 +342,7 @@ test("Reducer save, restore", function() {
   };
   expect(state3.toJS()).toEqual(expected3);
 
-  const action4 = engine.insert("todos", "id3", ensure({"text": "Get sugar"}));
+  const action4 = engine.actionFactory().insert("todos", "id3", ensure({"text": "Get sugar"}));
   const state4 = reducer(state3, action4);
   const expected4 = {
     _state: {
@@ -366,7 +366,7 @@ test("Reducer save, restore", function() {
   };
   expect(state4.toJS()).toEqual(expected4);
 
-  const action5 = engine.restore("todos");
+  const action5 = engine.actionFactory().restore("todos");
   const state5 = reducer(state4, action5);
   const expected5 = {
     _state: {todos: {paused: false}},
@@ -404,7 +404,7 @@ test("Reducer saveOriginals, insert, retrieveOriginals", function() {
     todosView: {}};
   expect(state0.toJS()).toEqual(expected0);
 
-  const action1 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
+  const action1 = engine.actionFactory().insert("todos", "id1", ensure({"text": "Get tickets"}));
   const state1 = reducer(state0, action1);
   const expected1 = {
     _state: {todos: {paused: false}},
@@ -417,7 +417,7 @@ test("Reducer saveOriginals, insert, retrieveOriginals", function() {
   };
   expect(state1.toJS()).toEqual(expected1);
 
-  const action2 = engine.saveOriginals("todos");
+  const action2 = engine.actionFactory().saveOriginals("todos");
   const state2 = reducer(state1, action2);
   const expected2 = {
     _state: {
@@ -435,7 +435,7 @@ test("Reducer saveOriginals, insert, retrieveOriginals", function() {
   };
   expect(state2.toJS()).toEqual(expected2);
 
-  const action3 = engine.insert("todos", "id2", ensure({"text": "Get milk"}));
+  const action3 = engine.actionFactory().insert("todos", "id2", ensure({"text": "Get milk"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
     _state: {
@@ -457,7 +457,7 @@ test("Reducer saveOriginals, insert, retrieveOriginals", function() {
   };
   expect(state3.toJS()).toEqual(expected3);
 
-  const action4 = engine.insert("todos", "id3", ensure({"text": "Get sugar"}));
+  const action4 = engine.actionFactory().insert("todos", "id3", ensure({"text": "Get sugar"}));
   const state4 = reducer(state3, action4);
   const expected4 = {
     _state: {
@@ -482,7 +482,7 @@ test("Reducer saveOriginals, insert, retrieveOriginals", function() {
   };
   expect(state4.toJS()).toEqual(expected4);
 
-  const action5 = engine.retrieveOriginals("todos");
+  const action5 = engine.actionFactory().retrieveOriginals("todos");
   const state5 = reducer(state4, action5);
   const expected5 = {
     _state: {
@@ -529,7 +529,7 @@ test("Reducer saveOriginals, insert, update, remove, retrieveOriginals", functio
     todosView: {}};
   expect(state0.toJS()).toEqual(expected0);
 
-  const action1 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
+  const action1 = engine.actionFactory().insert("todos", "id1", ensure({"text": "Get tickets"}));
   const state1 = reducer(state0, action1);
   const expected1 = {
     _state: {todos: {paused: false}},
@@ -542,7 +542,7 @@ test("Reducer saveOriginals, insert, update, remove, retrieveOriginals", functio
   };
   expect(state1.toJS()).toEqual(expected1);
 
-  const action2 = engine.saveOriginals("todos");
+  const action2 = engine.actionFactory().saveOriginals("todos");
   const state2 = reducer(state1, action2);
   const expected2 = {
     _state: {
@@ -560,7 +560,7 @@ test("Reducer saveOriginals, insert, update, remove, retrieveOriginals", functio
   };
   expect(state2.toJS()).toEqual(expected2);
 
-  const action3 = engine.update("todos", "id1", ensure({"text": "Get milk"}));
+  const action3 = engine.actionFactory().update("todos", "id1", ensure({"text": "Get milk"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
     _state: {
@@ -580,7 +580,7 @@ test("Reducer saveOriginals, insert, update, remove, retrieveOriginals", functio
   };
   expect(state3.toJS()).toEqual(expected3);
 
-  const action4 = engine.remove("todos", "id1");
+  const action4 = engine.actionFactory().remove("todos", "id1");
   const state4 = reducer(state3, action4);
   const expected4 = {
     _state: {
@@ -596,7 +596,7 @@ test("Reducer saveOriginals, insert, update, remove, retrieveOriginals", functio
   };
   expect(state4.toJS()).toEqual(expected4);
 
-  const action5 = engine.retrieveOriginals("todos");
+  const action5 = engine.actionFactory().retrieveOriginals("todos");
   const state5 = reducer(state4, action5);
   const expected5 = {
     _state: {
@@ -639,13 +639,13 @@ test("Reducer batch", function() {
     todosView: {}};
   expect(state0.toJS()).toEqual(expected0);
 
-  const action1 = engine.value("todosFilter", "Get sugar");
+  const action1 = engine.actionFactory().value("todosFilter", "Get sugar");
 
-  const action2 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
+  const action2 = engine.actionFactory().insert("todos", "id1", ensure({"text": "Get tickets"}));
 
-  const action3 = engine.insert("todos", "id2", ensure({"text": "Get milk"}));
+  const action3 = engine.actionFactory().insert("todos", "id2", ensure({"text": "Get milk"}));
 
-  const action4 = engine.batch("todos", List([action1, action2, action3]));
+  const action4 = engine.actionFactory().batch("todos", List([action1, action2, action3]));
   const state4 = reducer(state0, action4);
   const expected4 = {
     _state: {todos: {paused: false}},
@@ -661,7 +661,7 @@ test("Reducer batch", function() {
   };
   expect(state4.toJS()).toEqual(expected4);
 
-  const action5 = engine.reset("todos");
+  const action5 = engine.actionFactory().reset("todos");
   const state5 = reducer(state4, action5);
   const expected5 = {
     _state: {todos: {paused: false}},
@@ -703,7 +703,7 @@ test("Reducer props", function() {
     todosView: {}};
   expect(state0.toJS()).toEqual(expected0);
 
-  const action1 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
+  const action1 = engine.actionFactory().insert("todos", "id1", ensure({"text": "Get tickets"}));
   const state1 = reducer(state0, action1);
   const expected1 = {
     _state: {todos: {paused: false}},
@@ -716,7 +716,7 @@ test("Reducer props", function() {
   };
   expect(state1.toJS()).toEqual(expected1);
 
-  const action2 = engine.insert("todos", "id2", ensure({"text": "Get milk"}));
+  const action2 = engine.actionFactory().insert("todos", "id2", ensure({"text": "Get milk"}));
   const state2 = reducer(state1, action2);
   const expected2 = {
     _state: {todos: {paused: false}},
@@ -731,7 +731,7 @@ test("Reducer props", function() {
   };
   expect(state2.toJS()).toEqual(expected2);
 
-  const action3 = engine.insert("todos", "id3", ensure({"text": "Get sugar"}));
+  const action3 = engine.actionFactory().insert("todos", "id3", ensure({"text": "Get sugar"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
     _state: {todos: {paused: false}},
@@ -747,7 +747,7 @@ test("Reducer props", function() {
   };
   expect(state3.toJS()).toEqual(expected3);
 
-  const action4 = engine.value("todosFilter", "sugar");
+  const action4 = engine.actionFactory().value("todosFilter", "sugar");
   const state4 = reducer(state3, action4);
   const expected4 = {
     _state: {todos: {paused: false}},

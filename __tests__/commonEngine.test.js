@@ -47,7 +47,7 @@ test("common engine", function() {
   const expected1 = "Get milk";
   expect(state1).toEqual(expected1);
 
-  const action2 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
+  const action2 = engine.actionFactory().insert("todos", "id1", ensure({"text": "Get tickets"}));
   const state2 = reducer(state0, action2);
   const expected2 = {
     _state: {todos: {paused: false}},
@@ -61,7 +61,7 @@ test("common engine", function() {
   };
   expect(state2.toJS()).toEqual(expected2);
 
-  const action3 = engine.insert("todos", "id2", ensure({"text": "Get milk"}));
+  const action3 = engine.actionFactory().insert("todos", "id2", ensure({"text": "Get milk"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
     _state: {todos: {paused: false}},
@@ -77,7 +77,7 @@ test("common engine", function() {
   };
   expect(state3.toJS()).toEqual(expected3);
 
-  const action4 = engine.insert("todos", "id3", ensure({"text": "Get sugar"}));
+  const action4 = engine.actionFactory().insert("todos", "id3", ensure({"text": "Get sugar"}));
   const state4 = reducer(state3, action4);
   const expected4 = {
     _state: {todos: {paused: false}},
@@ -148,50 +148,50 @@ test("action subscribe", function() {
       receivedActions[action.type] = true;
   });
 
-  const insertAction:InsertAction = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
+  const insertAction:InsertAction = engine.actionFactory().insert("todos", "id1", ensure({"text": "Get tickets"}));
   expect(insertAction).toEqual({"type": "DUXEN_INSERT", "collName": "todos", "id": "id1", "doc": fromJS({"text": "Get tickets"})});
 
-  const updateAction:UpdateAction = engine.update("todos", "id1", ensure({"text": "Get tickets to concert"}));
+  const updateAction:UpdateAction = engine.actionFactory().update("todos", "id1", ensure({"text": "Get tickets to concert"}));
   expect(updateAction).toEqual({"type": "DUXEN_UPDATE", "collName": "todos", "id": "id1", "doc": fromJS({"text": "Get tickets to concert"})});
 
-  const removeAction:RemoveAction = engine.remove("todos", "id1");
+  const removeAction:RemoveAction = engine.actionFactory().remove("todos", "id1");
   expect(removeAction).toEqual({"type": "DUXEN_REMOVE", "collName": "todos", "id": "id1"});
 
-  const resetAction:ResetAction = engine.reset("todos");
+  const resetAction:ResetAction = engine.actionFactory().reset("todos");
   expect(resetAction).toEqual({"type": "DUXEN_RESET", "collName": "todos"});
 
-  const pauseAction:PauseAction = engine.pause("todos");
+  const pauseAction:PauseAction = engine.actionFactory().pause("todos");
   expect(pauseAction).toEqual({"type": "DUXEN_PAUSE", "collName": "todos"});
 
-  const resumeAction:ResumeAction = engine.resume("todos");
+  const resumeAction:ResumeAction = engine.actionFactory().resume("todos");
   expect(resumeAction).toEqual({"type": "DUXEN_RESUME", "collName": "todos"});
 
-  const saveAction:SaveAction = engine.save("todos");
+  const saveAction:SaveAction = engine.actionFactory().save("todos");
   expect(saveAction).toEqual({"type": "DUXEN_SAVE", "collName": "todos"});
 
-  const restoreAction:RestoreAction = engine.restore("todos");
+  const restoreAction:RestoreAction = engine.actionFactory().restore("todos");
   expect(restoreAction).toEqual({"type": "DUXEN_RESTORE", "collName": "todos"});
 
-  const saveOriginalsAction:SaveOriginalsAction = engine.saveOriginals("todos");
+  const saveOriginalsAction:SaveOriginalsAction = engine.actionFactory().saveOriginals("todos");
   expect(saveOriginalsAction).toEqual({"type": "DUXEN_SAVE_ORIGINALS", "collName": "todos"});
 
-  const retrieveOriginalsAction:RetrieveOriginalsAction = engine.retrieveOriginals("todos");
+  const retrieveOriginalsAction:RetrieveOriginalsAction = engine.actionFactory().retrieveOriginals("todos");
   expect(retrieveOriginalsAction).toEqual({"type": "DUXEN_RETRIEVE_ORIGINALS", "collName": "todos"});
 
   const actions:List<CollAction> = List([insertAction, updateAction, removeAction]);
-  const batchAction:BatchAction = engine.batch("todos", actions);
+  const batchAction:BatchAction = engine.actionFactory().batch("todos", actions);
   expect(batchAction).toEqual({"type": "DUXEN_BATCH", "collName": "todos", actions});
 
-  const refreshAction:RefreshAction = engine.refresh();
+  const refreshAction:RefreshAction = engine.actionFactory().refresh();
   expect(refreshAction).toEqual({"type": "DUXEN_REFRESH"});
 
-  const valueAction:ValueAction = engine.value("todosFilter", "Get sugar");
+  const valueAction:ValueAction = engine.actionFactory().value("todosFilter", "Get sugar");
   expect(valueAction).toEqual({"type": "DUXEN_VALUE", "valueName": "todosFilter", "value": "Get sugar"});
 
-  const customValueAction:CustomValueAction = engine.customValue("customPageNumber", 127);
+  const customValueAction:CustomValueAction = engine.actionFactory().customValue("customPageNumber", 127);
   expect(customValueAction).toEqual({"type": "CUSTOM_PAGE_NUMBER", "value": 127});
 
-  const customAction:CustomAction = engine.custom("customNextPage");
+  const customAction:CustomAction = engine.actionFactory().custom("customNextPage");
   expect(customAction).toEqual({"type": "CUSTOM_NEXT_PAGE"});
 
   const expectedReceivedActions = {

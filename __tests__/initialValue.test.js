@@ -10,6 +10,8 @@
 
 import { createEngine } from '../src';
 
+const cast = <T>(value: any): T => (value: T);
+
 test("Initial state - value", function() {
   const schema:Schema = {
     'todosFilter': {
@@ -96,5 +98,12 @@ test("Initial state - custom", function() {
 
   expect(state.toJS()).toEqual({
     '_state': {}
+  });
+
+  const state2:State = reducer(state, cast(schema['customNextPage']).action());
+
+  expect(state2.toJS()).toEqual({
+    '_state': {},
+    "pager": {"pageNo": 1}
   });
 });

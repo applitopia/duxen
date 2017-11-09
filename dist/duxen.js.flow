@@ -137,13 +137,7 @@ declare type Schema = {
   [string]: SchemaEntry
 };
 
-declare interface EngineInterface {
-  // Utility functions
-  get(state: State, name: string): StateValue;
-  printableState(state: State): State;
-  persistableState(state: State): State;
-  subscribe(listener: (Action)=>void): ()=>void;
-
+declare interface ActionFactoryInterface {
   // Action creators
   insert(collName: string, id: StateKey, doc: CollDocument): InsertAction;
   update(collName: string, id: StateKey, doc: CollDocument): UpdateAction;
@@ -163,6 +157,21 @@ declare interface EngineInterface {
   value(valueName: string, value: StateValue): ValueAction;
   customValue(valueName: string, value: StateValue): CustomValueAction;
   custom(type: CustomActionType): CustomAction;
+}
+
+declare interface EngineInterface {
+  // Utility functions
+  get(state: State, name?: string): StateValue;
+  printableState(state: State): State;
+  persistableState(state: State): State;
+  subscribe(listener: (Action)=>void): ()=>void;
+
+  // SubEngine
+  subEngine(subSchemaPath: string): EngineInterface;
+
+  // ActionFactory
+  actionFactory(): ActionFactoryInterface;
+  boundActionFactory(dispatch: (Action)=>Action): ActionFactoryInterface;
 
   // Reducer
   reducer(): Reducer;

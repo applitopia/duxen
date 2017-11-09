@@ -52,6 +52,7 @@ var MeteorCollection = exports.MeteorCollection = function () {
 
     this._name = name;
     this._engine = engine;
+    this._actionFactory = engine.actionFactory();
     this._dispatch = dispatch;
     this._getData = getData;
     this._getOriginals = getOriginals;
@@ -75,7 +76,7 @@ var MeteorCollection = exports.MeteorCollection = function () {
     key: 'flush',
     value: function flush() {
       if (this._pending.length > 0) {
-        var batch = this._engine.batch(this._name, this._pending);
+        var batch = this._actionFactory.batch(this._name, this._pending);
         this._dispatch(batch);
         this._pending = [];
       }
@@ -87,11 +88,11 @@ var MeteorCollection = exports.MeteorCollection = function () {
       if (!mongoId) {
         this._ids = (0, _immutableSorted.Set)().asMutable();
         this._pending = [];
-        var action = this._engine.reset(this._name);
+        var action = this._actionFactory.reset(this._name);
         this._dispatch(action);
       } else {
         this._ids.remove(mongoId);
-        var _action = this._engine.remove(this._name, mongoId);
+        var _action = this._actionFactory.remove(this._name, mongoId);
         this.dispatch(_action);
       }
     }
@@ -103,7 +104,7 @@ var MeteorCollection = exports.MeteorCollection = function () {
         throw new Error("Empty mongoID: " + JSON.stringify(replace));
       }
       this._ids.add(mongoId);
-      var action = this._engine.insert(this._name, mongoId, replace);
+      var action = this._actionFactory.insert(this._name, mongoId, replace);
       this.dispatch(action);
     }
   }, {
@@ -113,7 +114,7 @@ var MeteorCollection = exports.MeteorCollection = function () {
       if (!mongoId) {
         throw new Error("Selector not supported:" + JSON.stringify(selector));
       }
-      var action = this._engine.update(this._name, mongoId, replace);
+      var action = this._actionFactory.update(this._name, mongoId, replace);
       this.dispatch(action);
     }
   }, {
@@ -143,7 +144,7 @@ var MeteorCollection = exports.MeteorCollection = function () {
     value: function pauseObservers() {
       this._paused = true;
       this._pending = [];
-      var action = this._engine.pause(this._name);
+      var action = this._actionFactory.pause(this._name);
       this.dispatch(action);
     }
   }, {
@@ -151,13 +152,13 @@ var MeteorCollection = exports.MeteorCollection = function () {
     value: function resumeObservers() {
       this.flush();
       this._paused = false;
-      var action = this._engine.resume(this._name);
+      var action = this._actionFactory.resume(this._name);
       this.dispatch(action);
     }
   }, {
     key: 'saveOriginals',
     value: function saveOriginals() {
-      var action = this._engine.saveOriginals(this._name);
+      var action = this._actionFactory.saveOriginals(this._name);
       this.dispatch(action);
     }
   }, {
@@ -165,7 +166,7 @@ var MeteorCollection = exports.MeteorCollection = function () {
     value: function retrieveOriginals() {
       this.flush();
       var collData = this._getOriginals();
-      var action = this._engine.retrieveOriginals(this._name);
+      var action = this._actionFactory.retrieveOriginals(this._name);
       this.dispatch(action);
       if (collData) {
         return (0, _immutableSorted.Seq)(collData).map(function (v) {

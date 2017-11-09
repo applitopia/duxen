@@ -37,6 +37,7 @@ const getMongoID = (selector: Selector): ?MongoID => {
 export class MeteorCollection {
   _name: string;
   _engine: EngineInterface;
+  _actionFactory: ActionFactoryInterface;
   _dispatch: (Action)=>Action;
   _getData: ()=>CollData;
   _getOriginals: ()=>CollData;
@@ -49,6 +50,7 @@ export class MeteorCollection {
   constructor(name: string, engine: EngineInterface, dispatch: (Action)=>Action, getData: ()=>CollData, getOriginals: ()=>CollData) {
       this._name = name;
       this._engine = engine;
+      this._actionFactory = engine.actionFactory();
       this._dispatch = dispatch;
       this._getData = getData;
       this._getOriginals = getOriginals;
@@ -69,7 +71,7 @@ export class MeteorCollection {
 
   flush(): void {
     if(this._pending.length > 0) {
-      const batch = this._engine.batch(this._name, this._pending);
+      const batch = this._actionFactory.batch(this._name, this._pending);
       this._dispatch(batch);
       this._pending = [];
     }
@@ -81,11 +83,11 @@ export class MeteorCollection {
     if(!mongoId) {
       this._ids = Set().asMutable();
       this._pending = [];
-      const action = this._engine.reset(this._name);
+      const action = this._actionFactory.reset(this._name);
       this._dispatch(action);
     } else {
       this._ids.remove(mongoId);
-      const action = this._engine.remove(this._name, mongoId);
+      const action = this._actionFactory.remove(this._name, mongoId);
       this.dispatch(action);
     }
   }
@@ -96,7 +98,7 @@ export class MeteorCollection {
       throw new Error("Empty mongoID: "+JSON.stringify(replace));
     }
     this._ids.add(mongoId);
-    const action = this._engine.insert(this._name, mongoId, replace);
+    const action = this._actionFactory.insert(this._name, mongoId, replace);
     this.dispatch(action);
   }
 
@@ -105,7 +107,7 @@ export class MeteorCollection {
     if(!mongoId) {
       throw new Error("Selector not supported:"+JSON.stringify(selector));
     }
-    const action = this._engine.update(this._name, mongoId, replace);
+    const action = this._actionFactory.update(this._name, mongoId, replace);
     this.dispatch(action);
   }
 
@@ -132,26 +134,26 @@ export class MeteorCollection {
   pauseObservers(): void {
     this._paused = true;
     this._pending = [];
-    const action = this._engine.pause(this._name);
+    const action = this._actionFactory.pause(this._name);
     this.dispatch(action);
   }
 
   resumeObservers(): void {
     this.flush();
     this._paused = false;
-    const action = this._engine.resume(this._name);
+    const action = this._actionFactory.resume(this._name);
     this.dispatch(action);
   }
 
   saveOriginals(): void {
-    const action = this._engine.saveOriginals(this._name);
+    const action = this._actionFactory.saveOriginals(this._name);
     this.dispatch(action);
   }
 
   retrieveOriginals(): Seq<StateKey, mixed> {
     this.flush();
     const collData = this._getOriginals();
-    const action = this._engine.retrieveOriginals(this._name);
+    const action = this._actionFactory.retrieveOriginals(this._name);
     this.dispatch(action);
     if(collData) {
       return Seq(collData).map((v)=>v?v.toJS():v);

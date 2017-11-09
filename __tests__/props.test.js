@@ -50,7 +50,7 @@ test("props", function() {
   };
   expect(state0.toJS()).toEqual(expected0);
 
-  const action1 = engine.value("todosFilter", "concert");
+  const action1 = engine.actionFactory().value("todosFilter", "concert");
   const state1 = reducer(state0, action1);
   const expected1 = {
     _state: {todos: {paused: false}},
@@ -61,7 +61,7 @@ test("props", function() {
   };
   expect(state1.toJS()).toEqual(expected1);
 
-  const action2 = engine.insert("todos", "id1", ensure({"text": "Get tickets"}));
+  const action2 = engine.actionFactory().insert("todos", "id1", ensure({"text": "Get tickets"}));
   const state2 = reducer(state1, action2);
   const expected2 = {
     _state: {todos: {paused: false}},
@@ -72,7 +72,7 @@ test("props", function() {
   };
   expect(state2.toJS()).toEqual(expected2);
 
-  const action3 = engine.update("todos", "id1", ensure({"text": "Get tickets to concert"}));
+  const action3 = engine.actionFactory().update("todos", "id1", ensure({"text": "Get tickets to concert"}));
   const state3 = reducer(state2, action3);
   const expected3 = {
     _state: {todos: {paused: false}},
@@ -83,7 +83,7 @@ test("props", function() {
   };
   expect(state3.toJS()).toEqual(expected3);
 
-  const action4 = engine.remove("todos", "id1");
+  const action4 = engine.actionFactory().remove("todos", "id1");
   const state4 = reducer(state3, action4);
   const expected4 = {
     _state: {todos: {paused: false}},
@@ -94,7 +94,7 @@ test("props", function() {
   };
   expect(state4.toJS()).toEqual(expected4);
 
-  const action5 = engine.insert("todos", "id1", ensure({"text": "Get milk"}));
+  const action5 = engine.actionFactory().insert("todos", "id1", ensure({"text": "Get milk"}));
   const state5 = reducer(state4, action5);
   const expected5 = {
     _state: {todos: {paused: false}},
@@ -105,7 +105,7 @@ test("props", function() {
   };
   expect(state5.toJS()).toEqual(expected5);
 
-  const action6 = engine.value("todosFilter", "milk");
+  const action6 = engine.actionFactory().value("todosFilter", "milk");
   const state6 = reducer(state5, action6);
   const expected6 = {
     _state: {todos: {paused: false}},

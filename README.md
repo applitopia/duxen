@@ -36,20 +36,18 @@ Example
 Define your DUXEN schema:
 
 ```js
-const cmp=(a,b)=>(a>b?1:a<b?-1:0)
+const cmp=(a,b)=>(a>b?1:(a<b?-1:0))
 
 const schema = {
 
   'todosFilter': {
     type: 'value',
     initValue: "",
-    actionType: 'CHANGE_TODOS_FILTER',
   },
 
   'todosLimit': {
     type: 'value',
     initValue: 10,
-    actionType: 'CHANGE_TODOS_LIMIT',
   },
 
   'todos': {type: 'collection'},
@@ -101,7 +99,7 @@ const store = createStore(engine.reducer())
 Create actions and dispatch them to the store:
 ```js
 // Create an action that changes the value of the filter
-const action = engine.action('todosFilter', "Get milk");
+const action = engine.value('todosFilter', "Get milk");
 
 // Dispatch the action to the Redux store
 store.dispatch(action);

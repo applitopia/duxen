@@ -68,6 +68,7 @@ test("Reducer - subschema value", function() {
   };
 
   const engine:EngineInterface = new createEngine(schema);
+  const subEngine:EngineInterface = engine.subEngine("calendarSchema");
   const reducer:Reducer = engine.reducer();
 
   const state0:State = reducer(undefined, {type: "INIT"});
@@ -91,7 +92,7 @@ test("Reducer - subschema value", function() {
   };
   expect(state1.toJS()).toEqual(expected1);
 
-  const action2 = engine.actionFactory().value("calendarSchema.currentMonth", "2017-07");
+  const action2 = subEngine.actionFactory().value("currentMonth", "2017-07");
   const state2 = reducer(state1, action2);
   const expected2 = {
     "_state": {},
@@ -127,6 +128,7 @@ test("Reducer - subschema custom", function() {
   };
 
   const engine:EngineInterface = new createEngine(schema);
+  const subEngine:EngineInterface = engine.subEngine("calendarSchema");
   const reducer:Reducer = engine.reducer();
 
   const state0:State = reducer(undefined, {type: "INIT"});
@@ -147,7 +149,7 @@ test("Reducer - subschema custom", function() {
   };
   expect(state1.toJS()).toEqual(expected1);
 
-  const action2 = engine.actionFactory().custom('calendarSchema.customNextPage');
+  const action2 = subEngine.actionFactory().custom('customNextPage');
   const state2 = reducer(state0, action2);
   const expected2 = {
     "_state": {},

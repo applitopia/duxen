@@ -8,35 +8,19 @@
  *  @flow
  */
 
-import { Map, List, fromJS } from 'immutable-sorted';
+import { Map } from 'immutable-sorted';
 import { compileSchema } from './SchemaCompiler';
-
-const cast = <T>(value: any): T => (value: T);
-const ensure = <T>(value: T): T => cast(fromJS(value));
+import SubEngine from './SubEngine';
+import ActionFactory from './ActionFactory';
+import BoundActionFactory from './BoundActionFactory';
 
 export default class CommonEngine implements EngineInterface {
-  compiledSchema: CompiledSchema;
-  listeners: Array<(Action)=>void>;
-
-  constructor(schema: Schema) {
-    this.compiledSchema = compileSchema(schema);
-    this.listeners = [];
-  }
-
-  _getNameType(name: string): SchemaEntryType {
-    const cs:CompiledSchema = this.compiledSchema;
-
-    const cn:CompiledName = cs.names[name];
-
-    if(!cn) {
-      throw new Error("Missing name in schema: "+name);
-    }
-
-    return cn.type;
-  }
+  _compiledSchema: CompiledSchema;
+  _actionFactory: ActionFactoryInterface;
+  _listeners: Array<(Action)=>void>;
 
   _verifyName(name: string, type: SchemaEntryType) {
-    const cs:CompiledSchema = this.compiledSchema;
+    const cs:CompiledSchema = this._compiledSchema;
 
     const cn:CompiledName = cs.names[name];
 
@@ -49,32 +33,14 @@ export default class CommonEngine implements EngineInterface {
     }
   }
 
-  _verifyCollection(collName: string) {
-    this._verifyName(collName, 'collection');
-  }
-
-  _verifyValueName(valueName: string) {
-    this._verifyName(valueName, 'value');
-  }
-
-  _verifyCustomValueName(valueName: string) {
-    this._verifyName(valueName, 'customValue');
-  }
-
-  _verifyCustomName(customName: string) {
-    this._verifyName(customName, 'custom');
-  }
-
-  // Dispatch an action to listeners
-  _action(action: Action): void {
-    for(let i = 0; i < this.listeners.length; i++) {
-      const listener:Action=>void = this.listeners[i];
-      listener(action);
-    }
+  constructor(schema: Schema) {
+    this._compiledSchema = compileSchema(schema);
+    this._actionFactory = new ActionFactory(this);
+    this._listeners = [];
   }
 
   _getCompiledName(name: string): CompiledName {
-    const cn:CompiledName = this.compiledSchema.names[name];
+    const cn:CompiledName = this._compiledSchema.names[name];
 
     if(!cn) {
       throw new Error("Name not found in schema: "+name);
@@ -83,8 +49,23 @@ export default class CommonEngine implements EngineInterface {
     return cn;
   }
 
+  _getNameType(name: string): SchemaEntryType {
+    const cs:CompiledSchema = this._compiledSchema;
+
+    const cn:CompiledName = cs.names[name];
+
+    if(!cn) {
+      throw new Error("Missing name in schema: "+name);
+    }
+
+    return cn.type;
+  }
+
   // Extract a value from state
-  get(state: State, name: string): StateValue {
+  get(state: State, name?: string): StateValue {
+    if(!name) {
+      return state;
+    }
     const cn:CompiledName = this._getCompiledName(name);
     return state.getIn(cn.path);
   }
@@ -101,13 +82,13 @@ export default class CommonEngine implements EngineInterface {
 
     let stillSubscribed = true;
 
-    this.listeners.push(listener);
+    this._listeners.push(listener);
 
     return () => {
       if(stillSubscribed) {
         stillSubscribed = false;
-        const index:number = this.listeners.indexOf(listener);
-        this.listeners.splice(index, 1);
+        const index:number = this._listeners.indexOf(listener);
+        this._listeners.splice(index, 1);
       }
     };
   }
@@ -123,7 +104,7 @@ export default class CommonEngine implements EngineInterface {
 
   persistableState(state: State): State {
     return Map().withMutations((mutableState: State): void => {
-      for(let name:string in this.compiledSchema.names) {
+      for(let name:string in this._compiledSchema.names) {
         const cn:CompiledName = this._getCompiledName(name);
         switch(cn.type) {
           case 'value':
@@ -140,202 +121,19 @@ export default class CommonEngine implements EngineInterface {
     });
   }
 
-  //
-  // Action creators
-  //
-  batch(collName: string, actions: List<CollAction>): BatchAction {
-    this._verifyCollection(collName);
-    const action:BatchAction = {
-      type: 'DUXEN_BATCH',
-      collName,
-      actions: List(actions)
-    };
-    this._action(action);
-    return action;
+  // SubEngine
+  subEngine(subSchemaPath: string): EngineInterface {
+    this._verifyName(subSchemaPath, 'schema');
+    return new SubEngine(this, subSchemaPath);
   }
 
-  insert(collName: string, id: StateKey, doc: CollDocument): InsertAction {
-    this._verifyCollection(collName);
-    id = ensure(id);
-    doc = ensure(doc);
-    const action:InsertAction = {
-      type: 'DUXEN_INSERT',
-      collName,
-      id,
-      doc
-    };
-    this._action(action);
-    return action;
+  // ActionFactory
+  actionFactory(): ActionFactoryInterface {
+      return this._actionFactory;
   }
 
-  update(collName: string, id: StateKey, doc: CollDocument): UpdateAction {
-    this._verifyCollection(collName);
-    id = ensure(id);
-    doc = ensure(doc);
-    const action:UpdateAction = {
-      type: 'DUXEN_UPDATE',
-      collName,
-      id,
-      doc,
-    };
-    this._action(action);
-    return action;
-  }
-
-  remove(collName: string, id: StateKey): RemoveAction {
-    this._verifyCollection(collName);
-    id = ensure(id);
-    const action:RemoveAction = {
-      type: 'DUXEN_REMOVE',
-      collName,
-      id,
-    };
-    this._action(action);
-    return action;
-  }
-
-  reset(collName: string): ResetAction {
-    this._verifyCollection(collName);
-    const action:ResetAction = {
-      type: 'DUXEN_RESET',
-      collName,
-    };
-    this._action(action);
-    return action;
-  }
-
-  pause(collName: string): PauseAction {
-    this._verifyCollection(collName);
-    const action:PauseAction = {
-      type: 'DUXEN_PAUSE',
-      collName,
-    };
-    this._action(action);
-    return action;
-  }
-
-  resume(collName: string): ResumeAction {
-    this._verifyCollection(collName);
-    const action:ResumeAction = {
-      type: 'DUXEN_RESUME',
-      collName,
-    };
-    this._action(action);
-    return action;
-  }
-
-  save(collName: string): SaveAction {
-    this._verifyCollection(collName);
-    const action:SaveAction = {
-      type: 'DUXEN_SAVE',
-      collName,
-    };
-    this._action(action);
-    return action;
-  }
-
-  restore(collName: string): RestoreAction {
-    this._verifyCollection(collName);
-    const action:RestoreAction = {
-      type: 'DUXEN_RESTORE',
-      collName,
-    };
-    this._action(action);
-    return action;
-  }
-
-  saveOriginals(collName: string): SaveOriginalsAction {
-    this._verifyCollection(collName);
-    const action:SaveOriginalsAction = {
-      type: 'DUXEN_SAVE_ORIGINALS',
-      collName,
-    };
-    this._action(action);
-    return action;
-  }
-
-  retrieveOriginals(collName: string): RetrieveOriginalsAction {
-    this._verifyCollection(collName);
-    const action:RetrieveOriginalsAction = {
-      type: 'DUXEN_RETRIEVE_ORIGINALS',
-      collName,
-    };
-    this._action(action);
-    return action;
-  }
-
-  refresh(): RefreshAction {
-    const action:RefreshAction = {
-      type: 'DUXEN_REFRESH',
-    };
-    this._action(action);
-    return action;
-  }
-
-  value(valueName: string, value: StateValue): ValueAction {
-    this._verifyValueName(valueName);
-
-    value = ensure(value);
-    const action:ValueAction = {
-      type: 'DUXEN_VALUE',
-      valueName,
-      value,
-    };
-    this._action(action);
-    return action;
-  }
-
-  customValue(valueName: string, value: StateValue): CustomValueAction {
-    this._verifyCustomValueName(valueName);
-
-    const cs:CompiledSchema = this.compiledSchema;
-    const cn:CompiledName = cs.names[valueName];
-    const valueEntry:CustomValueSchemaEntry = cast(cn.schemaEntry);
-    const actionType: CustomActionType = valueEntry.actionType;
-
-    if(!actionType) {
-      throw new Error("Missing actionType in value schema: "+JSON.stringify(valueEntry));
-    }
-
-    if(valueEntry.action) {
-      const action:CustomValueAction = valueEntry.action(value);
-      this._action(action);
-      return action;
-    }
-
-    value = ensure(value);
-
-    const action:CustomValueAction = {
-      type: cn.namePrefix+actionType,
-      value,
-    };
-    this._action(action);
-    return action;
-  }
-
-  custom(customName: string): CustomAction {
-    this._verifyCustomName(customName);
-    const cs:CompiledSchema = this.compiledSchema;
-    const cn:CompiledName = cs.names[customName];
-    const customEntry: CustomSchemaEntry = cast(cn.schemaEntry);
-    const actionType: CustomActionType = customEntry.actionType;
-
-    if(!actionType) {
-      throw new Error("Missing actionType in custom schema: "+JSON.stringify(customEntry));
-    }
-
-    if(!customEntry.action) {
-      throw new Error("Missing action in custom schema: "+JSON.stringify(customEntry));
-    }
-
-    const action:CustomAction = customEntry.action();
-
-    if(action.type !== undefined && action.type !== actionType) {
-      throw new Error("Inconsistent custom action type: "+JSON.stringify(action.type)+" vs "+actionType);
-    }
-    action.type = cn.namePrefix+actionType;
-    this._action(action);
-    return action;
+  boundActionFactory(dispatch: (Action)=>Action): ActionFactoryInterface {
+    return new BoundActionFactory(dispatch, this.actionFactory());
   }
 
   //
