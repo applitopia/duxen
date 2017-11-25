@@ -38,7 +38,7 @@ test("Sub Meteor Driver - dispatch, insert, update, remove", function() {
 
   const engine:EngineInterface = new createEngine(schema);
   const subEngine:EngineInterface = engine.subEngine('meteor');
-  const reducer:Reducer = engine.reducer();
+  const reducer:StateReducer = engine.stateReducer();
   const store = createStore(reducer);
   const meteorDriver:MeteorDriver = new MeteorDriver(subEngine, store.dispatch, store.getState);
   const meteorCollection:MeteorCollection = meteorDriver.open("todos", {});

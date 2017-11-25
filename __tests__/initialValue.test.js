@@ -21,7 +21,7 @@ test("Initial state - value", function() {
   };
 
   const engine:EngineInterface = new createEngine(schema);
-  const reducer:Reducer = engine.reducer();
+  const reducer:StateReducer = engine.stateReducer();
   const state:State = reducer(undefined, {type: "INIT"});
 
   expect(state.toJS()).toEqual({
@@ -38,7 +38,7 @@ test("Initial state - collection", function() {
   };
 
   const engine:EngineInterface = new createEngine(schema);
-  const reducer:Reducer = engine.reducer();
+  const reducer:StateReducer = engine.stateReducer();
   const state:State = reducer(undefined, {type: "INIT"});
 
   expect(state.toJS()).toEqual({
@@ -61,7 +61,7 @@ test("Initial state - view", function() {
   };
 
   const engine:EngineInterface = new createEngine(schema);
-  const reducer:Reducer = engine.reducer();
+  const reducer:StateReducer = engine.stateReducer();
   const state:State = reducer(undefined, {type: "INIT"});
 
   expect(state.toJS()).toEqual({
@@ -93,7 +93,7 @@ test("Initial state - custom", function() {
   };
 
   const engine:EngineInterface = new createEngine(schema);
-  const reducer:Reducer = engine.reducer();
+  const reducer:StateReducer = engine.stateReducer();
   const state:State = reducer(undefined, {type: "INIT"});
 
   expect(state.toJS()).toEqual({

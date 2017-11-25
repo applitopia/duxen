@@ -13,7 +13,7 @@ import CommonEngine from './CommonEngine';
 
 const cast = <T>(value: any): T => (value: T);
 
-export default class BasicEngine extends CommonEngine implements EngineInterface {
+export default class StateEngine extends CommonEngine implements EngineInterface {
 
   constructor(schema: Schema) {
     super(schema);
@@ -22,7 +22,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
   //
   // Compile the reducer
   //
-  reducer(): Reducer {
+  stateReducer(): StateReducer {
 
     const cs:CompiledSchema = this._compiledSchema;
 
@@ -146,13 +146,13 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
       return cn;
     }
 
-    const reduce = (mutableState: State, state: State, action: Action) => {
+    const reduceMutable = (mutableState: State, state: State, action: Action): void => {
       switch (action.type) {
         case 'DUXEN_BATCH': {
           const collAction:BatchAction = cast(action);
           const actions:List<CollAction> = collAction.actions;
           for(let i = 0, len = actions.size; i < len; i++) {
-            reduce(mutableState, state, cast(actions.get(i)));
+            reduceMutable(mutableState, state, cast(actions.get(i)));
           }
           break;
         }
@@ -385,7 +385,7 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
       }
     };
 
-    return (state: State, action: Action) => {
+    const reduce: StateReducer = (state: State, action: Action): State => {
       if(state === undefined) {
         state = cs.initState;
         return state.withMutations((mutableState: State): void => {
@@ -398,8 +398,10 @@ export default class BasicEngine extends CommonEngine implements EngineInterface
       }
 
       return state.withMutations((mutableState: State): void => {
-        reduce(mutableState, state, action);
+        reduceMutable(mutableState, state, action);
       });
     };
+
+    return reduce;
   }
 }

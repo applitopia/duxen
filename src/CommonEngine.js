@@ -121,6 +121,33 @@ export default class CommonEngine implements EngineInterface {
     });
   }
 
+  //
+  // Repo Functions
+  //
+  currentBranch(repo: Repo): string {
+    if(!repo) {
+      throw Error("repo not defined");
+    }
+    const currentBranch: string = repo.get("currentBranch");
+    return currentBranch;
+  }
+
+  head(repo: Repo): State {
+    if(!repo) {
+      return undefined;
+    }
+    const currentBranch: string = repo.get("currentBranch");
+    const branches: RepoBranches = repo.get("branches");
+    const branch: RepoBranch = branches.get(currentBranch);
+    const currentIndex: number = branch.get("currentIndex");
+    if(currentIndex < 0) {
+      return undefined;
+    }
+    const states: List<State> = branch.get("states");
+    const state: State = states.get(currentIndex);
+    return state;
+  }
+
   // SubEngine
   subEngine(subSchemaPath: string): EngineInterface {
     this._verifyName(subSchemaPath, 'schema');
@@ -139,5 +166,6 @@ export default class CommonEngine implements EngineInterface {
   //
   // Compile the reducer
   //
-  reducer(): Reducer { throw new Error("Reducer is not implemented in CommonEngine"); }
+  stateReducer(): StateReducer { throw new Error("Reducer is not implemented in CommonEngine"); }
+  repoReducer(): RepoReducer { throw new Error("RepoReducer is not implemented in CommonEngine"); }
 }

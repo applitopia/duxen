@@ -13,7 +13,7 @@ DUXEN
 High performance data engine maintaining complex immutable state for reactive applications.
 Fully integrated with [Immutable.js](https://facebook.github.io/immutable-js/), [Redux](https://redux.js.org), and [Meteor](https://meteor.com).
 
-See [http://applitopia.github.io/duxen](https://applitopia.github.io/duxen) for detailed documentation.
+See demo here: [https://stackblitz.com/edit/duxen-demo](https://stackblitz.com/edit/duxen-demo)
 
 Huh?
 ====

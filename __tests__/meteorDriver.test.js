@@ -31,7 +31,7 @@ test("Meteor Driver - dispatch, insert, update, remove", function() {
   };
 
   const engine:EngineInterface = new createEngine(schema);
-  const reducer:Reducer = engine.reducer();
+  const reducer:StateReducer = engine.stateReducer();
   const store = createStore(reducer);
   const meteorDriver:MeteorDriver = new MeteorDriver(engine, store.dispatch, store.getState);
   const meteorCollection:MeteorCollection = meteorDriver.open("todos", {});
@@ -84,6 +84,16 @@ test("Meteor Driver - dispatch, insert, update, remove", function() {
   };
   expect(state4.toJS()).toEqual(expected4);
 
+  meteorCollection.remove({});
+  const state5 = store.getState();
+  const expected5 = {
+    _state: {todos: {paused: false}},
+    todosFilter: "Get sugar",
+    todos: {},
+    todosView: {}
+  };
+  expect(state5.toJS()).toEqual(expected5);
+
 });
 
 test("Meteor Driver - dispatch, insert, update, remove", function() {
@@ -104,7 +114,7 @@ test("Meteor Driver - dispatch, insert, update, remove", function() {
   };
 
   const engine:EngineInterface = new createEngine(schema);
-  const reducer:Reducer = engine.reducer();
+  const reducer:StateReducer = engine.stateReducer();
   const store = createStore(reducer);
   const meteorDriver:MeteorDriver = new MeteorDriver(engine, store.dispatch, store.getState);
   const meteorCollection:MeteorCollection = meteorDriver.open("todos", {});
@@ -147,6 +157,9 @@ test("Meteor Driver - dispatch, insert, update, remove", function() {
   expect(result3_3).toBe(false);
   const result3_4:boolean = meteorCollection.findOne("id2");
   expect(result3_4).toBe(false);
+  const result3_5:State = meteorCollection.findOne({_id: "id1"}, {fetch: true});
+  expect(result3_5.toJS()).toEqual({"_id": "id1", "text": "Get tickets"});
+  expect(()=>meteorCollection.findOne({})).toThrow("Selector not supported:");
 
   meteorCollection.pauseObservers();
   meteorCollection.resumeObservers();

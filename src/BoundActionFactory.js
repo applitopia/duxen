@@ -113,4 +113,56 @@ export default class BoundActionFactory implements ActionFactoryInterface {
     return action;
   }
 
+  //
+  // Repo Actions
+  //
+
+  createBranch(branchName: string): CreateBranchAction {
+    const action:CreateBranchAction = this._actionFactory.createBranch(branchName);
+    this._dispatch(action);
+    return action;
+  }
+
+  switchBranch(branchName: string): SwitchBranchAction {
+    const action:SwitchBranchAction = this._actionFactory.switchBranch(branchName);
+    this._dispatch(action);
+    return action;
+  }
+
+  saveBranch(branchName: string): SaveBranchAction {
+    const action:SaveBranchAction = this._actionFactory.saveBranch(branchName);
+    this._dispatch(action);
+    return action;
+  }
+
+  resetBranch(branchName: string): ResetBranchAction {
+    const action:ResetBranchAction = this._actionFactory.resetBranch(branchName);
+    this._dispatch(action);
+    return action;
+  }
+
+  removeBranch(branchName: string): RemoveBranchAction {
+    const action:RemoveBranchAction = this._actionFactory.removeBranch(branchName);
+    this._dispatch(action);
+    return action;
+  }
+
+  goForward(steps: number): GoForwardAction {
+    const action:GoForwardAction = this._actionFactory.goForward(steps);
+    this._dispatch(action);
+    return action;
+  }
+
+  goBack(steps: number): GoBackAction {
+    const action:GoBackAction = this._actionFactory.goBack(steps);
+    this._dispatch(action);
+    return action;
+  }
+
+  goLive(): GoLiveAction {
+    const action:GoLiveAction = this._actionFactory.goLive();
+    this._dispatch(action);
+    return action;
+  }
+
 }

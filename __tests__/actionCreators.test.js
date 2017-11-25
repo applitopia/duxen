@@ -146,6 +146,10 @@ test("SubSchema Coll Action creators", function() {
   const engine:EngineInterface = new createEngine(schema);
   const actionFactory:ActionFactoryInterface = engine.actionFactory();
 
+  expect(() =>  engine.subEngine("todoSchemaa")).toThrow("Missing name in schema:");
+
+  expect(() =>  engine.subEngine("todoSchema.todos")).toThrow("Not a schema:");
+
   const insertAction:InsertAction = actionFactory.insert("todoSchema.todos", "id1", {text: "Get sugar"});
   expect(insertAction).toEqual({"type": "DUXEN_INSERT", collName: "todoSchema.todos", id: "id1", doc: fromJS({text: "Get sugar"})});
 

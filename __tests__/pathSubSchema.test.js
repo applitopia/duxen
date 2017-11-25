@@ -52,7 +52,7 @@ test("Subschema and value, collection, view with path", function() {
   };
 
   const engine:EngineInterface = new createEngine(schema);
-  const reducer:Reducer = engine.reducer();
+  const reducer:StateReducer = engine.stateReducer();
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
@@ -286,7 +286,7 @@ test("Subschema with path, and value, collection, view with path", function() {
   };
 
   const engine:EngineInterface = new createEngine(schema);
-  const reducer:Reducer = engine.reducer();
+  const reducer:StateReducer = engine.stateReducer();
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {

@@ -80,6 +80,9 @@ var ActionFactory = function () {
   }, {
     key: '_action',
     value: function _action(action) {
+      // Make action immutable
+      Object.freeze(action);
+
       var listeners = this.engine._listeners;
       for (var i = 0; i < listeners.length; i++) {
         var listener = listeners[i];
@@ -301,482 +304,97 @@ var ActionFactory = function () {
       this._action(action);
       return action;
     }
+
+    //
+    // Repo Actions
+    //
+
+  }, {
+    key: 'createBranch',
+    value: function createBranch(branchName) {
+      var action = {
+        type: 'DUXEN_CREATE_BRANCH',
+        branchName: branchName
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'switchBranch',
+    value: function switchBranch(branchName) {
+      var action = {
+        type: 'DUXEN_SWITCH_BRANCH',
+        branchName: branchName
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'saveBranch',
+    value: function saveBranch(branchName) {
+      var action = {
+        type: 'DUXEN_SAVE_BRANCH',
+        branchName: branchName
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'resetBranch',
+    value: function resetBranch(branchName) {
+      var action = {
+        type: 'DUXEN_RESET_BRANCH',
+        branchName: branchName
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'removeBranch',
+    value: function removeBranch(branchName) {
+      var action = {
+        type: 'DUXEN_REMOVE_BRANCH',
+        branchName: branchName
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'goForward',
+    value: function goForward(steps) {
+      var action = {
+        type: 'DUXEN_GO_FORWARD',
+        steps: steps
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'goBack',
+    value: function goBack(steps) {
+      var action = {
+        type: 'DUXEN_GO_BACK',
+        steps: steps
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
+    key: 'goLive',
+    value: function goLive() {
+      var action = {
+        type: 'DUXEN_GO_LIVE'
+      };
+      this._action(action);
+      return action;
+    }
   }]);
 
   return ActionFactory;
 }();
 
 exports.default = ActionFactory;
-},{"./CommonEngine":4,"immutable-sorted":10}],2:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _immutableSorted = require('immutable-sorted');
-
-var _CommonEngine2 = require('./CommonEngine');
-
-var _CommonEngine3 = _interopRequireDefault(_CommonEngine2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *  Copyright (c) 2017, Applitopia, Inc.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *  All rights reserved.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *  This source code is licensed under the MIT-style license found in the
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *  LICENSE file in the root directory of this source tree.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *  
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
-
-var cast = function cast(value) {
-  return value;
-};
-
-var BasicEngine = function (_CommonEngine) {
-  _inherits(BasicEngine, _CommonEngine);
-
-  function BasicEngine(schema) {
-    _classCallCheck(this, BasicEngine);
-
-    return _possibleConstructorReturn(this, (BasicEngine.__proto__ || Object.getPrototypeOf(BasicEngine)).call(this, schema));
-  }
-
-  //
-  // Compile the reducer
-  //
-
-
-  _createClass(BasicEngine, [{
-    key: 'reducer',
-    value: function reducer() {
-      var _this2 = this;
-
-      var cs = this._compiledSchema;
-
-      var failed = function failed(s) {
-        throw new Error("Schema compilation error: " + s);
-      };
-
-      var validateAction = function validateAction(action) {
-        if (!action.collName) {
-          failed("Missing collName in action: " + action.toString());
-        }
-
-        if (_this2._getNameType(action.collName) !== 'collection') {
-          failed("Unknown collection name: " + action.collName);
-        }
-      };
-
-      var updateDependentsList = function updateDependentsList(mutableState, state, deps) {
-
-        for (var i = 0, length = deps.length; i < length; i++) {
-          var depName = deps[i];
-          var dcn = getCompiledName(depName);
-
-          switch (dcn.type) {
-            case 'formula':
-              {
-                var fcne = cast(dcn.schemaEntry);
-
-                // Prepare props
-                var props = {};
-                for (var pi = 0, len = fcne.props.length; pi < len; pi++) {
-                  var propName = fcne.props[pi];
-                  switch (typeof propName === 'undefined' ? 'undefined' : _typeof(propName)) {
-                    case 'string':
-                      {
-                        var pcn = getCompiledName(dcn.namePrefix + propName);
-                        props[propName] = mutableState.getIn(pcn.path);
-                        break;
-                      }
-                    default:
-                      {
-                        throw new Error("Invalid type of propName: " + (typeof propName === 'undefined' ? 'undefined' : _typeof(propName)));
-                      }
-                  }
-                }
-                var newValue = fcne.recipe(props);
-                mutableState.setIn(dcn.path, newValue);
-                break;
-              }
-            case 'view':
-              {
-                var vcne = cast(dcn.schemaEntry);
-                var scn = getCompiledName(dcn.namePrefix + vcne.sourceName);
-
-                // Prepare props
-                var _props = {};
-                for (var _pi = 0, _len = vcne.props.length; _pi < _len; _pi++) {
-                  var _propName = vcne.props[_pi];
-                  switch (typeof _propName === 'undefined' ? 'undefined' : _typeof(_propName)) {
-                    case 'string':
-                      {
-                        var _pcn = getCompiledName(dcn.namePrefix + _propName);
-                        _props[_propName] = mutableState.getIn(_pcn.path);
-                        break;
-                      }
-                    default:
-                      {
-                        throw new Error("Invalid type of propName: " + (typeof _propName === 'undefined' ? 'undefined' : _typeof(_propName)));
-                      }
-                  }
-                }
-                var newSourceData = mutableState.getIn(scn.path);
-
-                if (dcn.seqen) {
-                  var newdata = dcn.seqen.process(newSourceData, _props);
-
-                  mutableState.setIn(dcn.path, newdata);
-                } else {
-                  throw new Error("Missing seqen for view: " + scn.name);
-                }
-                break;
-              }
-            default:
-              {
-                throw new Error("Dependent type not supported: " + dcn.type);
-              }
-          }
-        }
-      };
-
-      var updateDependents = function updateDependents(mutableState, state, cn) {
-        var isColl = cn.type == 'collection';
-        var paused = isColl ? mutableState.getIn(["_state", cn.name, "paused"]) : false;
-
-        if (paused === true) {
-          return;
-        }
-
-        var deps = cn.dependents;
-
-        if (!deps) {
-          return;
-        }
-
-        updateDependentsList(mutableState, state, deps);
-      };
-
-      var refresh = function refresh(mutableState, state) {
-        // Refresh all views
-        updateDependentsList(mutableState, state, cs.allDependents);
-      };
-
-      var updateOriginals = function updateOriginals(mutableState, collName, id, doc) {
-        var collData = mutableState.getIn(["_state", collName, "originals"]);
-
-        if (collData) {
-          if (!collData.has(id)) {
-            mutableState.setIn(["_state", collName, "originals", id], doc);
-          }
-        }
-      };
-
-      var getCompiledName = function getCompiledName(name) {
-        var cn = cs.names[name];
-
-        if (!cn) {
-          throw new Error("Name does not exist in schema: " + name);
-        }
-
-        return cn;
-      };
-
-      var reduce = function reduce(mutableState, state, action) {
-        switch (action.type) {
-          case 'DUXEN_BATCH':
-            {
-              var collAction = cast(action);
-              var actions = collAction.actions;
-              for (var i = 0, len = actions.size; i < len; i++) {
-                reduce(mutableState, state, cast(actions.get(i)));
-              }
-              break;
-            }
-
-          case 'DUXEN_INSERT':
-            {
-              var _collAction = cast(action);
-              var cn = getCompiledName(_collAction.collName);
-              var collData = cast(mutableState.getIn(cn.path));
-
-              var newcollData = collData.set(_collAction.id, _collAction.doc);
-
-              mutableState.setIn(cn.path, newcollData);
-
-              updateOriginals(mutableState, _collAction.collName, _collAction.id);
-              updateDependents(mutableState, state, cn);
-              break;
-            }
-
-          case 'DUXEN_UPDATE':
-            {
-              var _collAction2 = cast(action);
-              var _cn = getCompiledName(_collAction2.collName);
-              var _collData = cast(mutableState.getIn(_cn.path));
-              var id = _collAction2.id;
-
-              var doc = _collData.get(id);
-              if (!doc) {
-                throw new Error("Updating document that does not exist: " + JSON.stringify(id));
-              }
-
-              var updDoc = _collAction2.doc;
-              var setDoc = cast(updDoc.get("$set"));
-              var unsetDoc = cast(updDoc.get("$unset"));
-              var incDoc = cast(updDoc.get("$inc"));
-              var mulDoc = cast(updDoc.get("$mul"));
-
-              var newDoc = void 0;
-              if (setDoc || unsetDoc || incDoc || mulDoc) {
-                newDoc = doc.withMutations(function (mutableDoc) {
-                  if (setDoc) {
-                    setDoc.forEach(function (v, k) {
-                      return mutableDoc.setIn(k.split('.'), v);
-                    });
-                  }
-                  if (unsetDoc) {
-                    unsetDoc.forEach(function (v, k) {
-                      return mutableDoc.deleteIn(k.split('.'));
-                    });
-                  }
-                  if (incDoc) {
-                    incDoc.forEach(function (v, k) {
-                      var keyPath = k.split('.');
-                      var val = mutableDoc.getIn(keyPath);
-                      if (typeof val === 'number') {
-                        val += v;
-                        mutableDoc.setIn(keyPath, val);
-                      }
-                    });
-                  }
-                  if (mulDoc) {
-                    mulDoc.forEach(function (v, k) {
-                      var keyPath = k.split('.');
-                      var val = mutableDoc.getIn(keyPath);
-                      if (typeof val === 'number') {
-                        val *= v;
-                        mutableDoc.setIn(keyPath, val);
-                      }
-                    });
-                  }
-                });
-              } else {
-                newDoc = updDoc;
-              }
-
-              var _newcollData = _collData.set(_collAction2.id, newDoc);
-              mutableState.setIn(_cn.path, _newcollData);
-
-              updateOriginals(mutableState, _collAction2.collName, id, doc);
-              updateDependents(mutableState, state, _cn);
-              break;
-            }
-
-          case 'DUXEN_REMOVE':
-            {
-              var _collAction3 = cast(action);
-              var _cn2 = getCompiledName(_collAction3.collName);
-              var _collData2 = cast(mutableState.getIn(_cn2.path));
-              var _id = _collAction3.id;
-
-              var _doc = _collData2.get(_id);
-              if (_doc) {
-                // Removing a document that exists
-                var _newcollData2 = _collData2.remove(_id);
-
-                mutableState.setIn(_cn2.path, _newcollData2);
-
-                updateOriginals(mutableState, _collAction3.collName, _id, _doc);
-                updateDependents(mutableState, state, _cn2);
-              }
-              break;
-            }
-
-          case 'DUXEN_RESET':
-            {
-              var _collAction4 = cast(action);
-              var _cn3 = getCompiledName(_collAction4.collName);
-              var _newcollData3 = (0, _immutableSorted.Map)();
-
-              mutableState.setIn(_cn3.path, _newcollData3);
-              mutableState.deleteIn(["_state", _collAction4.collName, "originals"]);
-              updateDependents(mutableState, state, _cn3);
-              break;
-            }
-
-          case 'DUXEN_PAUSE':
-            {
-              var _collAction5 = cast(action);
-              mutableState.setIn(["_state", _collAction5.collName, "paused"], true);
-              break;
-            }
-
-          case 'DUXEN_RESUME':
-            {
-              var _collAction6 = cast(action);
-              var _cn4 = getCompiledName(_collAction6.collName);
-              mutableState.setIn(["_state", _collAction6.collName, "paused"], false);
-              updateDependents(mutableState, state, _cn4);
-              break;
-            }
-
-          case 'DUXEN_SAVE':
-            {
-              var _collAction7 = cast(action);
-              var _cn5 = getCompiledName(_collAction7.collName);
-              var _collData3 = cast(mutableState.getIn(_cn5.path));
-              mutableState.setIn(["_state", _collAction7.collName, "saved"], _collData3);
-              break;
-            }
-
-          case 'DUXEN_RESTORE':
-            {
-              var _collAction8 = cast(action);
-              var _cn6 = getCompiledName(_collAction8.collName);
-              var _collData4 = cast(mutableState.getIn(["_state", _collAction8.collName, "saved"]));
-              if (!_collData4) {
-                throw new Error("Restore: nothing was saved");
-              }
-              mutableState.deleteIn(["_state", _collAction8.collName, "saved"]);
-              mutableState.setIn(_cn6.path, _collData4);
-              updateDependents(mutableState, state, _cn6);
-              break;
-            }
-
-          case 'DUXEN_SAVE_ORIGINALS':
-            {
-              var _collAction9 = cast(action);
-              var _collData5 = cast(mutableState.getIn(["_state", _collAction9.collName, "originals"]));
-              if (_collData5) {
-                throw new Error("Save Originals: called twice without retrieve originals");
-              }
-              mutableState.setIn(["_state", _collAction9.collName, "originals"], (0, _immutableSorted.Map)());
-              break;
-            }
-
-          case 'DUXEN_RETRIEVE_ORIGINALS':
-            {
-              var _collAction10 = cast(action);
-              var _collData6 = cast(mutableState.getIn(["_state", _collAction10.collName, "originals"]));
-              if (!_collData6) {
-                throw new Error("Retrieve Originals: called without save originals");
-              }
-              mutableState.deleteIn(["_state", _collAction10.collName, "originals"]);
-              break;
-            }
-
-          case 'DUXEN_REFRESH':
-            {
-              refresh(mutableState, state);
-              break;
-            }
-
-          case 'DUXEN_VALUE':
-            {
-              var valueAction = cast(action);
-              var _cn7 = getCompiledName(valueAction.valueName);
-              var oldValue = state.getIn(_cn7.path);
-              if (oldValue === undefined) {
-                throw Error("Lost value in state:" + valueAction.valueName);
-              }
-              var newValue = valueAction.value;
-              if (oldValue !== newValue) {
-                mutableState.setIn(_cn7.path, newValue);
-                updateDependents(mutableState, state, _cn7);
-              }
-              break;
-            }
-
-          default:
-            {
-              //
-              // Apply value or custom reducer
-              var compiledAction = cs.actions[action.type];
-              if (compiledAction) {
-                var name = compiledAction.name;
-                var _cn8 = getCompiledName(name);
-
-                switch (compiledAction.type) {
-                  case 'customValue':
-                    {
-                      var _valueAction = cast(action);
-                      var _oldValue = state.getIn(_cn8.path);
-                      if (_oldValue === undefined) {
-                        throw Error("Lost value in state:" + name);
-                      }
-                      var reducer = compiledAction.reducer;
-                      var _newValue = reducer(_oldValue, _valueAction);
-                      if (_oldValue !== _newValue) {
-                        mutableState.setIn(_cn8.path, _newValue);
-                        updateDependents(mutableState, state, _cn8);
-                      }
-                      break;
-                    }
-                  case 'custom':
-                    {
-                      var customAction = cast(action);
-                      var _reducer = compiledAction.reducer;
-                      if (_cn8.path.length > 0) {
-                        var subState = mutableState.getIn(_cn8.path);
-                        if (!subState) {
-                          throw new Error("Missing path in state:" + JSON.stringify(_cn8.path));
-                        }
-                        var mutableSubState = subState.asMutable();
-                        _reducer(mutableSubState, customAction);
-                        mutableState.setIn(_cn8.path, mutableSubState);
-                      } else {
-                        _reducer(mutableState, customAction);
-                      }
-                      break;
-                    }
-                  default:
-                    {
-                      throw new Error("CompiledAction.type not supported: " + compiledAction.type);
-                    }
-                }
-              }
-              break;
-            }
-        }
-      };
-
-      return function (state, action) {
-        if (state === undefined) {
-          state = cs.initState;
-          return state.withMutations(function (mutableState) {
-            state = refresh(mutableState, state);
-          });
-        }
-
-        if (action.collName) {
-          validateAction(cast(action));
-        }
-
-        return state.withMutations(function (mutableState) {
-          reduce(mutableState, state, action);
-        });
-      };
-    }
-  }]);
-
-  return BasicEngine;
-}(_CommonEngine3.default);
-
-exports.default = BasicEngine;
-},{"./CommonEngine":4,"immutable-sorted":10}],3:[function(require,module,exports){
+},{"./CommonEngine":3,"immutable-sorted":11}],2:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -915,13 +533,74 @@ var BoundActionFactory = function () {
       this._dispatch(action);
       return action;
     }
+
+    //
+    // Repo Actions
+    //
+
+  }, {
+    key: 'createBranch',
+    value: function createBranch(branchName) {
+      var action = this._actionFactory.createBranch(branchName);
+      this._dispatch(action);
+      return action;
+    }
+  }, {
+    key: 'switchBranch',
+    value: function switchBranch(branchName) {
+      var action = this._actionFactory.switchBranch(branchName);
+      this._dispatch(action);
+      return action;
+    }
+  }, {
+    key: 'saveBranch',
+    value: function saveBranch(branchName) {
+      var action = this._actionFactory.saveBranch(branchName);
+      this._dispatch(action);
+      return action;
+    }
+  }, {
+    key: 'resetBranch',
+    value: function resetBranch(branchName) {
+      var action = this._actionFactory.resetBranch(branchName);
+      this._dispatch(action);
+      return action;
+    }
+  }, {
+    key: 'removeBranch',
+    value: function removeBranch(branchName) {
+      var action = this._actionFactory.removeBranch(branchName);
+      this._dispatch(action);
+      return action;
+    }
+  }, {
+    key: 'goForward',
+    value: function goForward(steps) {
+      var action = this._actionFactory.goForward(steps);
+      this._dispatch(action);
+      return action;
+    }
+  }, {
+    key: 'goBack',
+    value: function goBack(steps) {
+      var action = this._actionFactory.goBack(steps);
+      this._dispatch(action);
+      return action;
+    }
+  }, {
+    key: 'goLive',
+    value: function goLive() {
+      var action = this._actionFactory.goLive();
+      this._dispatch(action);
+      return action;
+    }
   }]);
 
   return BoundActionFactory;
 }();
 
 exports.default = BoundActionFactory;
-},{"immutable-sorted":10}],4:[function(require,module,exports){
+},{"immutable-sorted":11}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1085,6 +764,37 @@ var CommonEngine = function () {
       });
     }
 
+    //
+    // Repo Functions
+    //
+
+  }, {
+    key: 'currentBranch',
+    value: function currentBranch(repo) {
+      if (!repo) {
+        throw Error("repo not defined");
+      }
+      var currentBranch = repo.get("currentBranch");
+      return currentBranch;
+    }
+  }, {
+    key: 'head',
+    value: function head(repo) {
+      if (!repo) {
+        return undefined;
+      }
+      var currentBranch = repo.get("currentBranch");
+      var branches = repo.get("branches");
+      var branch = branches.get(currentBranch);
+      var currentIndex = branch.get("currentIndex");
+      if (currentIndex < 0) {
+        return undefined;
+      }
+      var states = branch.get("states");
+      var state = states.get(currentIndex);
+      return state;
+    }
+
     // SubEngine
 
   }, {
@@ -1112,9 +822,14 @@ var CommonEngine = function () {
     //
 
   }, {
-    key: 'reducer',
-    value: function reducer() {
+    key: 'stateReducer',
+    value: function stateReducer() {
       throw new Error("Reducer is not implemented in CommonEngine");
+    }
+  }, {
+    key: 'repoReducer',
+    value: function repoReducer() {
+      throw new Error("RepoReducer is not implemented in CommonEngine");
     }
   }]);
 
@@ -1122,7 +837,7 @@ var CommonEngine = function () {
 }();
 
 exports.default = CommonEngine;
-},{"./ActionFactory":1,"./BoundActionFactory":3,"./SchemaCompiler":6,"./SubEngine":8,"immutable-sorted":10}],5:[function(require,module,exports){
+},{"./ActionFactory":1,"./BoundActionFactory":2,"./SchemaCompiler":6,"./SubEngine":9,"immutable-sorted":11}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1332,7 +1047,297 @@ var MeteorDriver = exports.MeteorDriver = function () {
 
   return MeteorDriver;
 }();
-},{"immutable-sorted":10}],6:[function(require,module,exports){
+},{"immutable-sorted":11}],5:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _immutableSorted = require('immutable-sorted');
+
+var _StateEngine2 = require('./StateEngine');
+
+var _StateEngine3 = _interopRequireDefault(_StateEngine2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *  Copyright (c) 2017, Applitopia, Inc.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *  All rights reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *  This source code is licensed under the MIT-style license found in the
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *  LICENSE file in the root directory of this source tree.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+
+var cast = function cast(value) {
+  return value;
+};
+
+var RepoEngine = function (_StateEngine) {
+  _inherits(RepoEngine, _StateEngine);
+
+  function RepoEngine(schema) {
+    _classCallCheck(this, RepoEngine);
+
+    return _possibleConstructorReturn(this, (RepoEngine.__proto__ || Object.getPrototypeOf(RepoEngine)).call(this, schema));
+  }
+
+  _createClass(RepoEngine, [{
+    key: 'repoReducer',
+    value: function repoReducer() {
+      var stateReducer = _get(RepoEngine.prototype.__proto__ || Object.getPrototypeOf(RepoEngine.prototype), 'stateReducer', this).call(this);
+
+      var repoOptionsProps = {
+        history: 100
+      };
+
+      var repoBranchProps = {
+        currentIndex: -1,
+        live: true,
+        states: [],
+        actions: []
+      };
+
+      var repoProps = {
+        version: 0,
+        options: repoOptionsProps,
+        currentBranch: 'master',
+        branches: { 'master': repoBranchProps }
+      };
+
+      var initialRepo = (0, _immutableSorted.fromJS)(repoProps);
+
+      var verifyBranch = function verifyBranch(repo, branchName) {
+        var branches = repo.get("branches");
+        if (!branches.has(branchName)) {
+          throw Error("the branch does not exist: " + branchName);
+        }
+      };
+
+      var stateReduce = function stateReduce(mutableRepo, repo, action) {
+        if (!Object.isFrozen()) {
+          throw new Error("Action object is not frozen");
+        }
+        var options = mutableRepo.get("options");
+        var history = options.get("history");
+        var currentBranch = mutableRepo.get("currentBranch");
+        verifyBranch(repo, currentBranch);
+        var branches = mutableRepo.get("branches");
+        var branch = branches.get(currentBranch);
+
+        var newBranch = branch.withMutations(function (mutableBranch) {
+          var currentIndex = mutableBranch.get("currentIndex");
+          var live = mutableBranch.get("live");
+          var states = mutableBranch.get("states");
+          var actions = mutableBranch.get("actions");
+          var state = states.get(currentIndex);
+          var newState = stateReducer(state, action);
+          var newStates = states.withMutations(function (mutableStates) {
+            mutableStates.push(newState);
+            while (mutableStates.size > history) {
+              mutableStates.shift();
+              if (currentIndex > 0) {
+                currentIndex--;
+              }
+            }
+          });
+          var newActions = actions.withMutations(function (mutableActions) {
+            var actionCopy = action;
+            mutableActions.push(actionCopy);
+            while (mutableActions.size > history) {
+              mutableActions.shift();
+            }
+          });
+          if (live) {
+            currentIndex = newStates.size - 1;
+          }
+          mutableBranch.set("currentIndex", currentIndex);
+          mutableBranch.set("states", newStates);
+          mutableBranch.set("actions", newActions);
+        });
+        var newBranches = branches.set(currentBranch, newBranch);
+
+        mutableRepo.set("branches", newBranches);
+      };
+
+      var repoReduceMutable = function repoReduceMutable(mutableRepo, repo, action) {
+        switch (action.type) {
+          case 'DUXEN_CREATE_BRANCH':
+            {
+              var repoAction = cast(action);
+              var branches = repo.get("branches");
+              if (branches.has(repoAction.branchName)) {
+                throw Error("the branch already exists: " + repoAction.branchName);
+              }
+              var newBranch = initialRepo.getIn(["branches", "master"]);
+              var newBranches = branches.set(repoAction.branchName, newBranch);
+              mutableRepo.set("branches", newBranches);
+              break;
+            }
+
+          case 'DUXEN_SWITCH_BRANCH':
+            {
+              var _repoAction = cast(action);
+              verifyBranch(repo, _repoAction.branchName);
+              mutableRepo.set("currentBranch", _repoAction.branchName);
+              break;
+            }
+
+          case 'DUXEN_SAVE_BRANCH':
+            {
+              var _repoAction2 = cast(action);
+              var currentBranch = mutableRepo.get("currentBranch");
+              var _branches = repo.get("branches");
+              var branch = _branches.get(currentBranch);
+              var currentIndex = branch.get("currentIndex");
+              var _newBranch = branch.withMutations(function (mutableBranch) {
+                var newStates = mutableBranch.get("states").slice(0, currentIndex + 1);
+                mutableBranch.set("states", newStates);
+                var newActions = mutableBranch.get("actions").slice(0, currentIndex + 1);
+                mutableBranch.set("actions", newActions);
+                mutableBranch.set("currentIndex", currentIndex);
+              });
+              var _newBranches = _branches.set(_repoAction2.branchName, _newBranch);
+              mutableRepo.set("branches", _newBranches);
+              break;
+            }
+
+          case 'DUXEN_RESET_BRANCH':
+            {
+              var _repoAction3 = cast(action);
+              verifyBranch(repo, _repoAction3.branchName);
+              var _currentBranch = mutableRepo.get("currentBranch");
+              var _branches2 = repo.get("branches");
+              var _branch = _branches2.get(_repoAction3.branchName);
+              var _currentIndex = _branch.get("currentIndex");
+              var _newBranch2 = _branch.withMutations(function (mutableBranch) {
+                var newStates = mutableBranch.get("states").slice(0, _currentIndex + 1);
+                mutableBranch.set("states", newStates);
+                var newActions = mutableBranch.get("actions").slice(0, _currentIndex + 1);
+                mutableBranch.set("actions", newActions);
+                mutableBranch.set("currentIndex", _currentIndex);
+              });
+              var _newBranches2 = _branches2.set(_currentBranch, _newBranch2);
+              mutableRepo.set("branches", _newBranches2);
+              break;
+            }
+
+          case 'DUXEN_REMOVE_BRANCH':
+            {
+              var _repoAction4 = cast(action);
+              verifyBranch(repo, _repoAction4.branchName);
+              var _currentBranch2 = mutableRepo.get("currentBranch");
+              if (_currentBranch2 === _repoAction4.branchName) {
+                throw Error("cannot remove branch that is current");
+              }
+              var _branches3 = repo.get("branches");
+              var _newBranches3 = _branches3.remove(_repoAction4.branchName);
+              mutableRepo.set("branches", _newBranches3);
+              break;
+            }
+
+          case 'DUXEN_GO_FORWARD':
+            {
+              var _repoAction5 = cast(action);
+              var _currentBranch3 = mutableRepo.get("currentBranch");
+              var _branches4 = repo.get("branches");
+              var _branch2 = _branches4.get(_currentBranch3);
+              var _currentIndex2 = _branch2.get("currentIndex");
+              var states = _branch2.get("states");
+              var steps = _repoAction5.steps;
+              var _newBranch3 = _branch2.withMutations(function (mutableBranch) {
+                var newCurrentIndex = _currentIndex2 + steps;
+                if (newCurrentIndex < 0) {
+                  newCurrentIndex = 0;
+                } else if (newCurrentIndex >= states.size) {
+                  newCurrentIndex = states.size - 1;
+                }
+                mutableBranch.set("currentIndex", newCurrentIndex);
+                mutableBranch.set("live", false);
+              });
+              var _newBranches4 = _branches4.set(_currentBranch3, _newBranch3);
+              mutableRepo.set("branches", _newBranches4);
+              break;
+            }
+
+          case 'DUXEN_GO_BACK':
+            {
+              var _repoAction6 = cast(action);
+              var _currentBranch4 = mutableRepo.get("currentBranch");
+              var _branches5 = repo.get("branches");
+              var _branch3 = _branches5.get(_currentBranch4);
+              var _currentIndex3 = _branch3.get("currentIndex");
+              var _states = _branch3.get("states");
+              var _steps = _repoAction6.steps;
+              var _newBranch4 = _branch3.withMutations(function (mutableBranch) {
+                var newCurrentIndex = _currentIndex3 - _steps;
+                if (newCurrentIndex < 0) {
+                  newCurrentIndex = 0;
+                } else if (newCurrentIndex >= _states.size) {
+                  newCurrentIndex = _states.size - 1;
+                }
+                mutableBranch.set("currentIndex", newCurrentIndex);
+                mutableBranch.set("live", false);
+              });
+              var _newBranches5 = _branches5.set(_currentBranch4, _newBranch4);
+              mutableRepo.set("branches", _newBranches5);
+              break;
+            }
+
+          case 'DUXEN_GO_LIVE':
+            {
+              var _currentBranch5 = mutableRepo.get("currentBranch");
+              var _branches6 = repo.get("branches");
+              var _branch4 = _branches6.get(_currentBranch5);
+              var _states2 = _branch4.get("states");
+              var _newBranch5 = _branch4.withMutations(function (mutableBranch) {
+                var newCurrentIndex = _states2.size - 1;
+                mutableBranch.set("currentIndex", newCurrentIndex);
+                mutableBranch.set("live", true);
+              });
+              var _newBranches6 = _branches6.set(_currentBranch5, _newBranch5);
+              mutableRepo.set("branches", _newBranches6);
+              break;
+            }
+
+          default:
+            {
+              stateReduce(mutableRepo, repo, action);
+              break;
+            }
+        }
+      };
+
+      var repoReduce = function repoReduce(repo, action) {
+        if (repo === undefined) {
+          repo = initialRepo;
+        }
+
+        return repo.withMutations(function (mutableRepo) {
+          repoReduceMutable(mutableRepo, repo, action);
+        });
+      };
+
+      return repoReduce;
+    }
+  }]);
+
+  return RepoEngine;
+}(_StateEngine3.default);
+
+exports.default = RepoEngine;
+},{"./StateEngine":7,"immutable-sorted":11}],6:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1801,7 +1806,478 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
 
   return cs;
 };
-},{"immutable-sorted":10,"seqen":13}],7:[function(require,module,exports){
+},{"immutable-sorted":11,"seqen":14}],7:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _immutableSorted = require('immutable-sorted');
+
+var _CommonEngine2 = require('./CommonEngine');
+
+var _CommonEngine3 = _interopRequireDefault(_CommonEngine2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *  Copyright (c) 2017, Applitopia, Inc.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *  All rights reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *  This source code is licensed under the MIT-style license found in the
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *  LICENSE file in the root directory of this source tree.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+
+var cast = function cast(value) {
+  return value;
+};
+
+var StateEngine = function (_CommonEngine) {
+  _inherits(StateEngine, _CommonEngine);
+
+  function StateEngine(schema) {
+    _classCallCheck(this, StateEngine);
+
+    return _possibleConstructorReturn(this, (StateEngine.__proto__ || Object.getPrototypeOf(StateEngine)).call(this, schema));
+  }
+
+  //
+  // Compile the reducer
+  //
+
+
+  _createClass(StateEngine, [{
+    key: 'stateReducer',
+    value: function stateReducer() {
+      var _this2 = this;
+
+      var cs = this._compiledSchema;
+
+      var failed = function failed(s) {
+        throw new Error("Schema compilation error: " + s);
+      };
+
+      var validateAction = function validateAction(action) {
+        if (!action.collName) {
+          failed("Missing collName in action: " + action.toString());
+        }
+
+        if (_this2._getNameType(action.collName) !== 'collection') {
+          failed("Unknown collection name: " + action.collName);
+        }
+      };
+
+      var updateDependentsList = function updateDependentsList(mutableState, state, deps) {
+
+        for (var i = 0, length = deps.length; i < length; i++) {
+          var depName = deps[i];
+          var dcn = getCompiledName(depName);
+
+          switch (dcn.type) {
+            case 'formula':
+              {
+                var fcne = cast(dcn.schemaEntry);
+
+                // Prepare props
+                var props = {};
+                for (var pi = 0, len = fcne.props.length; pi < len; pi++) {
+                  var propName = fcne.props[pi];
+                  switch (typeof propName === 'undefined' ? 'undefined' : _typeof(propName)) {
+                    case 'string':
+                      {
+                        var pcn = getCompiledName(dcn.namePrefix + propName);
+                        props[propName] = mutableState.getIn(pcn.path);
+                        break;
+                      }
+                    default:
+                      {
+                        throw new Error("Invalid type of propName: " + (typeof propName === 'undefined' ? 'undefined' : _typeof(propName)));
+                      }
+                  }
+                }
+                var newValue = fcne.recipe(props);
+                mutableState.setIn(dcn.path, newValue);
+                break;
+              }
+            case 'view':
+              {
+                var vcne = cast(dcn.schemaEntry);
+                var scn = getCompiledName(dcn.namePrefix + vcne.sourceName);
+
+                // Prepare props
+                var _props = {};
+                for (var _pi = 0, _len = vcne.props.length; _pi < _len; _pi++) {
+                  var _propName = vcne.props[_pi];
+                  switch (typeof _propName === 'undefined' ? 'undefined' : _typeof(_propName)) {
+                    case 'string':
+                      {
+                        var _pcn = getCompiledName(dcn.namePrefix + _propName);
+                        _props[_propName] = mutableState.getIn(_pcn.path);
+                        break;
+                      }
+                    default:
+                      {
+                        throw new Error("Invalid type of propName: " + (typeof _propName === 'undefined' ? 'undefined' : _typeof(_propName)));
+                      }
+                  }
+                }
+                var newSourceData = mutableState.getIn(scn.path);
+
+                if (dcn.seqen) {
+                  var newdata = dcn.seqen.process(newSourceData, _props);
+
+                  mutableState.setIn(dcn.path, newdata);
+                } else {
+                  throw new Error("Missing seqen for view: " + scn.name);
+                }
+                break;
+              }
+            default:
+              {
+                throw new Error("Dependent type not supported: " + dcn.type);
+              }
+          }
+        }
+      };
+
+      var updateDependents = function updateDependents(mutableState, state, cn) {
+        var isColl = cn.type == 'collection';
+        var paused = isColl ? mutableState.getIn(["_state", cn.name, "paused"]) : false;
+
+        if (paused === true) {
+          return;
+        }
+
+        var deps = cn.dependents;
+
+        if (!deps) {
+          return;
+        }
+
+        updateDependentsList(mutableState, state, deps);
+      };
+
+      var refresh = function refresh(mutableState, state) {
+        // Refresh all views
+        updateDependentsList(mutableState, state, cs.allDependents);
+      };
+
+      var updateOriginals = function updateOriginals(mutableState, collName, id, doc) {
+        var collData = mutableState.getIn(["_state", collName, "originals"]);
+
+        if (collData) {
+          if (!collData.has(id)) {
+            mutableState.setIn(["_state", collName, "originals", id], doc);
+          }
+        }
+      };
+
+      var getCompiledName = function getCompiledName(name) {
+        var cn = cs.names[name];
+
+        if (!cn) {
+          throw new Error("Name does not exist in schema: " + name);
+        }
+
+        return cn;
+      };
+
+      var reduceMutable = function reduceMutable(mutableState, state, action) {
+        switch (action.type) {
+          case 'DUXEN_BATCH':
+            {
+              var collAction = cast(action);
+              var actions = collAction.actions;
+              for (var i = 0, len = actions.size; i < len; i++) {
+                reduceMutable(mutableState, state, cast(actions.get(i)));
+              }
+              break;
+            }
+
+          case 'DUXEN_INSERT':
+            {
+              var _collAction = cast(action);
+              var cn = getCompiledName(_collAction.collName);
+              var collData = cast(mutableState.getIn(cn.path));
+
+              var newcollData = collData.set(_collAction.id, _collAction.doc);
+
+              mutableState.setIn(cn.path, newcollData);
+
+              updateOriginals(mutableState, _collAction.collName, _collAction.id);
+              updateDependents(mutableState, state, cn);
+              break;
+            }
+
+          case 'DUXEN_UPDATE':
+            {
+              var _collAction2 = cast(action);
+              var _cn = getCompiledName(_collAction2.collName);
+              var _collData = cast(mutableState.getIn(_cn.path));
+              var id = _collAction2.id;
+
+              var doc = _collData.get(id);
+              if (!doc) {
+                throw new Error("Updating document that does not exist: " + JSON.stringify(id));
+              }
+
+              var updDoc = _collAction2.doc;
+              var setDoc = cast(updDoc.get("$set"));
+              var unsetDoc = cast(updDoc.get("$unset"));
+              var incDoc = cast(updDoc.get("$inc"));
+              var mulDoc = cast(updDoc.get("$mul"));
+
+              var newDoc = void 0;
+              if (setDoc || unsetDoc || incDoc || mulDoc) {
+                newDoc = doc.withMutations(function (mutableDoc) {
+                  if (setDoc) {
+                    setDoc.forEach(function (v, k) {
+                      return mutableDoc.setIn(k.split('.'), v);
+                    });
+                  }
+                  if (unsetDoc) {
+                    unsetDoc.forEach(function (v, k) {
+                      return mutableDoc.deleteIn(k.split('.'));
+                    });
+                  }
+                  if (incDoc) {
+                    incDoc.forEach(function (v, k) {
+                      var keyPath = k.split('.');
+                      var val = mutableDoc.getIn(keyPath);
+                      if (typeof val === 'number') {
+                        val += v;
+                        mutableDoc.setIn(keyPath, val);
+                      }
+                    });
+                  }
+                  if (mulDoc) {
+                    mulDoc.forEach(function (v, k) {
+                      var keyPath = k.split('.');
+                      var val = mutableDoc.getIn(keyPath);
+                      if (typeof val === 'number') {
+                        val *= v;
+                        mutableDoc.setIn(keyPath, val);
+                      }
+                    });
+                  }
+                });
+              } else {
+                newDoc = updDoc;
+              }
+
+              var _newcollData = _collData.set(_collAction2.id, newDoc);
+              mutableState.setIn(_cn.path, _newcollData);
+
+              updateOriginals(mutableState, _collAction2.collName, id, doc);
+              updateDependents(mutableState, state, _cn);
+              break;
+            }
+
+          case 'DUXEN_REMOVE':
+            {
+              var _collAction3 = cast(action);
+              var _cn2 = getCompiledName(_collAction3.collName);
+              var _collData2 = cast(mutableState.getIn(_cn2.path));
+              var _id = _collAction3.id;
+
+              var _doc = _collData2.get(_id);
+              if (_doc) {
+                // Removing a document that exists
+                var _newcollData2 = _collData2.remove(_id);
+
+                mutableState.setIn(_cn2.path, _newcollData2);
+
+                updateOriginals(mutableState, _collAction3.collName, _id, _doc);
+                updateDependents(mutableState, state, _cn2);
+              }
+              break;
+            }
+
+          case 'DUXEN_RESET':
+            {
+              var _collAction4 = cast(action);
+              var _cn3 = getCompiledName(_collAction4.collName);
+              var _newcollData3 = (0, _immutableSorted.Map)();
+
+              mutableState.setIn(_cn3.path, _newcollData3);
+              mutableState.deleteIn(["_state", _collAction4.collName, "originals"]);
+              updateDependents(mutableState, state, _cn3);
+              break;
+            }
+
+          case 'DUXEN_PAUSE':
+            {
+              var _collAction5 = cast(action);
+              mutableState.setIn(["_state", _collAction5.collName, "paused"], true);
+              break;
+            }
+
+          case 'DUXEN_RESUME':
+            {
+              var _collAction6 = cast(action);
+              var _cn4 = getCompiledName(_collAction6.collName);
+              mutableState.setIn(["_state", _collAction6.collName, "paused"], false);
+              updateDependents(mutableState, state, _cn4);
+              break;
+            }
+
+          case 'DUXEN_SAVE':
+            {
+              var _collAction7 = cast(action);
+              var _cn5 = getCompiledName(_collAction7.collName);
+              var _collData3 = cast(mutableState.getIn(_cn5.path));
+              mutableState.setIn(["_state", _collAction7.collName, "saved"], _collData3);
+              break;
+            }
+
+          case 'DUXEN_RESTORE':
+            {
+              var _collAction8 = cast(action);
+              var _cn6 = getCompiledName(_collAction8.collName);
+              var _collData4 = cast(mutableState.getIn(["_state", _collAction8.collName, "saved"]));
+              if (!_collData4) {
+                throw new Error("Restore: nothing was saved");
+              }
+              mutableState.deleteIn(["_state", _collAction8.collName, "saved"]);
+              mutableState.setIn(_cn6.path, _collData4);
+              updateDependents(mutableState, state, _cn6);
+              break;
+            }
+
+          case 'DUXEN_SAVE_ORIGINALS':
+            {
+              var _collAction9 = cast(action);
+              var _collData5 = cast(mutableState.getIn(["_state", _collAction9.collName, "originals"]));
+              if (_collData5) {
+                throw new Error("Save Originals: called twice without retrieve originals");
+              }
+              mutableState.setIn(["_state", _collAction9.collName, "originals"], (0, _immutableSorted.Map)());
+              break;
+            }
+
+          case 'DUXEN_RETRIEVE_ORIGINALS':
+            {
+              var _collAction10 = cast(action);
+              var _collData6 = cast(mutableState.getIn(["_state", _collAction10.collName, "originals"]));
+              if (!_collData6) {
+                throw new Error("Retrieve Originals: called without save originals");
+              }
+              mutableState.deleteIn(["_state", _collAction10.collName, "originals"]);
+              break;
+            }
+
+          case 'DUXEN_REFRESH':
+            {
+              refresh(mutableState, state);
+              break;
+            }
+
+          case 'DUXEN_VALUE':
+            {
+              var valueAction = cast(action);
+              var _cn7 = getCompiledName(valueAction.valueName);
+              var oldValue = state.getIn(_cn7.path);
+              if (oldValue === undefined) {
+                throw Error("Lost value in state:" + valueAction.valueName);
+              }
+              var newValue = valueAction.value;
+              if (oldValue !== newValue) {
+                mutableState.setIn(_cn7.path, newValue);
+                updateDependents(mutableState, state, _cn7);
+              }
+              break;
+            }
+
+          default:
+            {
+              //
+              // Apply value or custom reducer
+              var compiledAction = cs.actions[action.type];
+              if (compiledAction) {
+                var name = compiledAction.name;
+                var _cn8 = getCompiledName(name);
+
+                switch (compiledAction.type) {
+                  case 'customValue':
+                    {
+                      var _valueAction = cast(action);
+                      var _oldValue = state.getIn(_cn8.path);
+                      if (_oldValue === undefined) {
+                        throw Error("Lost value in state:" + name);
+                      }
+                      var reducer = compiledAction.reducer;
+                      var _newValue = reducer(_oldValue, _valueAction);
+                      if (_oldValue !== _newValue) {
+                        mutableState.setIn(_cn8.path, _newValue);
+                        updateDependents(mutableState, state, _cn8);
+                      }
+                      break;
+                    }
+                  case 'custom':
+                    {
+                      var customAction = cast(action);
+                      var _reducer = compiledAction.reducer;
+                      if (_cn8.path.length > 0) {
+                        var subState = mutableState.getIn(_cn8.path);
+                        if (!subState) {
+                          throw new Error("Missing path in state:" + JSON.stringify(_cn8.path));
+                        }
+                        var mutableSubState = subState.asMutable();
+                        _reducer(mutableSubState, customAction);
+                        mutableState.setIn(_cn8.path, mutableSubState);
+                      } else {
+                        _reducer(mutableState, customAction);
+                      }
+                      break;
+                    }
+                  default:
+                    {
+                      throw new Error("CompiledAction.type not supported: " + compiledAction.type);
+                    }
+                }
+              }
+              break;
+            }
+        }
+      };
+
+      var reduce = function reduce(state, action) {
+        if (state === undefined) {
+          state = cs.initState;
+          return state.withMutations(function (mutableState) {
+            state = refresh(mutableState, state);
+          });
+        }
+
+        if (action.collName) {
+          validateAction(cast(action));
+        }
+
+        return state.withMutations(function (mutableState) {
+          reduceMutable(mutableState, state, action);
+        });
+      };
+
+      return reduce;
+    }
+  }]);
+
+  return StateEngine;
+}(_CommonEngine3.default);
+
+exports.default = StateEngine;
+},{"./CommonEngine":3,"immutable-sorted":11}],8:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1940,13 +2416,66 @@ var SubActionFactory = function () {
       var action = this._actionFactory.custom(customName);
       return action;
     }
+
+    //
+    // Repo Actions
+    //
+
+  }, {
+    key: 'createBranch',
+    value: function createBranch(branchName) {
+      var action = this._actionFactory.createBranch(branchName);
+      return action;
+    }
+  }, {
+    key: 'switchBranch',
+    value: function switchBranch(branchName) {
+      var action = this._actionFactory.switchBranch(branchName);
+      return action;
+    }
+  }, {
+    key: 'saveBranch',
+    value: function saveBranch(branchName) {
+      var action = this._actionFactory.saveBranch(branchName);
+      return action;
+    }
+  }, {
+    key: 'resetBranch',
+    value: function resetBranch(branchName) {
+      var action = this._actionFactory.resetBranch(branchName);
+      return action;
+    }
+  }, {
+    key: 'removeBranch',
+    value: function removeBranch(branchName) {
+      var action = this._actionFactory.removeBranch(branchName);
+      return action;
+    }
+  }, {
+    key: 'goForward',
+    value: function goForward(steps) {
+      var action = this._actionFactory.goForward(steps);
+      return action;
+    }
+  }, {
+    key: 'goBack',
+    value: function goBack(steps) {
+      var action = this._actionFactory.goBack(steps);
+      return action;
+    }
+  }, {
+    key: 'goLive',
+    value: function goLive() {
+      var action = this._actionFactory.goLive();
+      return action;
+    }
   }]);
 
   return SubActionFactory;
 }();
 
 exports.default = SubActionFactory;
-},{"immutable-sorted":10}],8:[function(require,module,exports){
+},{"immutable-sorted":11}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1991,7 +2520,10 @@ var SubEngine = function () {
   _createClass(SubEngine, [{
     key: 'get',
     value: function get(state, name) {
-      var prefix = name ? this._prefix + name : this._subSchemaPath;
+      if (!name) {
+        return this._engine.get(state, this._subSchemaPath);
+      }
+      var prefix = this._prefix + name;
       return this._engine.get(state, prefix);
     }
 
@@ -2014,14 +2546,33 @@ var SubEngine = function () {
   }, {
     key: 'printableState',
     value: function printableState(state) {
-      var subState = this.get(state, this._subSchemaPath);
-      return this._engine.printableState(subState);
+      var subState = this.get(state, undefined);
+      subState = this._engine.printableState(subState);
+      return subState;
     }
   }, {
     key: 'persistableState',
     value: function persistableState(state) {
-      var subState = this.get(state, this._subSchemaPath);
-      return this._engine.persistableState(subState);
+      var subState = this._engine.persistableState(state);
+      subState = this.get(state, undefined);
+      return subState;
+    }
+
+    //
+    // Repo Functions
+    //
+
+  }, {
+    key: 'currentBranch',
+    value: function currentBranch(repo) {
+      var currentBranch = repo.get("currentBranch");
+      return currentBranch;
+    }
+  }, {
+    key: 'head',
+    value: function head(state) {
+      var st = this._engine.head(state);
+      return st;
     }
 
     // SubEngine
@@ -2050,9 +2601,14 @@ var SubEngine = function () {
     //
 
   }, {
-    key: 'reducer',
-    value: function reducer() {
+    key: 'stateReducer',
+    value: function stateReducer() {
       throw new Error("Reducer is not implemented in SubEngine");
+    }
+  }, {
+    key: 'repoReducer',
+    value: function repoReducer() {
+      throw new Error("RepoReducer is not implemented in SubEngine");
     }
   }]);
 
@@ -2060,7 +2616,7 @@ var SubEngine = function () {
 }();
 
 exports.default = SubEngine;
-},{"./BoundActionFactory":3,"./SubActionFactory":7}],9:[function(require,module,exports){
+},{"./BoundActionFactory":2,"./SubActionFactory":8}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2068,15 +2624,13 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.MeteorDriver = exports.createEngine = undefined;
 
-var _BasicEngine = require('./BasicEngine');
+var _RepoEngine = require('./RepoEngine');
 
-var _BasicEngine2 = _interopRequireDefault(_BasicEngine);
+var _RepoEngine2 = _interopRequireDefault(_RepoEngine);
 
 var _MeteorDriver = require('./MeteorDriver');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-// import Engine from './AdvancedEngine';
 
 /**
  *  Copyright (c) 2017, Applitopia, Inc.
@@ -2089,7 +2643,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  */
 
 var createEngine = function createEngine(schema) {
-  return new _BasicEngine2.default(schema);
+  return new _RepoEngine2.default(schema);
 };
 
 exports.createEngine = createEngine;
@@ -2097,7 +2651,7 @@ exports.MeteorDriver = _MeteorDriver.MeteorDriver;
 exports.default = {
   createEngine: createEngine
 };
-},{"./BasicEngine":2,"./MeteorDriver":5}],10:[function(require,module,exports){
+},{"./MeteorDriver":4,"./RepoEngine":5}],11:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2014-present, Facebook, Inc.
@@ -3084,6 +3638,87 @@ var STRING_HASH_CACHE_MAX_SIZE = 255;
 var STRING_HASH_CACHE_SIZE = 0;
 var stringHashCache = {};
 
+/**
+ * Copyright (c) 2014-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+//
+// Floyd-Rivest algorithm according to wikipedia
+// https://en.wikipedia.org/wiki/Floyd%E2%80%93Rivest_algorithm
+//
+
+var swap = function (array, i, j) {
+  var tmp = array[i];
+  array[i] = array[j];
+  array[j] = tmp;
+};
+
+var sampleThreshold = 1000;
+var sampleReach = 0.5;
+
+// partition the elements between inclusive left and right around t
+var quickSelectRange = function (array, left, right, k, comparator) {
+  // k is outside of range, no need to sort out anything
+  if (k < left || k > right) {
+    return;
+  }
+  while (right > left) {
+    // use select recursively to sample a smaller set of size s
+    // the arbitrary constants 600 and 0.5 are used in the original
+    // version to minimize execution time
+    if (right - left > sampleThreshold) {
+      var n = right - left + 1;
+      var i = k - left + 1;
+      var z = Math.log(n);
+      var s = sampleReach * Math.exp(2 * z / 3);
+      var sd = 0.5 * Math.sqrt(z * s * (n - s) / n) * Math.sign(i - n / 2);
+      var newLeft = Math.max(left, Math.floor(k - i * s / n + sd));
+      var newRight = Math.min(right, Math.floor(k + (n - i) * s / n + sd));
+      quickSelectRange(array, newLeft, newRight, k, comparator);
+    }
+
+    var t = array[k];
+    var i$1 = left;
+    var j = right;
+    swap(array, left, k);
+    if (comparator(array[right], t) > 0) {
+      swap(array, right, left);
+    }
+    while (i$1 < j) {
+      swap(array, i$1++, j--);
+      while (comparator(array[i$1], t) < 0) {
+        i$1++;
+      }
+      while (comparator(array[j], t) > 0) {
+        j--;
+      }
+    }
+    if (array[left] === t) {
+      swap(array, left, j);
+    } else {
+      swap(array, ++j, right);
+    }
+    // adjust left and right towards the boundaries of the subset
+    // containing the (k - left + 1)th smallest element
+    if (j <= k) {
+      left = j + 1;
+    }
+    if (k <= j) {
+      right = j - 1;
+    }
+  }
+};
+
+var quickSelect = function (array, k, comparator) {
+  if (!comparator) {
+    comparator = function (a, b) { return (a > b ? 1 : a < b ? -1 : 0); };
+  }
+  quickSelectRange(array, 0, array.length - 1, k, comparator);
+};
+
 var ToKeyedSequence = (function (KeyedSeq$$1) {
   function ToKeyedSequence(indexed, useKeys) {
     this._iter = indexed;
@@ -3840,6 +4475,142 @@ function sortFactory(collection, comparator, mapper) {
   return isKeyedCollection
     ? KeyedSeq(entries)
     : isIndexed(collection) ? IndexedSeq(entries) : SetSeq(entries);
+}
+
+function partialSortFactory(collection, n, comparator, mapper) {
+  if (!comparator) {
+    comparator = defaultComparator;
+  }
+  var isKeyedCollection = isKeyed(collection);
+  var index = 0;
+  var entries = collection
+    .toSeq()
+    .map(function (v, k) { return [k, v, index++, mapper ? mapper(v, k, collection) : v]; })
+    .valueSeq()
+    .toArray();
+  var cmp = function (a, b) { return comparator(a[3], b[3]) || a[2] - b[2]; };
+  quickSelect(entries, n, cmp);
+  entries = entries.slice(0, n);
+  entries.sort(cmp).forEach(
+    isKeyedCollection
+      ? function (v, i) {
+          entries[i].length = 2;
+        }
+      : function (v, i) {
+          entries[i] = v[1];
+        }
+  );
+  return isKeyedCollection
+    ? KeyedSeq(entries)
+    : isIndexed(collection) ? IndexedSeq(entries) : SetSeq(entries);
+}
+
+function incSortFactory(collection, comparator, mapper, useKeys) {
+  if (!comparator) {
+    comparator = defaultComparator;
+  }
+
+  var index = 0;
+  var entriesSeq = collection
+    .toSeq()
+    .map(function (v, k) { return [k, v, index++, mapper ? mapper(v, k, collection) : v]; })
+    .valueSeq();
+
+  var sequence = makeSequence(collection);
+  sequence.__iterateUncached = function(fn, reverse) {
+    var this$1 = this;
+
+    var entries = entriesSeq.toArray();
+    var rcmp = reverse ? function (a, b) { return comparator(b, a); } : comparator;
+    var cmp = function (a, b) { return rcmp(a[3], b[3]) || a[2] - b[2]; };
+
+    var nextn = entries.length >> 10;
+    nextn = Math.min(entries.length, 10);
+
+    var from = 0;
+    var to = -1;
+    var n = 0;
+    var i = 0;
+    var sortedEntries;
+
+    function nextBatch() {
+      from = to + 1;
+      to = Math.min(to + nextn, entries.length - 1);
+      n = to - from + 1;
+      i = 0;
+      nextn <<= 2;
+
+      quickSelectRange(entries, from, entries.length - 1, to, cmp);
+      sortedEntries = entries.slice(from, to + 1);
+      sortedEntries.sort(cmp).forEach(function (v, i) {
+        sortedEntries[i].length = 2;
+      });
+    }
+
+    function nextEntry() {
+      if (i >= n) {
+        nextBatch();
+      }
+      return sortedEntries[i++];
+    }
+
+    var iterations = 0;
+    while (iterations < entries.length) {
+      var entry = nextEntry();
+      if (fn(entry[1], useKeys ? entry[0] : iterations, this$1) === false) {
+        break;
+      }
+      iterations++;
+    }
+    return iterations;
+  };
+
+  sequence.__iteratorUncached = function(type, reverse) {
+    var entries = entriesSeq.toArray();
+    var rcmp = reverse ? function (a, b) { return comparator(b, a); } : comparator;
+    var cmp = function (a, b) { return rcmp(a[3], b[3]) || a[2] - b[2]; };
+
+    var nextn = entries.length >> 10;
+    nextn = Math.min(entries.length, 10);
+
+    var from = 0;
+    var to = -1;
+    var n = 0;
+    var i = 0;
+    var sortedEntries;
+
+    function nextBatch() {
+      from = to + 1;
+      to = Math.min(to + nextn, entries.length - 1);
+      n = to - from + 1;
+      i = 0;
+      nextn <<= 2;
+
+      quickSelectRange(entries, from, entries.length - 1, to, cmp);
+      sortedEntries = entries.slice(from, to + 1);
+      sortedEntries.sort(cmp).forEach(function (v, i) {
+        sortedEntries[i].length = 2;
+      });
+    }
+
+    function nextEntry() {
+      if (i >= n) {
+        nextBatch();
+      }
+      return sortedEntries[i++];
+    }
+
+    var iterations = 0;
+    return new Iterator(function () {
+      if (iterations >= entries.length) {
+        return iteratorDone();
+      }
+      iterations++;
+      var entry = nextEntry(cmp);
+      return iteratorValue(type, useKeys ? entry[0] : iterations, entry[1]);
+    });
+  };
+  return sequence;
 }
 
 function maxFactory(collection, comparator, mapper) {
@@ -5970,6 +6741,13 @@ function updateOrderedMap(omap, k, v) {
   return makeOrderedMap(newMap, newList);
 }
 
+/**
+ * Copyright (c) 2014-present, Facebook, Inc.
+ *
+ * Original source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 var SortedMapNode = function SortedMapNode(comparator, options, ownerID) {
   this.comparator = comparator;
   this.options = options;
@@ -6002,6 +6780,13 @@ SortedMapNodeFactory.prototype.createNode = function createNode (comparator, opt
 SortedMapNodeFactory.prototype.createPacker = function createPacker () {};
 // eslint-disable-next-lineno-unused-vars
 SortedMapNodeFactory.prototype.createIterator = function createIterator (map, type, reverse) {};
+
+/**
+ * Copyright (c) 2014-present, Facebook, Inc.
+ *
+ * Original source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 /* eslint-disable no-else-return */
 
@@ -8114,6 +8899,13 @@ var SortedMapBtreeNodeFactory = (function (SortedMapNodeFactory$$1) {
   return SortedMapBtreeNodeFactory;
 }(SortedMapNodeFactory));
 
+/**
+ * Copyright (c) 2014-present, Facebook, Inc.
+ *
+ * Original source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 var SortedMap = (function (Map$$1) {
   function SortedMap(value, comparator, options) {
     if (!comparator) {
@@ -9067,6 +9859,13 @@ function emptySet() {
   return EMPTY_SET || (EMPTY_SET = makeSet(emptyMap()));
 }
 
+/**
+ * Copyright (c) 2014-present, Facebook, Inc.
+ *
+ * Original source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 var SortedSet = (function (Set$$1) {
   function SortedSet(value, comparator, options) {
     if (!comparator) {
@@ -9589,6 +10388,14 @@ mixin(Collection, {
     return reify(this, sortFactory(this, comparator));
   },
 
+  partialSort: function partialSort(n, comparator) {
+    return reify(this, partialSortFactory(this, n, comparator));
+  },
+
+  incSort: function incSort(comparator) {
+    return reify(this, incSortFactory(this, comparator, null, true));
+  },
+
   values: function values() {
     return this.__iterator(ITERATE_VALUES);
   },
@@ -9778,6 +10585,14 @@ mixin(Collection, {
 
   sortBy: function sortBy(mapper, comparator) {
     return reify(this, sortFactory(this, comparator, mapper));
+  },
+
+  partialSortBy: function partialSortBy(n, mapper, comparator) {
+    return reify(this, partialSortFactory(this, n, comparator, mapper));
+  },
+
+  incSortBy: function incSortBy(mapper, comparator) {
+    return reify(this, incSortFactory(this, comparator, mapper, true));
   },
 
   take: function take(amount) {
@@ -9978,6 +10793,14 @@ mixin(IndexedCollection, {
 
   skipWhile: function skipWhile(predicate, context) {
     return reify(this, skipWhileFactory(this, predicate, context, false));
+  },
+
+  incSort: function incSort(comparator) {
+    return reify(this, incSortFactory(this, comparator, null, false));
+  },
+
+  incSortBy: function incSortBy(mapper, comparator) {
+    return reify(this, incSortFactory(this, comparator, mapper, false));
   },
 
   zip: function zip(/*, ...collections */) {
@@ -10531,7 +11354,7 @@ function defaultConverter(k, v) {
   return isKeyed(v) ? v.toMap() : v.toList();
 }
 
-var version = "4.0.0-rc.9";
+var version = "0.2.4";
 
 // Functional read/write API
 var Immutable = {
@@ -10634,7 +11457,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 })));
 
 }).call(this,require('_process'))
-},{"_process":11}],11:[function(require,module,exports){
+},{"_process":12}],12:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -10820,7 +11643,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10859,7 +11682,7 @@ var Seqen = function () {
 }();
 
 exports.default = Seqen;
-},{"immutable-sorted":14}],13:[function(require,module,exports){
+},{"immutable-sorted":15}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10886,7 +11709,7 @@ exports.Seqen = _Seqen2.default; /**
 exports.default = {
   Seqen: _Seqen2.default
 };
-},{"./Seqen":12}],14:[function(require,module,exports){
+},{"./Seqen":13}],15:[function(require,module,exports){
 (function (process){
 /**
  *  Copyright (c) 2014-2015, Facebook, Inc.
@@ -19152,4 +19975,4 @@ Object.defineProperty(exports, '__esModule', { value: true });
 })));
 
 }).call(this,require('_process'))
-},{"_process":11}]},{},[9]);
+},{"_process":12}]},{},[10]);

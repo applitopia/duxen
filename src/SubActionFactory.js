@@ -114,4 +114,48 @@ export default class SubActionFactory implements ActionFactoryInterface {
     return action;
   }
 
+  //
+  // Repo Actions
+  //
+
+  createBranch(branchName: string): CreateBranchAction {
+    const action:CreateBranchAction = this._actionFactory.createBranch(branchName);
+    return action;
+  }
+
+  switchBranch(branchName: string): SwitchBranchAction {
+    const action:SwitchBranchAction = this._actionFactory.switchBranch(branchName);
+    return action;
+  }
+
+  saveBranch(branchName: string): SaveBranchAction {
+    const action:SaveBranchAction = this._actionFactory.saveBranch(branchName);
+    return action;
+  }
+
+  resetBranch(branchName: string): ResetBranchAction {
+    const action:ResetBranchAction = this._actionFactory.resetBranch(branchName);
+    return action;
+  }
+
+  removeBranch(branchName: string): RemoveBranchAction {
+    const action:RemoveBranchAction = this._actionFactory.removeBranch(branchName);
+    return action;
+  }
+
+  goForward(steps: number): GoForwardAction {
+    const action:GoForwardAction = this._actionFactory.goForward(steps);
+    return action;
+  }
+
+  goBack(steps: number): GoBackAction {
+    const action:GoBackAction = this._actionFactory.goBack(steps);
+    return action;
+  }
+
+  goLive(): GoLiveAction {
+    const action:GoLiveAction = this._actionFactory.goLive();
+    return action;
+  }
+
 }

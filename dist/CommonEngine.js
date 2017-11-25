@@ -161,6 +161,37 @@ var CommonEngine = function () {
       });
     }
 
+    //
+    // Repo Functions
+    //
+
+  }, {
+    key: 'currentBranch',
+    value: function currentBranch(repo) {
+      if (!repo) {
+        throw Error("repo not defined");
+      }
+      var currentBranch = repo.get("currentBranch");
+      return currentBranch;
+    }
+  }, {
+    key: 'head',
+    value: function head(repo) {
+      if (!repo) {
+        return undefined;
+      }
+      var currentBranch = repo.get("currentBranch");
+      var branches = repo.get("branches");
+      var branch = branches.get(currentBranch);
+      var currentIndex = branch.get("currentIndex");
+      if (currentIndex < 0) {
+        return undefined;
+      }
+      var states = branch.get("states");
+      var state = states.get(currentIndex);
+      return state;
+    }
+
     // SubEngine
 
   }, {
@@ -188,9 +219,14 @@ var CommonEngine = function () {
     //
 
   }, {
-    key: 'reducer',
-    value: function reducer() {
+    key: 'stateReducer',
+    value: function stateReducer() {
       throw new Error("Reducer is not implemented in CommonEngine");
+    }
+  }, {
+    key: 'repoReducer',
+    value: function repoReducer() {
+      throw new Error("RepoReducer is not implemented in CommonEngine");
     }
   }]);
 

@@ -54,7 +54,10 @@ export default class ActionFactory implements ActionFactoryInterface {
 
   // Dispatch an action to listeners
   _action(action: Action): void {
-    const listeners: Array<(Action)=>void> = this.engine._listeners;
+    // Make action immutable
+    Object.freeze(action);
+
+    const listeners: Array<(Action) => void> = this.engine._listeners;
     for(let i = 0; i < listeners.length; i++) {
       const listener:Action=>void = listeners[i];
       listener(action);
@@ -255,6 +258,81 @@ export default class ActionFactory implements ActionFactoryInterface {
       throw new Error("Inconsistent custom action type: "+JSON.stringify(action.type)+" vs "+actionType);
     }
     action.type = cn.namePrefix+actionType;
+    this._action(action);
+    return action;
+  }
+
+  //
+  // Repo Actions
+  //
+
+  createBranch(branchName: string): CreateBranchAction {
+    const action:CreateBranchAction = {
+      type: 'DUXEN_CREATE_BRANCH',
+      branchName: branchName,
+    };
+    this._action(action);
+    return action;
+  }
+
+  switchBranch(branchName: string): SwitchBranchAction {
+    const action:SwitchBranchAction = {
+      type: 'DUXEN_SWITCH_BRANCH',
+      branchName: branchName,
+    };
+    this._action(action);
+    return action;
+  }
+
+  saveBranch(branchName: string): SaveBranchAction {
+    const action:SaveBranchAction = {
+      type: 'DUXEN_SAVE_BRANCH',
+      branchName: branchName,
+    };
+    this._action(action);
+    return action;
+  }
+
+  resetBranch(branchName: string): ResetBranchAction {
+    const action:ResetBranchAction = {
+      type: 'DUXEN_RESET_BRANCH',
+      branchName: branchName,
+    };
+    this._action(action);
+    return action;
+  }
+
+  removeBranch(branchName: string): RemoveBranchAction {
+    const action:RemoveBranchAction = {
+      type: 'DUXEN_REMOVE_BRANCH',
+      branchName: branchName,
+    };
+    this._action(action);
+    return action;
+  }
+
+  goForward(steps: number): GoForwardAction {
+    const action:GoForwardAction = {
+      type: 'DUXEN_GO_FORWARD',
+      steps: steps,
+    };
+    this._action(action);
+    return action;
+  }
+
+  goBack(steps: number): GoBackAction {
+    const action:GoBackAction = {
+      type: 'DUXEN_GO_BACK',
+      steps: steps,
+    };
+    this._action(action);
+    return action;
+  }
+
+  goLive(): GoLiveAction {
+    const action:GoLiveAction = {
+      type: 'DUXEN_GO_LIVE',
+    };
     this._action(action);
     return action;
   }

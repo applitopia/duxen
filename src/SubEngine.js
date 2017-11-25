@@ -27,8 +27,12 @@ export default class SubEngine implements EngineInterface {
 
   // Extract a value from state
   get(state: State, name?: string): StateValue {
-    const prefix: string = name ? this._prefix+name : this._subSchemaPath;
+    if(!name) {
+      return this._engine.get(state, this._subSchemaPath);
+    }
+    const prefix: string = this._prefix+name;
     return this._engine.get(state, prefix);
+
   }
 
   //
@@ -44,13 +48,29 @@ export default class SubEngine implements EngineInterface {
   // Remove all internal items from the state
   //
   printableState(state: State): State {
-    const subState: State = this.get(state, this._subSchemaPath);
-    return this._engine.printableState(subState);
+    let subState: State = this.get(state, undefined);
+    subState = this._engine.printableState(subState);
+    return subState;
   }
 
   persistableState(state: State): State {
-    const subState: State = this.get(state, this._subSchemaPath);
-    return this._engine.persistableState(subState);
+    let subState = this._engine.persistableState(state);
+    subState = this.get(state, undefined);
+    return subState;
+  }
+
+  //
+  // Repo Functions
+  //
+
+  currentBranch(repo: Repo): string {
+    const currentBranch: string = repo.get("currentBranch");
+    return currentBranch;
+  }
+
+  head(state: State): State {
+    const st: State = this._engine.head(state);
+    return st;
   }
 
   // SubEngine
@@ -70,5 +90,6 @@ export default class SubEngine implements EngineInterface {
   //
   // Compile the reducer
   //
-  reducer(): Reducer { throw new Error("Reducer is not implemented in SubEngine"); }
+  stateReducer(): StateReducer { throw new Error("Reducer is not implemented in SubEngine"); }
+  repoReducer(): RepoReducer { throw new Error("RepoReducer is not implemented in SubEngine"); }
 }

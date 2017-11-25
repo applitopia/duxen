@@ -10,7 +10,7 @@
 
 import { createEngine } from '../src';
 
-test("Initial state - subschema value", function() {
+test("subEngine Initial state - subschema value", function() {
   const schema:Schema = {
     'todosFilter': {
       type: 'value',
@@ -28,7 +28,7 @@ test("Initial state - subschema value", function() {
   };
 
   const engine:EngineInterface = new createEngine(schema);
-  const reducer:Reducer = engine.reducer();
+  const reducer:StateReducer = engine.stateReducer();
   const state:State = reducer(undefined, {type: "INIT"});
 
   const expected = {
@@ -50,7 +50,7 @@ test("Initial state - subschema value", function() {
   expect(engine.persistableState(state).toJS()).toEqual(expectedClean);
 });
 
-test("Reducer - subschema value", function() {
+test("subEngine Reducer - subschema value", function() {
   const schema:Schema = {
     'todosFilter': {
       type: 'value',
@@ -69,7 +69,7 @@ test("Reducer - subschema value", function() {
 
   const engine:EngineInterface = new createEngine(schema);
   const subEngine:EngineInterface = engine.subEngine("calendarSchema");
-  const reducer:Reducer = engine.reducer();
+  const reducer:StateReducer = engine.stateReducer();
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
@@ -103,9 +103,11 @@ test("Reducer - subschema value", function() {
   };
   expect(state2.toJS()).toEqual(expected2);
 
+  expect(subEngine.get(state2, "currentMonth")).toEqual("2017-07");
+
 });
 
-test("Reducer - subschema custom", function() {
+test("subEngine Reducer - subschema custom", function() {
   const calendarSchema:Schema = {
     'customNextPage': {
       type: 'custom',
@@ -129,7 +131,7 @@ test("Reducer - subschema custom", function() {
 
   const engine:EngineInterface = new createEngine(schema);
   const subEngine:EngineInterface = engine.subEngine("calendarSchema");
-  const reducer:Reducer = engine.reducer();
+  const reducer:StateReducer = engine.stateReducer();
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
@@ -158,5 +160,86 @@ test("Reducer - subschema custom", function() {
     },
   };
   expect(state2.toJS()).toEqual(expected2);
+
+});
+
+test("subEngine Initial state - subschema value", function() {
+  const schema:Schema = {
+    'todosFilter': {
+      type: 'value',
+      initValue: "Get milk",
+    },
+    "calendarSchema": {
+      type: 'schema',
+      schema: {
+        'currentMonth': {
+          type: 'value',
+          initValue: "2017-06",
+        },
+      },
+    }
+  };
+
+  const engine:EngineInterface = new createEngine(schema);
+  const subEngine:EngineInterface = engine.subEngine("calendarSchema");
+  const reducer:StateReducer = engine.stateReducer();
+  const state:State = reducer(undefined, {type: "INIT"});
+
+  const expected = {
+    "_state": {},
+    "calendarSchema": {
+      "currentMonth": "2017-06"
+    },
+    "todosFilter": "Get milk"
+  };
+  expect(state.toJS()).toEqual(expected);
+
+  const expectedClean = {
+      "currentMonth": "2017-06"
+  };
+  expect(subEngine.printableState(state).toJS()).toEqual(expectedClean);
+  expect(subEngine.persistableState(state).toJS()).toEqual(expectedClean);
+});
+
+test("subEngine interface", function() {
+  const schema:Schema = {
+    'todosFilter': {
+      type: 'value',
+      initValue: "Get milk",
+    },
+    "calendarSchema": {
+      type: 'schema',
+      schema: {
+        'currentMonth': {
+          type: 'value',
+          initValue: "2017-07",
+        },
+      },
+    }
+  };
+
+  const engine:EngineInterface = new createEngine(schema);
+  const subEngine:EngineInterface = engine.subEngine("calendarSchema");
+
+  const reducer:RepoReducer = engine.repoReducer();
+  const state:State = reducer(undefined, {type: "INIT"});
+  const headState: State = subEngine.head(state);
+  expect(subEngine.printableState(headState).toJS()).toEqual({
+    "currentMonth": "2017-07"
+  });
+
+  expect(subEngine.persistableState(headState).toJS()).toEqual({
+    "currentMonth": "2017-07"
+  });
+
+  expect(()=>(subEngine.subscribe(()=>{})())).not.toThrow();
+
+  expect(()=>subEngine.subEngine("abc")).toThrow("Missing name in schema: calendarSchema.abc");
+
+  expect(subEngine.boundActionFactory((action: Action)=>action)).toBeTruthy();
+
+  expect(()=>subEngine.stateReducer()).toThrow("Reducer is not implemented in SubEngine");
+
+  expect(()=>subEngine.repoReducer()).toThrow("RepoReducer is not implemented in SubEngine");
 
 });

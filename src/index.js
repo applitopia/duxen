@@ -8,9 +8,8 @@
  *  @flow
  */
 
-import Engine from './BasicEngine';
+import Engine from './RepoEngine';
 import { MeteorDriver } from './MeteorDriver'
-// import Engine from './AdvancedEngine';
 
 const createEngine = (schema: Schema): EngineInterface => new Engine(schema);
 

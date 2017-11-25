@@ -32,7 +32,7 @@ test("Reducer insert, update remove", function() {
   };
 
   const engine:EngineInterface = new createEngine(schema);
-  const reducer:Reducer = engine.reducer();
+  const reducer:StateReducer = engine.stateReducer();
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
@@ -101,7 +101,7 @@ test("Reducer reset", function() {
   };
 
   const engine:EngineInterface = new createEngine(schema);
-  const reducer:Reducer = engine.reducer();
+  const reducer:StateReducer = engine.stateReducer();
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
@@ -192,7 +192,7 @@ test("Reducer pause, resume", function() {
   };
 
   const engine:EngineInterface = new createEngine(schema);
-  const reducer:Reducer = engine.reducer();
+  const reducer:StateReducer = engine.stateReducer();
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
@@ -278,7 +278,7 @@ test("Reducer save, restore", function() {
   };
 
   const engine:EngineInterface = new createEngine(schema);
-  const reducer:Reducer = engine.reducer();
+  const reducer:StateReducer = engine.stateReducer();
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
@@ -395,7 +395,7 @@ test("Reducer saveOriginals, insert, retrieveOriginals", function() {
   };
 
   const engine:EngineInterface = new createEngine(schema);
-  const reducer:Reducer = engine.reducer();
+  const reducer:StateReducer = engine.stateReducer();
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
@@ -520,7 +520,7 @@ test("Reducer saveOriginals, insert, update, remove, retrieveOriginals", functio
   };
 
   const engine:EngineInterface = new createEngine(schema);
-  const reducer:Reducer = engine.reducer();
+  const reducer:StateReducer = engine.stateReducer();
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
@@ -629,7 +629,7 @@ test("Reducer batch", function() {
   };
 
   const engine:EngineInterface = new createEngine(schema);
-  const reducer:Reducer = engine.reducer();
+  const reducer:StateReducer = engine.stateReducer();
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {
@@ -693,7 +693,7 @@ test("Reducer props", function() {
   };
 
   const engine:EngineInterface = new createEngine(schema);
-  const reducer:Reducer = engine.reducer();
+  const reducer:StateReducer = engine.stateReducer();
 
   const state0:State = reducer(undefined, {type: "INIT"});
   const expected0 = {

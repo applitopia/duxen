@@ -14,15 +14,15 @@ import { Map, List, Seq } from 'immutable-sorted';
 // Basic building blocks of the state
 // State Key and State Value types
 //
-declare type StateKey = string | number | boolean | Map<string, StateKey>;
-declare type StateValue = string | number | boolean | Map<StateKey, StateValue>; // | List<StateValue>;
-declare type CollDocument = Map<string, StateValue>
-declare type CollData = Map<StateKey, CollDocument>;
+type StateKey = string | number | boolean | Map<string, StateKey>;
+type StateValue = string | number | boolean | Map<StateKey, StateValue>; // | List<StateValue>;
+type CollDocument = Map<string, StateValue>
+type CollData = Map<StateKey, CollDocument>;
 
 //
 // Actions
 //
-declare type CollActionType =
+type CollActionType =
   'DUXEN_BATCH' |
   'DUXEN_INSERT' |
   'DUXEN_UPDATE' |
@@ -34,45 +34,77 @@ declare type CollActionType =
   'DUXEN_RESTORE' |
   'DUXEN_SAVE_ORIGINALS' |
   'DUXEN_RETRIEVE_ORIGINALS' ;
-declare type DuxenActionType =
+
+type DuxenActionType =
     'DUXEN_REFRESH' |
     'DUXEN_VALUE';
-declare type CustomActionType = string;
-declare type ActionType = CollActionType | DuxenActionType | CustomActionType;
 
-declare type InsertAction = {| type: 'DUXEN_INSERT', collName: string, id: StateKey, doc: CollDocument |};
-declare type UpdateAction = {| type: 'DUXEN_UPDATE', collName: string, id: StateKey, doc: CollDocument |};
-declare type RemoveAction = {| type: 'DUXEN_REMOVE', collName: string, id: StateKey |};
-declare type ResetAction = {| type: 'DUXEN_RESET', collName: string |};
-declare type PauseAction = {| type: 'DUXEN_PAUSE', collName: string |};
-declare type ResumeAction = {| type: 'DUXEN_RESUME', collName: string |};
-declare type SaveAction = {| type: 'DUXEN_SAVE', collName: string |};
-declare type RestoreAction = {| type: 'DUXEN_RESTORE', collName: string |};
-declare type SaveOriginalsAction = {| type: 'DUXEN_SAVE_ORIGINALS', collName: string |};
-declare type RetrieveOriginalsAction = {| type: 'DUXEN_RETRIEVE_ORIGINALS', collName: string |};
-declare type BatchAction = {| type: 'DUXEN_BATCH', collName: string, actions: List<CollAction> |};
-declare type CollAction = BatchAction | InsertAction | UpdateAction | RemoveAction |
+type RepoActionType =
+    'DUXEN_CREATE_BRANCH' |
+    'DUXEN_SWITCH_BRANCH' |
+    'DUXEN_SAVE_BRANCH' |
+    'DUXEN_RESET_BRANCH' |
+    'DUXEN_REMOVE_BRANCH' |
+    'DUXEN_GO_FORWARD' |
+    'DUXEN_GO_BACK' |
+    'DUXEN_GO_LIVE'
+    ;
+
+type CustomActionType = string;
+type ActionType = CollActionType | DuxenActionType | CustomActionType;
+
+// Coll Actions
+type InsertAction = {| type: 'DUXEN_INSERT', collName: string, id: StateKey, doc: CollDocument |};
+type UpdateAction = {| type: 'DUXEN_UPDATE', collName: string, id: StateKey, doc: CollDocument |};
+type RemoveAction = {| type: 'DUXEN_REMOVE', collName: string, id: StateKey |};
+type ResetAction = {| type: 'DUXEN_RESET', collName: string |};
+type PauseAction = {| type: 'DUXEN_PAUSE', collName: string |};
+type ResumeAction = {| type: 'DUXEN_RESUME', collName: string |};
+type SaveAction = {| type: 'DUXEN_SAVE', collName: string |};
+type RestoreAction = {| type: 'DUXEN_RESTORE', collName: string |};
+type SaveOriginalsAction = {| type: 'DUXEN_SAVE_ORIGINALS', collName: string |};
+type RetrieveOriginalsAction = {| type: 'DUXEN_RETRIEVE_ORIGINALS', collName: string |};
+type BatchAction = {| type: 'DUXEN_BATCH', collName: string, actions: List<CollAction> |};
+type CollAction = BatchAction | InsertAction | UpdateAction | RemoveAction |
   PauseAction | ResumeAction | ResetAction | SaveAction | RestoreAction |
   SaveOriginalsAction | RetrieveOriginalsAction;
 
-declare type RefreshAction = {| type: 'DUXEN_REFRESH' |};
-declare type ValueAction = {| type: 'DUXEN_VALUE', valueName: string, value: StateValue |};
-declare type CustomValueAction = {type: CustomActionType, value: StateValue};
-declare type CustomAction = {type: CustomActionType};
-declare type Action = CollAction | RefreshAction | ValueAction | CustomValueAction | CustomAction;
+// Duxen Actions
+type RefreshAction = {| type: 'DUXEN_REFRESH' |};
+type ValueAction = {| type: 'DUXEN_VALUE', valueName: string, value: StateValue |};
+
+// Custom Actions
+type CustomValueAction = {type: CustomActionType, value: StateValue};
+type CustomAction = {type: CustomActionType};
+
+// Repo Actions
+type CreateBranchAction = {| type: 'DUXEN_CREATE_BRANCH', branchName: string |};
+type SwitchBranchAction = {| type: 'DUXEN_SWITCH_BRANCH', branchName: string |};
+type SaveBranchAction = {| type: 'DUXEN_SAVE_BRANCH', branchName: string |};
+type ResetBranchAction = {| type: 'DUXEN_RESET_BRANCH', branchName: string |};
+type RemoveBranchAction = {| type: 'DUXEN_REMOVE_BRANCH', branchName: string |};
+type GoForwardAction = {| type: 'DUXEN_GO_FORWARD', steps: number |};
+type GoBackAction = {| type: 'DUXEN_GO_BACK', steps: number |};
+type GoLiveAction = {| type: 'DUXEN_GO_LIVE' |};
+type RepoAction = CreateBranchAction | SwitchBranchAction | ResetBranchAction | SaveBranchAction |
+  RemoveBranchAction | GoForwardAction | GoBackAction | GoLiveAction;
+
+// type Action includes all types of actions
+type Action = CollAction | RefreshAction | ValueAction | CustomValueAction | CustomAction | RepoAction;
+
+type ValueReducer = (value: StateValue, action: ValueAction) => StateValue;
+type CustomReducer = (mutableState: State, action: CustomAction) => void;
 
 //
-// State & Reducer
+// State & StateReducer
 //
-declare type State = Map<string, StateValue>;
-declare type ValueReducer = (value: StateValue, action: ValueAction)=>StateValue;
-declare type CustomReducer = (mutableState: State, action: CustomAction)=>void;
-declare type Reducer = (state: ?State, action: Action)=>State;
+type State = Map<string, StateValue>;
+type StateReducer = (state: ?State, action: Action)=>State;
 
 //
 // Schema
 //
-declare type SchemaEntryType =
+type SchemaEntryType =
   'value' |
   'customValue' |
   'formula' |
@@ -80,12 +112,12 @@ declare type SchemaEntryType =
   'view' |
   'custom' |
   'schema';
-declare type ValueSchemaEntry = {|
+type ValueSchemaEntry = {|
   type: 'value',
   path?: string,
   initValue: StateValue,
 |};
-declare type CustomValueSchemaEntry = {|
+type CustomValueSchemaEntry = {|
   type: 'customValue',
   path?: string,
   initValue: StateValue,
@@ -93,23 +125,23 @@ declare type CustomValueSchemaEntry = {|
   action: (StateValue)=>CustomValueAction,
   reducer: ValueReducer
 |};
-declare type CollectionSchemaEntry = {|
+type CollectionSchemaEntry = {|
   type: 'collection',
   path?: string
 |};
-declare type Props = {[string]: StateValue};
-declare type PropsRecipe = Array<string>;
-declare type FormulaRecipe = (props: Props) => StateValue;
-declare type ViewRecipe = (seq: Seq<StateKey, CollDocument>, props: Props) => Seq<StateKey, CollDocument>;
+type Props = {[string]: StateValue};
+type PropsRecipe = Array<string>;
+type FormulaRecipe = (props: Props) => StateValue;
+type ViewRecipe = (seq: Seq<StateKey, CollDocument>, props: Props) => Seq<StateKey, CollDocument>;
 
-declare type FormulaSchemaEntry = {|
+type FormulaSchemaEntry = {|
   type: 'formula',
   path?: string,
   props: PropsRecipe,
   recipe: FormulaRecipe
 |};
 
-declare type ViewSchemaEntry = {|
+type ViewSchemaEntry = {|
   type: 'view',
   sourceName: string,
   path?: string,
@@ -117,32 +149,70 @@ declare type ViewSchemaEntry = {|
   recipe: ViewRecipe
 |};
 
-declare type CustomSchemaEntry = {|
+type CustomSchemaEntry = {|
   type: 'custom',
   path?: string,
   actionType: CustomActionType,
-  action: ()=>CustomAction,
+  action: () => CustomAction,
   reducer: CustomReducer
 |};
 
-declare type SubSchemaEntry = {|
+type SubSchemaEntry = {|
   type: 'schema',
   path?: string,
   schema: Schema
 |};
 
-declare type SchemaEntry = ValueSchemaEntry | CustomValueSchemaEntry | FormulaSchemaEntry | CollectionSchemaEntry | ViewSchemaEntry | CustomSchemaEntry | SubSchemaEntry;
+type SchemaEntry = ValueSchemaEntry | CustomValueSchemaEntry | FormulaSchemaEntry | CollectionSchemaEntry | ViewSchemaEntry | CustomSchemaEntry | SubSchemaEntry;
 
-declare type Schema = {
+type Schema = {
   [string]: SchemaEntry
 };
 
+//
+// Repo and RepoReducer
+//
+
+type RepoOptionsProps = {|
+  history: number
+|};
+type RepoOptions = State;
+
+type RepoBranchProps = {|
+  live: boolean,
+  currentIndex: number,
+  states: Array<State>,
+  actions: Array<Action>
+|};
+type RepoBranch = State;
+type RepoBranches = Map<string, RepoBranch>;
+
+type RepoProps = {|
+  version: number,
+  options: RepoOptions,
+  currentBranch: string,
+  branches: {[string]: RepoBranchProps},
+|};
+type Repo = State;
+
+type RepoReducer = (repo: ?Repo, action: Action) => Repo;
+
+//
+// Interfaces
+//
+
 declare interface ActionFactoryInterface {
-  // Action creators
+  // Collection Actions
   insert(collName: string, id: StateKey, doc: CollDocument): InsertAction;
   update(collName: string, id: StateKey, doc: CollDocument): UpdateAction;
   remove(collName: string, id: StateKey): RemoveAction;
 
+  // Value / Custom Actions
+  value(valueName: string, value: StateValue): ValueAction;
+  customValue(valueName: string, value: StateValue): CustomValueAction;
+  custom(type: CustomActionType): CustomAction;
+
+  // Meteor Integration
   reset(collName: string): ResetAction;
   pause(collName: string): PauseAction;
   resume(collName: string): ResumeAction;
@@ -151,12 +221,19 @@ declare interface ActionFactoryInterface {
   saveOriginals(collName: string): SaveOriginalsAction;
   retrieveOriginals(collName: string): RetrieveOriginalsAction;
 
-  refresh() : RefreshAction;
+  // Repo Actions
+  createBranch(branchName: string): CreateBranchAction;
+  switchBranch(branchName: string): SwitchBranchAction;
+  saveBranch(branchName: string): SaveBranchAction;
+  resetBranch(branchName: string): ResetBranchAction;
+  removeBranch(branchName: string): RemoveBranchAction;
+  goForward(steps: number): GoForwardAction;
+  goBack(steps: number): GoBackAction;
+  goLive(): GoLiveAction;
 
+  // Utility Actions
+  refresh() : RefreshAction;
   batch(collName: string, actions: List<CollAction>): BatchAction;
-  value(valueName: string, value: StateValue): ValueAction;
-  customValue(valueName: string, value: StateValue): CustomValueAction;
-  custom(type: CustomActionType): CustomAction;
 }
 
 declare interface EngineInterface {
@@ -166,6 +243,10 @@ declare interface EngineInterface {
   persistableState(state: State): State;
   subscribe(listener: (Action)=>void): ()=>void;
 
+  // Repo Functions
+  currentBranch(repo: Repo): string;
+  head(repo: Repo): State;
+
   // SubEngine
   subEngine(subSchemaPath: string): EngineInterface;
 
@@ -174,7 +255,8 @@ declare interface EngineInterface {
   boundActionFactory(dispatch: (Action)=>Action): ActionFactoryInterface;
 
   // Reducer
-  reducer(): Reducer;
+  stateReducer(): StateReducer;
+  repoReducer(): RepoReducer;
 }
 
 declare function createEngine(schema: Schema): EngineInterface;
@@ -183,8 +265,8 @@ declare function createEngine(schema: Schema): EngineInterface;
 // Meteor Driver
 //
 
-declare type MongoID = string | {|_str: string|};
-declare type Selector = MongoID | {_id: MongoID} | {||};
+type MongoID = string | {|_str: string|};
+type Selector = MongoID | {_id: MongoID} | {||};
 
 declare class MeteorCollection {
   static (name: string, engine: EngineInterface, dispatch: (Action)=>Action, getData: ()=>CollData, getOriginals: ()=>CollData): MeteorCollection;
