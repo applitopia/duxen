@@ -1,6 +1,6 @@
 {
   "name": "duxen",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "High performance engine maintaining a complex immutable state for online applications",
   "main": "dist/index.js",
   "scripts": {
