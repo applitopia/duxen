@@ -31,6 +31,37 @@ Installation
 npm install duxen
 ```
 
+Development
+-----------
+
+Setup:
+
+```shell
+git clone https://github.com/applitopia/duxen.git
+cd duxen
+npm install
+```
+
+Build:
+```shell
+npm run build
+```
+
+Test:
+```shell
+npm test
+```
+
+Lint, Build, Test, and Clean:
+```shell
+npm run all
+```
+
+Update Dependencies:
+```shell
+npm update --save
+```
+
 Example
 ------
 Define your DUXEN schema:

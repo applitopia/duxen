@@ -65,7 +65,7 @@ export default class RepoEngine extends StateEngine implements EngineInterface {
         const live: boolean = mutableBranch.get("live");
         const states: List<State> = mutableBranch.get("states");
         const actions: List<Action> = mutableBranch.get("actions");
-        const state: State = states.get(currentIndex);
+        const state: State = states.get(states.size-1);
         const newState: State = stateReducer(state, action);
         const newStates: List<State> = states.withMutations((mutableStates: List<State>) => {
           mutableStates.push(newState);
@@ -135,7 +135,7 @@ export default class RepoEngine extends StateEngine implements EngineInterface {
         }
 
         case 'DUXEN_RESET_BRANCH': {
-          const repoAction:RemoveBranchAction = cast(action);
+          const repoAction:ResetBranchAction = cast(action);
           verifyBranch(repo, repoAction.branchName);
           const currentBranch: string = mutableRepo.get("currentBranch");
           const branches: RepoBranches = repo.get("branches");

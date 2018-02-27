@@ -132,6 +132,9 @@ var CommonEngine = function () {
   }, {
     key: 'printableState',
     value: function printableState(state) {
+      if (!state) {
+        return state;
+      }
       return state.withMutations(function (mutableState) {
         mutableState.delete("_state");
       });
@@ -141,6 +144,9 @@ var CommonEngine = function () {
     value: function persistableState(state) {
       var _this2 = this;
 
+      if (!state) {
+        return state;
+      }
       return (0, _immutableSorted.Map)().withMutations(function (mutableState) {
         for (var name in _this2._compiledSchema.names) {
           var cn = _this2._getCompiledName(name);

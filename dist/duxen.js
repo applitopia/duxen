@@ -735,6 +735,9 @@ var CommonEngine = function () {
   }, {
     key: 'printableState',
     value: function printableState(state) {
+      if (!state) {
+        return state;
+      }
       return state.withMutations(function (mutableState) {
         mutableState.delete("_state");
       });
@@ -744,6 +747,9 @@ var CommonEngine = function () {
     value: function persistableState(state) {
       var _this2 = this;
 
+      if (!state) {
+        return state;
+      }
       return (0, _immutableSorted.Map)().withMutations(function (mutableState) {
         for (var name in _this2._compiledSchema.names) {
           var cn = _this2._getCompiledName(name);
@@ -1141,7 +1147,7 @@ var RepoEngine = function (_StateEngine) {
           var live = mutableBranch.get("live");
           var states = mutableBranch.get("states");
           var actions = mutableBranch.get("actions");
-          var state = states.get(currentIndex);
+          var state = states.get(states.size - 1);
           var newState = stateReducer(state, action);
           var newStates = states.withMutations(function (mutableStates) {
             mutableStates.push(newState);
@@ -9870,7 +9876,7 @@ var SortedSet = (function (Set$$1) {
   function SortedSet(value, comparator, options) {
     if (!comparator) {
       if (this instanceof SortedSet) {
-        comparator = this.getComparator();
+        comparator = this._map && this.getComparator();
       }
       if (!comparator) {
         comparator = SortedSet.defaultComparator;
@@ -9878,7 +9884,7 @@ var SortedSet = (function (Set$$1) {
     }
     if (!options) {
       if (this instanceof SortedSet) {
-        options = this.getOptions();
+        options = this._map && this.getOptions();
       }
       if (!options) {
         options = SortedSet.defaultOptions;
@@ -11354,7 +11360,7 @@ function defaultConverter(k, v) {
   return isKeyed(v) ? v.toMap() : v.toList();
 }
 
-var version = "0.2.4";
+var version = "0.2.5";
 
 // Functional read/write API
 var Immutable = {

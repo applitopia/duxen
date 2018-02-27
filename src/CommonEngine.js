@@ -97,12 +97,18 @@ export default class CommonEngine implements EngineInterface {
   // Remove all internal items from the state
   //
   printableState(state: State): State {
+    if(!state) {
+      return state;
+    }
     return state.withMutations((mutableState: State): void => {
       mutableState.delete("_state");
     });
   }
 
   persistableState(state: State): State {
+    if(!state) {
+      return state;
+    }
     return Map().withMutations((mutableState: State): void => {
       for(let name:string in this._compiledSchema.names) {
         const cn:CompiledName = this._getCompiledName(name);
