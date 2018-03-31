@@ -645,7 +645,7 @@ test("Reducer batch", function() {
 
   const action3 = engine.actionFactory().insert("todos", "id2", ensure({"text": "Get milk"}));
 
-  const action4 = engine.actionFactory().batch("todos", List([action1, action2, action3]));
+  const action4 = engine.actionFactory().batch(List([action1, action2, action3]));
   const state4 = reducer(state0, action4);
   const expected4 = {
     _state: {todos: {paused: false}},

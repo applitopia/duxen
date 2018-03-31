@@ -179,8 +179,8 @@ test("action subscribe", function() {
   expect(retrieveOriginalsAction).toEqual({"type": "DUXEN_RETRIEVE_ORIGINALS", "collName": "todos"});
 
   const actions:List<CollAction> = List([insertAction, updateAction, removeAction]);
-  const batchAction:BatchAction = engine.actionFactory().batch("todos", actions);
-  expect(batchAction).toEqual({"type": "DUXEN_BATCH", "collName": "todos", actions});
+  const batchAction:BatchAction = engine.actionFactory().batch(actions);
+  expect(batchAction).toEqual({"type": "DUXEN_BATCH", actions});
 
   const refreshAction:RefreshAction = engine.actionFactory().refresh();
   expect(refreshAction).toEqual({"type": "DUXEN_REFRESH"});

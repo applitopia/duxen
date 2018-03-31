@@ -23,8 +23,8 @@ export default class BoundActionFactory implements ActionFactoryInterface {
   //
   // Action creators
   //
-  batch(collName: string, actions: List<CollAction>): BatchAction {
-    const action:BatchAction = this._actionFactory.batch(collName, actions);
+  batch(actions: List<Action>): BatchAction {
+    const action:BatchAction = this._actionFactory.batch(actions);
     this._dispatch(action);
     return action;
   }

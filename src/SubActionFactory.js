@@ -25,9 +25,8 @@ export default class SubActionFactory implements ActionFactoryInterface {
   //
   // Action creators
   //
-  batch(collName: string, actions: List<CollAction>): BatchAction {
-    collName = this._prefix+collName;
-    const action:BatchAction = this._actionFactory.batch(collName, actions);
+  batch(actions: List<CollAction>): BatchAction {
+    const action:BatchAction = this._actionFactory.batch(actions);
     return action;
   }
 

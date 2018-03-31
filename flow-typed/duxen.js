@@ -23,7 +23,6 @@ type CollData = Map<StateKey, CollDocument>;
 // Actions
 //
 type CollActionType =
-  'DUXEN_BATCH' |
   'DUXEN_INSERT' |
   'DUXEN_UPDATE' |
   'DUXEN_REMOVE' |
@@ -37,6 +36,7 @@ type CollActionType =
 
 type DuxenActionType =
     'DUXEN_REFRESH' |
+    'DUXEN_BATCH' |
     'DUXEN_VALUE';
 
 type RepoActionType =
@@ -64,14 +64,15 @@ type SaveAction = {| type: 'DUXEN_SAVE', collName: string |};
 type RestoreAction = {| type: 'DUXEN_RESTORE', collName: string |};
 type SaveOriginalsAction = {| type: 'DUXEN_SAVE_ORIGINALS', collName: string |};
 type RetrieveOriginalsAction = {| type: 'DUXEN_RETRIEVE_ORIGINALS', collName: string |};
-type BatchAction = {| type: 'DUXEN_BATCH', collName: string, actions: List<CollAction> |};
-type CollAction = BatchAction | InsertAction | UpdateAction | RemoveAction |
+type CollAction = InsertAction | UpdateAction | RemoveAction |
   PauseAction | ResumeAction | ResetAction | SaveAction | RestoreAction |
   SaveOriginalsAction | RetrieveOriginalsAction;
 
 // Duxen Actions
 type RefreshAction = {| type: 'DUXEN_REFRESH' |};
+type BatchAction = {| type: 'DUXEN_BATCH', actions: List<Action> |};
 type ValueAction = {| type: 'DUXEN_VALUE', valueName: string, value: StateValue |};
+type DuxenAction = RefreshAction | BatchAction | ValueAction;
 
 // Custom Actions
 type CustomValueAction = {type: CustomActionType, value: StateValue};
@@ -90,7 +91,7 @@ type RepoAction = CreateBranchAction | SwitchBranchAction | ResetBranchAction | 
   RemoveBranchAction | GoForwardAction | GoBackAction | GoLiveAction;
 
 // type Action includes all types of actions
-type Action = CollAction | RefreshAction | ValueAction | CustomValueAction | CustomAction | RepoAction;
+type Action = CollAction | DuxenAction | CustomValueAction | CustomAction | RepoAction;
 
 type ValueReducer = (value: StateValue, action: ValueAction) => StateValue;
 type CustomReducer = (mutableState: State, action: CustomAction) => void;
@@ -233,7 +234,7 @@ declare interface ActionFactoryInterface {
 
   // Utility Actions
   refresh() : RefreshAction;
-  batch(collName: string, actions: List<CollAction>): BatchAction;
+  batch(actions: List<Action>): BatchAction;
 }
 
 declare interface EngineInterface {

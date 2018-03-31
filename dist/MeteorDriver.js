@@ -76,7 +76,7 @@ var MeteorCollection = exports.MeteorCollection = function () {
     key: 'flush',
     value: function flush() {
       if (this._pending.length > 0) {
-        var batch = this._actionFactory.batch(this._name, this._pending);
+        var batch = this._actionFactory.batch(this._pending);
         this._dispatch(batch);
         this._pending = [];
       }

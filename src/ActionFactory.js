@@ -67,11 +67,9 @@ export default class ActionFactory implements ActionFactoryInterface {
   //
   // Action creators
   //
-  batch(collName: string, actions: List<CollAction>): BatchAction {
-    this._verifyCollection(collName);
+  batch(actions: List<Action>): BatchAction {
     const action:BatchAction = {
       type: 'DUXEN_BATCH',
-      collName,
       actions: List(actions)
     };
     this._action(action);

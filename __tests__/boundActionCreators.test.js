@@ -75,8 +75,8 @@ test("action creators", function() {
   expect(retrieveOriginalsAction).toEqual({"type": "DUXEN_RETRIEVE_ORIGINALS", "collName": "todos"});
 
   const actions:List<CollAction> = List([insertAction, updateAction, removeAction]);
-  const batchAction:BatchAction = actionFactory.batch("todos", actions);
-  expect(batchAction).toEqual({"type": "DUXEN_BATCH", "collName": "todos", actions});
+  const batchAction:BatchAction = actionFactory.batch(actions);
+  expect(batchAction).toEqual({"type": "DUXEN_BATCH", actions});
 
   const refreshAction:refreshAction = actionFactory.refresh();
   expect(refreshAction).toEqual({"type": "DUXEN_REFRESH"});

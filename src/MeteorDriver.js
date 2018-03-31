@@ -71,7 +71,7 @@ export class MeteorCollection {
 
   flush(): void {
     if(this._pending.length > 0) {
-      const batch = this._actionFactory.batch(this._name, this._pending);
+      const batch = this._actionFactory.batch(this._pending);
       this._dispatch(batch);
       this._pending = [];
     }
