@@ -42,6 +42,11 @@ cd duxen
 npm install
 ```
 
+Lint:
+```shell
+npm run lint
+```
+
 Build:
 ```shell
 npm run build
@@ -52,7 +57,7 @@ Test:
 npm test
 ```
 
-Lint, Build, Test, and Clean:
+Lint, Build, & Test:
 ```shell
 npm run all
 ```

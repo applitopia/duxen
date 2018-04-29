@@ -111,7 +111,7 @@ export class MeteorCollection {
     this.dispatch(action);
   }
 
-  findOne(selector: Selector, options?: {}): boolean | CollDocument {
+  findOne(selector: Selector, options?: {fetch: boolean}): boolean | CollDocument {
     const mongoId:?MongoID = getMongoID(selector);
     if(!mongoId) {
       throw new Error("Selector not supported:"+JSON.stringify(selector));
