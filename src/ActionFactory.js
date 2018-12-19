@@ -23,9 +23,9 @@ export default class ActionFactory implements ActionFactoryInterface {
   }
 
   _verifyName(name: string, type: SchemaEntryType) {
-    const cs:CompiledSchema = this.engine._compiledSchema;
+    const cs: CompiledSchema = this.engine._compiledSchema;
 
-    const cn:CompiledName = cs.names[name];
+    const cn: CompiledName = cs.names[name];
 
     if(!cn) {
       throw new Error("Missing name in schema: "+name);
@@ -59,7 +59,7 @@ export default class ActionFactory implements ActionFactoryInterface {
 
     const listeners: Array<(Action) => void> = this.engine._listeners;
     for(let i = 0; i < listeners.length; i++) {
-      const listener:Action=>void = listeners[i];
+      const listener: Action=>void = listeners[i];
       listener(action);
     }
   }
@@ -68,7 +68,7 @@ export default class ActionFactory implements ActionFactoryInterface {
   // Action creators
   //
   batch(actions: List<Action>): BatchAction {
-    const action:BatchAction = {
+    const action: BatchAction = {
       type: 'DUXEN_BATCH',
       actions: List(actions)
     };
@@ -80,7 +80,7 @@ export default class ActionFactory implements ActionFactoryInterface {
     this._verifyCollection(collName);
     id = ensure(id);
     doc = ensure(doc);
-    const action:InsertAction = {
+    const action: InsertAction = {
       type: 'DUXEN_INSERT',
       collName,
       id,
@@ -94,7 +94,7 @@ export default class ActionFactory implements ActionFactoryInterface {
     this._verifyCollection(collName);
     id = ensure(id);
     doc = ensure(doc);
-    const action:UpdateAction = {
+    const action: UpdateAction = {
       type: 'DUXEN_UPDATE',
       collName,
       id,
@@ -107,7 +107,7 @@ export default class ActionFactory implements ActionFactoryInterface {
   remove(collName: string, id: StateKey): RemoveAction {
     this._verifyCollection(collName);
     id = ensure(id);
-    const action:RemoveAction = {
+    const action: RemoveAction = {
       type: 'DUXEN_REMOVE',
       collName,
       id,
@@ -118,7 +118,7 @@ export default class ActionFactory implements ActionFactoryInterface {
 
   reset(collName: string): ResetAction {
     this._verifyCollection(collName);
-    const action:ResetAction = {
+    const action: ResetAction = {
       type: 'DUXEN_RESET',
       collName,
     };
@@ -128,7 +128,7 @@ export default class ActionFactory implements ActionFactoryInterface {
 
   pause(collName: string): PauseAction {
     this._verifyCollection(collName);
-    const action:PauseAction = {
+    const action: PauseAction = {
       type: 'DUXEN_PAUSE',
       collName,
     };
@@ -138,7 +138,7 @@ export default class ActionFactory implements ActionFactoryInterface {
 
   resume(collName: string): ResumeAction {
     this._verifyCollection(collName);
-    const action:ResumeAction = {
+    const action: ResumeAction = {
       type: 'DUXEN_RESUME',
       collName,
     };
@@ -148,7 +148,7 @@ export default class ActionFactory implements ActionFactoryInterface {
 
   save(collName: string): SaveAction {
     this._verifyCollection(collName);
-    const action:SaveAction = {
+    const action: SaveAction = {
       type: 'DUXEN_SAVE',
       collName,
     };
@@ -158,7 +158,7 @@ export default class ActionFactory implements ActionFactoryInterface {
 
   restore(collName: string): RestoreAction {
     this._verifyCollection(collName);
-    const action:RestoreAction = {
+    const action: RestoreAction = {
       type: 'DUXEN_RESTORE',
       collName,
     };
@@ -168,7 +168,7 @@ export default class ActionFactory implements ActionFactoryInterface {
 
   saveOriginals(collName: string): SaveOriginalsAction {
     this._verifyCollection(collName);
-    const action:SaveOriginalsAction = {
+    const action: SaveOriginalsAction = {
       type: 'DUXEN_SAVE_ORIGINALS',
       collName,
     };
@@ -178,7 +178,7 @@ export default class ActionFactory implements ActionFactoryInterface {
 
   retrieveOriginals(collName: string): RetrieveOriginalsAction {
     this._verifyCollection(collName);
-    const action:RetrieveOriginalsAction = {
+    const action: RetrieveOriginalsAction = {
       type: 'DUXEN_RETRIEVE_ORIGINALS',
       collName,
     };
@@ -187,7 +187,7 @@ export default class ActionFactory implements ActionFactoryInterface {
   }
 
   refresh(): RefreshAction {
-    const action:RefreshAction = {
+    const action: RefreshAction = {
       type: 'DUXEN_REFRESH',
     };
     this._action(action);
@@ -198,7 +198,7 @@ export default class ActionFactory implements ActionFactoryInterface {
     this._verifyValueName(valueName);
 
     value = ensure(value);
-    const action:ValueAction = {
+    const action: ValueAction = {
       type: 'DUXEN_VALUE',
       valueName,
       value,
@@ -210,9 +210,9 @@ export default class ActionFactory implements ActionFactoryInterface {
   customValue(valueName: string, value: StateValue): CustomValueAction {
     this._verifyCustomValueName(valueName);
 
-    const cs:CompiledSchema = this.engine._compiledSchema;
-    const cn:CompiledName = cs.names[valueName];
-    const valueEntry:CustomValueSchemaEntry = cast(cn.schemaEntry);
+    const cs: CompiledSchema = this.engine._compiledSchema;
+    const cn: CompiledName = cs.names[valueName];
+    const valueEntry: CustomValueSchemaEntry = cast(cn.schemaEntry);
     const actionType: CustomActionType = valueEntry.actionType;
 
     if(!actionType) {
@@ -220,14 +220,14 @@ export default class ActionFactory implements ActionFactoryInterface {
     }
 
     if(valueEntry.action) {
-      const action:CustomValueAction = valueEntry.action(value);
+      const action: CustomValueAction = valueEntry.action(value);
       this._action(action);
       return action;
     }
 
     value = ensure(value);
 
-    const action:CustomValueAction = {
+    const action: CustomValueAction = {
       type: cn.namePrefix+actionType,
       value,
     };
@@ -237,8 +237,8 @@ export default class ActionFactory implements ActionFactoryInterface {
 
   custom(customName: string): CustomAction {
     this._verifyCustomName(customName);
-    const cs:CompiledSchema = this.engine._compiledSchema;
-    const cn:CompiledName = cs.names[customName];
+    const cs: CompiledSchema = this.engine._compiledSchema;
+    const cn: CompiledName = cs.names[customName];
     const customEntry: CustomSchemaEntry = cast(cn.schemaEntry);
     const actionType: CustomActionType = customEntry.actionType;
 
@@ -250,7 +250,7 @@ export default class ActionFactory implements ActionFactoryInterface {
       throw new Error("Missing action in custom schema: "+JSON.stringify(customEntry));
     }
 
-    const action:CustomAction = customEntry.action();
+    const action: CustomAction = customEntry.action();
 
     if(action.type !== undefined && action.type !== actionType) {
       throw new Error("Inconsistent custom action type: "+JSON.stringify(action.type)+" vs "+actionType);
@@ -265,7 +265,7 @@ export default class ActionFactory implements ActionFactoryInterface {
   //
 
   createBranch(branchName: string): CreateBranchAction {
-    const action:CreateBranchAction = {
+    const action: CreateBranchAction = {
       type: 'DUXEN_CREATE_BRANCH',
       branchName: branchName,
     };
@@ -274,7 +274,7 @@ export default class ActionFactory implements ActionFactoryInterface {
   }
 
   switchBranch(branchName: string): SwitchBranchAction {
-    const action:SwitchBranchAction = {
+    const action: SwitchBranchAction = {
       type: 'DUXEN_SWITCH_BRANCH',
       branchName: branchName,
     };
@@ -283,7 +283,7 @@ export default class ActionFactory implements ActionFactoryInterface {
   }
 
   saveBranch(branchName: string): SaveBranchAction {
-    const action:SaveBranchAction = {
+    const action: SaveBranchAction = {
       type: 'DUXEN_SAVE_BRANCH',
       branchName: branchName,
     };
@@ -292,7 +292,7 @@ export default class ActionFactory implements ActionFactoryInterface {
   }
 
   resetBranch(branchName: string): ResetBranchAction {
-    const action:ResetBranchAction = {
+    const action: ResetBranchAction = {
       type: 'DUXEN_RESET_BRANCH',
       branchName: branchName,
     };
@@ -301,7 +301,7 @@ export default class ActionFactory implements ActionFactoryInterface {
   }
 
   removeBranch(branchName: string): RemoveBranchAction {
-    const action:RemoveBranchAction = {
+    const action: RemoveBranchAction = {
       type: 'DUXEN_REMOVE_BRANCH',
       branchName: branchName,
     };
@@ -310,7 +310,7 @@ export default class ActionFactory implements ActionFactoryInterface {
   }
 
   goForward(steps: number): GoForwardAction {
-    const action:GoForwardAction = {
+    const action: GoForwardAction = {
       type: 'DUXEN_GO_FORWARD',
       steps: steps,
     };
@@ -319,7 +319,7 @@ export default class ActionFactory implements ActionFactoryInterface {
   }
 
   goBack(steps: number): GoBackAction {
-    const action:GoBackAction = {
+    const action: GoBackAction = {
       type: 'DUXEN_GO_BACK',
       steps: steps,
     };
@@ -328,7 +328,7 @@ export default class ActionFactory implements ActionFactoryInterface {
   }
 
   goLive(): GoLiveAction {
-    const action:GoLiveAction = {
+    const action: GoLiveAction = {
       type: 'DUXEN_GO_LIVE',
     };
     this._action(action);

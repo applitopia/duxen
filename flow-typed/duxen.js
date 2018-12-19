@@ -117,18 +117,21 @@ type ValueSchemaEntry = {|
   type: 'value',
   path?: string,
   initValue: StateValue,
+  persistent?: boolean
 |};
 type CustomValueSchemaEntry = {|
   type: 'customValue',
   path?: string,
   initValue: StateValue,
+  persistent?: boolean,
   actionType: CustomActionType,
   action: (StateValue)=>CustomValueAction,
   reducer: ValueReducer
 |};
 type CollectionSchemaEntry = {|
   type: 'collection',
-  path?: string
+  path?: string,
+  persistent?: boolean
 |};
 type Props = {[string]: StateValue};
 type PropsRecipe = Array<string>;
@@ -246,7 +249,10 @@ declare interface EngineInterface {
 
   // Repo Functions
   currentBranch(repo: Repo): string;
+  currentBranchState(repo: Repo): State;
+  live(repo: Repo): boolean;
   head(repo: Repo): State;
+  prev(repo: Repo): State;
 
   // SubEngine
   subEngine(subSchemaPath: string): EngineInterface;

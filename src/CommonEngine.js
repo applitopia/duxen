@@ -20,9 +20,9 @@ export default class CommonEngine implements EngineInterface {
   _listeners: Array<(Action)=>void>;
 
   _verifyName(name: string, type: SchemaEntryType) {
-    const cs:CompiledSchema = this._compiledSchema;
+    const cs: CompiledSchema = this._compiledSchema;
 
-    const cn:CompiledName = cs.names[name];
+    const cn: CompiledName = cs.names[name];
 
     if(!cn) {
       throw new Error("Missing name in schema: "+name);
@@ -40,7 +40,7 @@ export default class CommonEngine implements EngineInterface {
   }
 
   _getCompiledName(name: string): CompiledName {
-    const cn:CompiledName = this._compiledSchema.names[name];
+    const cn: CompiledName = this._compiledSchema.names[name];
 
     if(!cn) {
       throw new Error("Name not found in schema: "+name);
@@ -50,9 +50,9 @@ export default class CommonEngine implements EngineInterface {
   }
 
   _getNameType(name: string): SchemaEntryType {
-    const cs:CompiledSchema = this._compiledSchema;
+    const cs: CompiledSchema = this._compiledSchema;
 
-    const cn:CompiledName = cs.names[name];
+    const cn: CompiledName = cs.names[name];
 
     if(!cn) {
       throw new Error("Missing name in schema: "+name);
@@ -66,7 +66,7 @@ export default class CommonEngine implements EngineInterface {
     if(!name) {
       return state;
     }
-    const cn:CompiledName = this._getCompiledName(name);
+    const cn: CompiledName = this._getCompiledName(name);
     return state.getIn(cn.path);
   }
 
@@ -87,7 +87,7 @@ export default class CommonEngine implements EngineInterface {
     return () => {
       if(stillSubscribed) {
         stillSubscribed = false;
-        const index:number = this._listeners.indexOf(listener);
+        const index: number = this._listeners.indexOf(listener);
         this._listeners.splice(index, 1);
       }
     };
@@ -110,12 +110,15 @@ export default class CommonEngine implements EngineInterface {
       return state;
     }
     return Map().withMutations((mutableState: State): void => {
-      for(let name:string in this._compiledSchema.names) {
-        const cn:CompiledName = this._getCompiledName(name);
+      for(let name: string in this._compiledSchema.names) {
+        const cn: CompiledName = this._getCompiledName(name);
         switch(cn.type) {
           case 'value':
+          case 'customValue':
           case 'collection': {
-            mutableState.setIn(cn.path, state.getIn(cn.path));
+            if(cn.persistent) {
+              mutableState.setIn(cn.path, state.getIn(cn.path));
+            }
             break;
           }
           default: {
@@ -138,19 +141,37 @@ export default class CommonEngine implements EngineInterface {
     return currentBranch;
   }
 
-  head(repo: Repo): State {
-    if(!repo) {
-      return undefined;
-    }
-    const currentBranch: string = repo.get("currentBranch");
+  currentBranchState(repo: Repo): State {
+    const currentBranch: string = this.currentBranch(repo);
     const branches: RepoBranches = repo.get("branches");
     const branch: RepoBranch = branches.get(currentBranch);
+    return branch;
+  }
+
+  live(repo: Repo): boolean {
+    const branch: RepoBranch = this.currentBranchState(repo);
+    return branch.get("live");
+  }
+
+  head(repo: Repo): State {
+    const branch: RepoBranch = this.currentBranchState(repo);
     const currentIndex: number = branch.get("currentIndex");
     if(currentIndex < 0) {
       return undefined;
     }
     const states: List<State> = branch.get("states");
     const state: State = states.get(currentIndex);
+    return state;
+  }
+
+  prev(repo: Repo): State {
+    const branch: RepoBranch = this.currentBranchState(repo);
+    const currentIndex: number = branch.get("currentIndex");
+    if(currentIndex <= 0) {
+      return undefined;
+    }
+    const states: List<State> = branch.get("states");
+    const state: State = states.get(currentIndex - 1);
     return state;
   }
 

@@ -16,6 +16,7 @@
    name: string,
    type: SchemaEntryType,
    initValue?: StateValue,
+   persistent: boolean,
    namePrefix: string,
    path: Array<string>,
    schemaPath: Array<string>,

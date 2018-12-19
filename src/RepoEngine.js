@@ -98,7 +98,7 @@ export default class RepoEngine extends StateEngine implements EngineInterface {
     const repoReduceMutable = (mutableRepo: Repo, repo: Repo, action: Action): void => {
       switch (action.type) {
         case 'DUXEN_CREATE_BRANCH': {
-          const repoAction:CreateBranchAction = cast(action);
+          const repoAction: CreateBranchAction = cast(action);
           const branches: RepoBranches = repo.get("branches");
           if(branches.has(repoAction.branchName)) {
             throw Error("the branch already exists: "+repoAction.branchName);
@@ -110,14 +110,14 @@ export default class RepoEngine extends StateEngine implements EngineInterface {
         }
 
         case 'DUXEN_SWITCH_BRANCH': {
-          const repoAction:SwitchBranchAction = cast(action);
+          const repoAction: SwitchBranchAction = cast(action);
           verifyBranch(repo, repoAction.branchName);
           mutableRepo.set("currentBranch", repoAction.branchName);
           break;
         }
 
         case 'DUXEN_SAVE_BRANCH': {
-          const repoAction:SaveBranchAction = cast(action);
+          const repoAction: SaveBranchAction = cast(action);
           const currentBranch: string = mutableRepo.get("currentBranch");
           const branches: RepoBranches = repo.get("branches");
           const branch: RepoBranch = branches.get(currentBranch);
@@ -135,7 +135,7 @@ export default class RepoEngine extends StateEngine implements EngineInterface {
         }
 
         case 'DUXEN_RESET_BRANCH': {
-          const repoAction:ResetBranchAction = cast(action);
+          const repoAction: ResetBranchAction = cast(action);
           verifyBranch(repo, repoAction.branchName);
           const currentBranch: string = mutableRepo.get("currentBranch");
           const branches: RepoBranches = repo.get("branches");
@@ -154,7 +154,7 @@ export default class RepoEngine extends StateEngine implements EngineInterface {
         }
 
         case 'DUXEN_REMOVE_BRANCH': {
-          const repoAction:RemoveBranchAction = cast(action);
+          const repoAction: RemoveBranchAction = cast(action);
           verifyBranch(repo, repoAction.branchName);
           const currentBranch: string = mutableRepo.get("currentBranch");
           if(currentBranch === repoAction.branchName) {
@@ -167,7 +167,7 @@ export default class RepoEngine extends StateEngine implements EngineInterface {
         }
 
         case 'DUXEN_GO_FORWARD': {
-          const repoAction:GoForwardAction = cast(action);
+          const repoAction: GoForwardAction = cast(action);
           const currentBranch: string = mutableRepo.get("currentBranch");
           const branches: RepoBranches = repo.get("branches");
           const branch: RepoBranch = branches.get(currentBranch);
@@ -190,7 +190,7 @@ export default class RepoEngine extends StateEngine implements EngineInterface {
         }
 
         case 'DUXEN_GO_BACK': {
-          const repoAction:GoBackAction = cast(action);
+          const repoAction: GoBackAction = cast(action);
           const currentBranch: string = mutableRepo.get("currentBranch");
           const branches: RepoBranches = repo.get("branches");
           const branch: RepoBranch = branches.get(currentBranch);

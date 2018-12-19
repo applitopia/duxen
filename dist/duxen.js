@@ -753,9 +753,12 @@ var CommonEngine = function () {
           var cn = _this2._getCompiledName(name);
           switch (cn.type) {
             case 'value':
+            case 'customValue':
             case 'collection':
               {
-                mutableState.setIn(cn.path, state.getIn(cn.path));
+                if (cn.persistent) {
+                  mutableState.setIn(cn.path, state.getIn(cn.path));
+                }
                 break;
               }
             default:
@@ -782,20 +785,41 @@ var CommonEngine = function () {
       return currentBranch;
     }
   }, {
-    key: 'head',
-    value: function head(repo) {
-      if (!repo) {
-        return undefined;
-      }
-      var currentBranch = repo.get("currentBranch");
+    key: 'currentBranchState',
+    value: function currentBranchState(repo) {
+      var currentBranch = this.currentBranch(repo);
       var branches = repo.get("branches");
       var branch = branches.get(currentBranch);
+      return branch;
+    }
+  }, {
+    key: 'live',
+    value: function live(repo) {
+      var branch = this.currentBranchState(repo);
+      return branch.get("live");
+    }
+  }, {
+    key: 'head',
+    value: function head(repo) {
+      var branch = this.currentBranchState(repo);
       var currentIndex = branch.get("currentIndex");
       if (currentIndex < 0) {
         return undefined;
       }
       var states = branch.get("states");
       var state = states.get(currentIndex);
+      return state;
+    }
+  }, {
+    key: 'prev',
+    value: function prev(repo) {
+      var branch = this.currentBranchState(repo);
+      var currentIndex = branch.get("currentIndex");
+      if (currentIndex <= 0) {
+        return undefined;
+      }
+      var states = branch.get("states");
+      var state = states.get(currentIndex - 1);
       return state;
     }
 
@@ -1615,6 +1639,7 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
       var cn = {
         name: name,
         type: entry.type,
+        persistent: false,
         namePrefix: namePrefix,
         path: path,
         schemaPath: schemaPath,
@@ -1629,6 +1654,9 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
         case 'value':
           {
             cn.initValue = entry.initValue;
+            if (entry.persistent === true) {
+              cn.persistent = entry.persistent;
+            }
             compileValue(name, entry, namePrefix);
             break;
           }
@@ -1636,6 +1664,9 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
         case 'customValue':
           {
             cn.initValue = entry.initValue;
+            if (entry.persistent === true) {
+              cn.persistent = entry.persistent;
+            }
             compileCustomValue(name, entry, namePrefix);
             break;
           }
@@ -1648,6 +1679,9 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
 
         case 'collection':
           {
+            if (entry.persistent === true) {
+              cn.persistent = entry.persistent;
+            }
             compileCollection(name, entry, namePrefix);
             break;
           }
@@ -2568,13 +2602,34 @@ var SubEngine = function () {
   }, {
     key: 'currentBranch',
     value: function currentBranch(repo) {
+      if (!repo) {
+        throw Error("repo not defined");
+      }
       var currentBranch = repo.get("currentBranch");
       return currentBranch;
     }
   }, {
+    key: 'currentBranchState',
+    value: function currentBranchState(repo) {
+      var st = this._engine.currentBranchState(repo);
+      return st;
+    }
+  }, {
+    key: 'live',
+    value: function live(repo) {
+      var branch = this.currentBranchState(repo);
+      return branch.get("live");
+    }
+  }, {
     key: 'head',
-    value: function head(state) {
-      var st = this._engine.head(state);
+    value: function head(repo) {
+      var st = this._engine.head(repo);
+      return st;
+    }
+  }, {
+    key: 'prev',
+    value: function prev(repo) {
+      var st = this._engine.prev(repo);
       return st;
     }
 
@@ -7434,6 +7489,125 @@ SortedMapBtreeNode.prototype.iterate = function(fn, reverse) {
       }
     }
   }
+  return true;
+};
+
+SortedMapBtreeNode.prototype.iterateFrom = function(from, fn, reverse) {
+  var this$1 = this;
+
+  if (reverse) {
+    return this.iterate(function (entry) {
+      if (this$1.comparator(from, entry[0]) <= 0) {
+        return fn(entry);
+      }
+      return true;
+    }, reverse);
+  }
+
+  var entries = this.entries;
+  var nodes = this.nodes;
+
+  var didMatch = MakeRef(DID_MATCH);
+  var idx = binarySearch(this.comparator, entries, from, didMatch);
+
+  if (nodes) {
+    for (var ii = idx, maxIndex = entries.length - 1; ii <= maxIndex; ii++) {
+      var node = nodes[ii];
+      if (ii === idx && !GetRef(didMatch)) {
+        if (node.iterateFrom(from, fn, reverse) === false) {
+          return false;
+        }
+      } else if (ii > idx) {
+        if (node.iterate(fn, reverse) === false) {
+          return false;
+        }
+      }
+      var entry = entries[ii];
+      if (entry[1] === NOT_SET) {
+        continue;
+      }
+      if (fn(entry) === false) {
+        return false;
+      }
+    }
+
+    // Iterate through the remaining last node
+    var node$1 = nodes[nodes.length - 1];
+    if (idx === nodes.length - 1) {
+      if (node$1.iterateFrom(from, fn, reverse) === false) {
+        return false;
+      }
+    } else if (node$1.iterate(fn, reverse) === false) {
+      return false;
+    }
+  } else {
+    for (var ii$1 = idx, maxIndex$1 = entries.length - 1; ii$1 <= maxIndex$1; ii$1++) {
+      var entry$1 = entries[ii$1];
+      if (entry$1[1] === NOT_SET) {
+        continue;
+      }
+      if (fn(entry$1) === false) {
+        return false;
+      }
+    }
+  }
+  return true;
+};
+
+SortedMapBtreeNode.prototype.iterateFromBackwards = function(
+  from,
+  fn,
+  reverse
+) {
+  var this$1 = this;
+
+  if (reverse) {
+    return this.iterate(function (entry) {
+      if (this$1.comparator(entry[0], from) <= 0) {
+        return fn(entry);
+      }
+      return true;
+    }, false);
+  }
+
+  var entries = this.entries;
+  var nodes = this.nodes;
+
+  var didMatch = MakeRef(DID_MATCH);
+  var idx = binarySearch(this.comparator, entries, from, didMatch);
+
+  if (nodes) {
+    for (var ii = idx; ii >= 0; ii--) {
+      if (ii < idx || GetRef(didMatch)) {
+        var entry = entries[ii];
+        if (entry[1] === NOT_SET) {
+          continue;
+        }
+        if (fn(entry) === false) {
+          return false;
+        }
+      }
+      var node = nodes[ii];
+      if (ii === idx && !GetRef(didMatch)) {
+        if (node.iterateFromBackwards(from, fn, reverse) === false) {
+          return false;
+        }
+      } else if (node.iterate(fn, true) === false) {
+        return false;
+      }
+    }
+  } else {
+    for (var ii$1 = GetRef(didMatch) ? idx : idx - 1; ii$1 >= 0; ii$1--) {
+      var entry$1 = entries[ii$1];
+      if (entry$1[1] === NOT_SET) {
+        continue;
+      }
+      if (fn(entry$1) === false) {
+        return false;
+      }
+    }
+  }
+  return true;
 };
 
 var SortedMapBtreeNodeIterator = (function (Iterator$$1) {
@@ -9139,6 +9313,43 @@ var SortedMap = (function (Map$$1) {
     return this;
   };
 
+  SortedMap.prototype.from = function from (key, backwards) {
+    var self = this;
+    var sequence = Object.create(KeyedSeq).prototype;
+    sequence.__iterateUncached = function(fn, reverse) {
+      var this$1 = this;
+
+      if (!self._root) {
+        return 0;
+      }
+
+      var iterations = 0;
+      if (backwards) {
+        self._root.iterateFromBackwards(
+          key,
+          function (entry) {
+            iterations++;
+            return fn(entry[1], entry[0], this$1);
+          },
+          reverse
+        );
+      } else {
+        self._root.iterateFrom(
+          key,
+          function (entry) {
+            iterations++;
+            return fn(entry[1], entry[0], this$1);
+          },
+          reverse
+        );
+      }
+
+      return iterations;
+    };
+
+    return sequence;
+  };
+
   return SortedMap;
 }(Map));
 
@@ -9934,6 +10145,10 @@ var SortedSet = (function (Set$$1) {
             .toKeyedSeq()
             .mapKeys(function (k, v) { return v; });
     return updateSortedSet(this, this._map.pack(seq));
+  };
+
+  SortedSet.prototype.from = function from (value, backwards) {
+    return this._map.from(value, backwards).toSetSeq();
   };
 
   SortedSet.prototype.sort = function sort (comparator) {
@@ -11357,7 +11572,7 @@ function defaultConverter(k, v) {
   return isKeyed(v) ? v.toMap() : v.toList();
 }
 
-var version = "0.2.5";
+var version = "0.2.6";
 
 // Functional read/write API
 var Immutable = {

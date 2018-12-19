@@ -271,6 +271,7 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
       var cn = {
         name: name,
         type: entry.type,
+        persistent: false,
         namePrefix: namePrefix,
         path: path,
         schemaPath: schemaPath,
@@ -285,6 +286,9 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
         case 'value':
           {
             cn.initValue = entry.initValue;
+            if (entry.persistent === true) {
+              cn.persistent = entry.persistent;
+            }
             compileValue(name, entry, namePrefix);
             break;
           }
@@ -292,6 +296,9 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
         case 'customValue':
           {
             cn.initValue = entry.initValue;
+            if (entry.persistent === true) {
+              cn.persistent = entry.persistent;
+            }
             compileCustomValue(name, entry, namePrefix);
             break;
           }
@@ -304,6 +311,9 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
 
         case 'collection':
           {
+            if (entry.persistent === true) {
+              cn.persistent = entry.persistent;
+            }
             compileCollection(name, entry, namePrefix);
             break;
           }

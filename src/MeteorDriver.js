@@ -79,7 +79,7 @@ export class MeteorCollection {
 
 
   remove(selector: Selector): void {
-    const mongoId:?MongoID = getMongoID(selector);
+    const mongoId: ?MongoID = getMongoID(selector);
     if(!mongoId) {
       this._ids = Set().asMutable();
       this._pending = [];
@@ -93,7 +93,7 @@ export class MeteorCollection {
   }
 
   insert(replace: CollDocument): void {
-    const mongoId:MongoID = replace._id;
+    const mongoId: MongoID = replace._id;
     if(!mongoId) {
       throw new Error("Empty mongoID: "+JSON.stringify(replace));
     }
@@ -103,7 +103,7 @@ export class MeteorCollection {
   }
 
   update(selector: Selector, replace: CollDocument): void {
-    const mongoId:?MongoID = getMongoID(selector);
+    const mongoId: ?MongoID = getMongoID(selector);
     if(!mongoId) {
       throw new Error("Selector not supported:"+JSON.stringify(selector));
     }
@@ -112,7 +112,7 @@ export class MeteorCollection {
   }
 
   findOne(selector: Selector, options?: {fetch: boolean}): boolean | CollDocument {
-    const mongoId:?MongoID = getMongoID(selector);
+    const mongoId: ?MongoID = getMongoID(selector);
     if(!mongoId) {
       throw new Error("Selector not supported:"+JSON.stringify(selector));
     }
@@ -123,7 +123,7 @@ export class MeteorCollection {
   }
 
   fetchOne(selector: Selector): CollDocument {
-    const mongoId:?MongoID = getMongoID(selector);
+    const mongoId: ?MongoID = getMongoID(selector);
     if(!mongoId) {
       throw new Error("Selector not supported:"+JSON.stringify(selector));
     }
@@ -174,8 +174,8 @@ export class MeteorDriver {
   }
 
   open(name: string, connection?: {}): MeteorCollection { // eslint-disable-line no-unused-vars
-    const getData:()=>CollData = () => this._engine.get(this._getState(), name);
-    const getOriginals:()=>CollData = () => this._getState().getIn(['_state', name, "originals"]);
+    const getData: ()=>CollData = () => this._engine.get(this._getState(), name);
+    const getOriginals: ()=>CollData = () => this._getState().getIn(['_state', name, "originals"]);
     return new MeteorCollection(name, this._engine, this._dispatch, getData, getOriginals);
   }
 }

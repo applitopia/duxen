@@ -11,7 +11,7 @@
 import { createEngine } from '../src';
 
 test("repo action creators", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
@@ -22,7 +22,7 @@ test("repo action creators", function() {
       action: () => ({type: 'CUSTOM_NEXT_PAGE'}),
       // eslint-disable-next-line no-unused-vars
       reducer: (mutableState: State, action: Action): void => {
-          const pageNo:number = mutableState.getIn(["pager", "pageNo"], 0);
+          const pageNo: number = mutableState.getIn(["pager", "pageNo"], 0);
           mutableState.setIn(["pager", "pageNo"], pageNo+1);
       }
     },
@@ -37,31 +37,31 @@ test("repo action creators", function() {
     },
   };
 
-  const engine:EngineInterface = createEngine(schema);
-  const actionFactory:ActionFactoryInterface = engine.boundActionFactory((action)=>action);
+  const engine: EngineInterface = createEngine(schema);
+  const actionFactory: ActionFactoryInterface = engine.boundActionFactory((action)=>action);
 
-  const createBranchAction:CreateBranchAction = actionFactory.createBranch("test");
+  const createBranchAction: CreateBranchAction = actionFactory.createBranch("test");
   expect(createBranchAction).toEqual({"type": "DUXEN_CREATE_BRANCH", "branchName": "test"});
 
-  const switchBranchAction:SwitchBranchAction = actionFactory.switchBranch("test");
+  const switchBranchAction: SwitchBranchAction = actionFactory.switchBranch("test");
   expect(switchBranchAction).toEqual({"type": "DUXEN_SWITCH_BRANCH", "branchName": "test"});
 
-  const saveBranchAction:SaveBranchAction = actionFactory.saveBranch("test");
+  const saveBranchAction: SaveBranchAction = actionFactory.saveBranch("test");
   expect(saveBranchAction).toEqual({"type": "DUXEN_SAVE_BRANCH", "branchName": "test"});
 
-  const resetBranchAction:ResetBranchAction = actionFactory.resetBranch("test");
+  const resetBranchAction: ResetBranchAction = actionFactory.resetBranch("test");
   expect(resetBranchAction).toEqual({"type": "DUXEN_RESET_BRANCH", "branchName": "test"});
 
-  const removeBranchAction:RemoveBranchAction = actionFactory.removeBranch("test");
+  const removeBranchAction: RemoveBranchAction = actionFactory.removeBranch("test");
   expect(removeBranchAction).toEqual({"type": "DUXEN_REMOVE_BRANCH", "branchName": "test"});
 
-  const goForwardAction:GoForwardAction = actionFactory.goForward(7);
+  const goForwardAction: GoForwardAction = actionFactory.goForward(7);
   expect(goForwardAction).toEqual({"type": "DUXEN_GO_FORWARD", "steps": 7});
 
-  const goBackAction:GoBackAction = actionFactory.goBack(7);
+  const goBackAction: GoBackAction = actionFactory.goBack(7);
   expect(goBackAction).toEqual({"type": "DUXEN_GO_BACK", "steps": 7});
 
-  const goLiveAction:GoLiveAction = actionFactory.goLive();
+  const goLiveAction: GoLiveAction = actionFactory.goLive();
   expect(goLiveAction).toEqual({"type": "DUXEN_GO_LIVE"});
 
 });

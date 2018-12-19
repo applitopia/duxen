@@ -15,7 +15,7 @@ const cast = <T>(value: any): T => (value: T);
 const ensure = <T>(value: any): T => cast(fromJS(value));
 
 test("Reducer insert, update remove", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
@@ -31,10 +31,10 @@ test("Reducer insert, update remove", function() {
     },
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const reducer:StateReducer = engine.stateReducer();
+  const engine: EngineInterface = new createEngine(schema);
+  const reducer: StateReducer = engine.stateReducer();
 
-  const state0:State = reducer(undefined, {type: "INIT"});
+  const state0: State = reducer(undefined, {type: "INIT"});
   const expected0 = {
     _state: {todos: {paused: false}},
     todosFilter: "Get milk",
@@ -84,7 +84,7 @@ test("Reducer insert, update remove", function() {
 });
 
 test("Reducer reset", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
@@ -100,10 +100,10 @@ test("Reducer reset", function() {
     },
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const reducer:StateReducer = engine.stateReducer();
+  const engine: EngineInterface = new createEngine(schema);
+  const reducer: StateReducer = engine.stateReducer();
 
-  const state0:State = reducer(undefined, {type: "INIT"});
+  const state0: State = reducer(undefined, {type: "INIT"});
   const expected0 = {
     _state: {todos: {paused: false}},
     todosFilter: "Get milk",
@@ -179,7 +179,7 @@ test("Reducer reset", function() {
 });
 
 test("Reducer pause, resume", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todos': {
       type: 'collection',
     },
@@ -191,10 +191,10 @@ test("Reducer pause, resume", function() {
     },
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const reducer:StateReducer = engine.stateReducer();
+  const engine: EngineInterface = new createEngine(schema);
+  const reducer: StateReducer = engine.stateReducer();
 
-  const state0:State = reducer(undefined, {type: "INIT"});
+  const state0: State = reducer(undefined, {type: "INIT"});
   const expected0 = {
     _state: {todos: {paused: false}},
     todos: {},
@@ -265,7 +265,7 @@ test("Reducer pause, resume", function() {
 });
 
 test("Reducer save, restore", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todos': {
       type: 'collection',
     },
@@ -277,10 +277,10 @@ test("Reducer save, restore", function() {
     },
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const reducer:StateReducer = engine.stateReducer();
+  const engine: EngineInterface = new createEngine(schema);
+  const reducer: StateReducer = engine.stateReducer();
 
-  const state0:State = reducer(undefined, {type: "INIT"});
+  const state0: State = reducer(undefined, {type: "INIT"});
   const expected0 = {
     _state: {todos: {paused: false}},
     todos: {},
@@ -382,7 +382,7 @@ test("Reducer save, restore", function() {
 });
 
 test("Reducer saveOriginals, insert, retrieveOriginals", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todos': {
       type: 'collection',
     },
@@ -394,10 +394,10 @@ test("Reducer saveOriginals, insert, retrieveOriginals", function() {
     },
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const reducer:StateReducer = engine.stateReducer();
+  const engine: EngineInterface = new createEngine(schema);
+  const reducer: StateReducer = engine.stateReducer();
 
-  const state0:State = reducer(undefined, {type: "INIT"});
+  const state0: State = reducer(undefined, {type: "INIT"});
   const expected0 = {
     _state: {todos: {paused: false}},
     todos: {},
@@ -507,7 +507,7 @@ test("Reducer saveOriginals, insert, retrieveOriginals", function() {
 
 
 test("Reducer saveOriginals, insert, update, remove, retrieveOriginals", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todos': {
       type: 'collection',
     },
@@ -519,10 +519,10 @@ test("Reducer saveOriginals, insert, update, remove, retrieveOriginals", functio
     },
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const reducer:StateReducer = engine.stateReducer();
+  const engine: EngineInterface = new createEngine(schema);
+  const reducer: StateReducer = engine.stateReducer();
 
-  const state0:State = reducer(undefined, {type: "INIT"});
+  const state0: State = reducer(undefined, {type: "INIT"});
   const expected0 = {
     _state: {todos: {paused: false}},
     todos: {},
@@ -612,7 +612,7 @@ test("Reducer saveOriginals, insert, update, remove, retrieveOriginals", functio
 });
 
 test("Reducer batch", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
@@ -628,10 +628,10 @@ test("Reducer batch", function() {
     },
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const reducer:StateReducer = engine.stateReducer();
+  const engine: EngineInterface = new createEngine(schema);
+  const reducer: StateReducer = engine.stateReducer();
 
-  const state0:State = reducer(undefined, {type: "INIT"});
+  const state0: State = reducer(undefined, {type: "INIT"});
   const expected0 = {
     _state: {todos: {paused: false}},
     todosFilter: "Get milk",
@@ -676,7 +676,7 @@ test("Reducer batch", function() {
 });
 
 test("Reducer props", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
@@ -692,10 +692,10 @@ test("Reducer props", function() {
     },
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const reducer:StateReducer = engine.stateReducer();
+  const engine: EngineInterface = new createEngine(schema);
+  const reducer: StateReducer = engine.stateReducer();
 
-  const state0:State = reducer(undefined, {type: "INIT"});
+  const state0: State = reducer(undefined, {type: "INIT"});
   const expected0 = {
     _state: {todos: {paused: false}},
     todosFilter: "Get milk",

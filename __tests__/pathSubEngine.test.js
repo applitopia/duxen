@@ -15,7 +15,7 @@ const cast = <T>(value: any): T => (value: T);
 const ensure = <T>(value: any): T => cast(fromJS(value));
 
 test("Subschema and value, collection, view with path", function() {
-  const todosAppSchema:Schema = {
+  const todosAppSchema: Schema = {
     'todosFilter': {
       type: 'value',
       path: 'a.b.c.todosFilter',
@@ -38,24 +38,24 @@ test("Subschema and value, collection, view with path", function() {
       action: () => ({type: 'CUSTOM_NEXT_PAGE'}),
       // eslint-disable-next-line no-unused-vars
       reducer: (mutableState: State, action: Action): void => {
-          const pageNo:number = mutableState.getIn(["pager", "pageNo"], 0);
+          const pageNo: number = mutableState.getIn(["pager", "pageNo"], 0);
           mutableState.setIn(["pager", "pageNo"], pageNo+1);
       },
     },
   };
 
-  const schema:Schema = {
+  const schema: Schema = {
     'todosApp': {
       type: 'schema',
       schema: todosAppSchema,
     },
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const subEngine:EngineInterface = engine.subEngine("todosApp");
-  const reducer:StateReducer = engine.stateReducer();
+  const engine: EngineInterface = new createEngine(schema);
+  const subEngine: EngineInterface = engine.subEngine("todosApp");
+  const reducer: StateReducer = engine.stateReducer();
 
-  const state0:State = reducer(undefined, {type: "INIT"});
+  const state0: State = reducer(undefined, {type: "INIT"});
   const expected0 = {
     _state: {
       "todosApp.todos": {paused: false}
@@ -249,7 +249,7 @@ test("Subschema and value, collection, view with path", function() {
 });
 
 test("Subschema with path, and value, collection, view with path", function() {
-  const todosAppSchema:Schema = {
+  const todosAppSchema: Schema = {
     'todosFilter': {
       type: 'value',
       path: 'a.b.c.todosFilter',
@@ -272,13 +272,13 @@ test("Subschema with path, and value, collection, view with path", function() {
       action: () => ({type: 'CUSTOM_NEXT_PAGE'}),
       // eslint-disable-next-line no-unused-vars
       reducer: (mutableState: State, action: Action): void => {
-          const pageNo:number = mutableState.getIn(["pager", "pageNo"], 0);
+          const pageNo: number = mutableState.getIn(["pager", "pageNo"], 0);
           mutableState.setIn(["pager", "pageNo"], pageNo+1);
       },
     },
   };
 
-  const schema:Schema = {
+  const schema: Schema = {
     'todosApp': {
       type: 'schema',
       schema: todosAppSchema,
@@ -286,11 +286,11 @@ test("Subschema with path, and value, collection, view with path", function() {
     },
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const subEngine:EngineInterface = engine.subEngine("todosApp");
-  const reducer:StateReducer = engine.stateReducer();
+  const engine: EngineInterface = new createEngine(schema);
+  const subEngine: EngineInterface = engine.subEngine("todosApp");
+  const reducer: StateReducer = engine.stateReducer();
 
-  const state0:State = reducer(undefined, {type: "INIT"});
+  const state0: State = reducer(undefined, {type: "INIT"});
   const expected0 = {
     _state: {
       "todosApp.todos": {paused: false}
@@ -329,7 +329,7 @@ test("Subschema with path, and value, collection, view with path", function() {
   };
   expect(state0.toJS()).toEqual(expected0);
 
-  const state0s:State = subEngine.get(state0, "todosFilter");
+  const state0s: State = subEngine.get(state0, "todosFilter");
   const expected0s = "Get milk";
   expect(state0s).toEqual(expected0s);
 

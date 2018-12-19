@@ -11,9 +11,10 @@
 import { createEngine } from '../src';
 
 test("subEngine Initial state - subschema value", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todosFilter': {
       type: 'value',
+      persistent: true,
       initValue: "Get milk",
     },
     "calendarSchema": {
@@ -21,15 +22,16 @@ test("subEngine Initial state - subschema value", function() {
       schema: {
         'currentMonth': {
           type: 'value',
+          persistent: true,
           initValue: "2017-06",
         },
       },
     }
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const reducer:StateReducer = engine.stateReducer();
-  const state:State = reducer(undefined, {type: "INIT"});
+  const engine: EngineInterface = new createEngine(schema);
+  const reducer: StateReducer = engine.stateReducer();
+  const state: State = reducer(undefined, {type: "INIT"});
 
   const expected = {
     "_state": {},
@@ -51,7 +53,7 @@ test("subEngine Initial state - subschema value", function() {
 });
 
 test("subEngine Reducer - subschema value", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
@@ -67,11 +69,11 @@ test("subEngine Reducer - subschema value", function() {
     }
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const subEngine:EngineInterface = engine.subEngine("calendarSchema");
-  const reducer:StateReducer = engine.stateReducer();
+  const engine: EngineInterface = new createEngine(schema);
+  const subEngine: EngineInterface = engine.subEngine("calendarSchema");
+  const reducer: StateReducer = engine.stateReducer();
 
-  const state0:State = reducer(undefined, {type: "INIT"});
+  const state0: State = reducer(undefined, {type: "INIT"});
   const expected0 = {
     "_state": {},
     "calendarSchema": {
@@ -108,20 +110,20 @@ test("subEngine Reducer - subschema value", function() {
 });
 
 test("subEngine Reducer - subschema custom", function() {
-  const calendarSchema:Schema = {
+  const calendarSchema: Schema = {
     'customNextPage': {
       type: 'custom',
       actionType: 'CUSTOM_NEXT_PAGE',
       action: () => ({type: 'CUSTOM_NEXT_PAGE'}),
       // eslint-disable-next-line no-unused-vars
       reducer: (mutableState: State, action: Action): void => {
-          const pageNo:number = mutableState.getIn(["pager", "pageNo"], 0);
+          const pageNo: number = mutableState.getIn(["pager", "pageNo"], 0);
           mutableState.setIn(["pager", "pageNo"], pageNo+1);
       },
     },
   };
 
-  const schema:Schema = {
+  const schema: Schema = {
     'customNextPage': calendarSchema.customNextPage,
     "calendarSchema": {
       type: 'schema',
@@ -129,11 +131,11 @@ test("subEngine Reducer - subschema custom", function() {
     }
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const subEngine:EngineInterface = engine.subEngine("calendarSchema");
-  const reducer:StateReducer = engine.stateReducer();
+  const engine: EngineInterface = new createEngine(schema);
+  const subEngine: EngineInterface = engine.subEngine("calendarSchema");
+  const reducer: StateReducer = engine.stateReducer();
 
-  const state0:State = reducer(undefined, {type: "INIT"});
+  const state0: State = reducer(undefined, {type: "INIT"});
   const expected0 = {
     "_state": {},
     "calendarSchema": {
@@ -164,9 +166,10 @@ test("subEngine Reducer - subschema custom", function() {
 });
 
 test("subEngine Initial state - subschema value", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todosFilter': {
       type: 'value',
+      persistent: true,
       initValue: "Get milk",
     },
     "calendarSchema": {
@@ -174,16 +177,17 @@ test("subEngine Initial state - subschema value", function() {
       schema: {
         'currentMonth': {
           type: 'value',
+          persistent: true,
           initValue: "2017-06",
         },
       },
     }
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const subEngine:EngineInterface = engine.subEngine("calendarSchema");
-  const reducer:StateReducer = engine.stateReducer();
-  const state:State = reducer(undefined, {type: "INIT"});
+  const engine: EngineInterface = new createEngine(schema);
+  const subEngine: EngineInterface = engine.subEngine("calendarSchema");
+  const reducer: StateReducer = engine.stateReducer();
+  const state: State = reducer(undefined, {type: "INIT"});
 
   const expected = {
     "_state": {},
@@ -202,9 +206,10 @@ test("subEngine Initial state - subschema value", function() {
 });
 
 test("subEngine interface", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todosFilter': {
       type: 'value',
+      persistent: true,
       initValue: "Get milk",
     },
     "calendarSchema": {
@@ -212,17 +217,18 @@ test("subEngine interface", function() {
       schema: {
         'currentMonth': {
           type: 'value',
+          persistent: true,
           initValue: "2017-07",
         },
       },
     }
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const subEngine:EngineInterface = engine.subEngine("calendarSchema");
+  const engine: EngineInterface = new createEngine(schema);
+  const subEngine: EngineInterface = engine.subEngine("calendarSchema");
 
-  const reducer:RepoReducer = engine.repoReducer();
-  const state:State = reducer(undefined, {type: "INIT"});
+  const reducer: RepoReducer = engine.repoReducer();
+  const state: State = reducer(undefined, {type: "INIT"});
   const headState: State = subEngine.head(state);
   expect(subEngine.printableState(headState).toJS()).toEqual({
     "currentMonth": "2017-07"

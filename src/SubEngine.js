@@ -64,12 +64,30 @@ export default class SubEngine implements EngineInterface {
   //
 
   currentBranch(repo: Repo): string {
+    if(!repo) {
+      throw Error("repo not defined");
+    }
     const currentBranch: string = repo.get("currentBranch");
     return currentBranch;
   }
 
-  head(state: State): State {
-    const st: State = this._engine.head(state);
+  currentBranchState(repo: Repo): State {
+    const st: State = this._engine.currentBranchState(repo);
+    return st;
+  }
+
+  live(repo: Repo): boolean {
+    const branch: RepoBranch = this.currentBranchState(repo);
+    return branch.get("live");
+  }
+
+  head(repo: Repo): State {
+    const st: State = this._engine.head(repo);
+    return st;
+  }
+
+  prev(repo: Repo): State {
+    const st: State = this._engine.prev(repo);
     return st;
   }
 

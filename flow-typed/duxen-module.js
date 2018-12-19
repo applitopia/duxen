@@ -119,18 +119,21 @@ declare export type ValueSchemaEntry = {|
   type: 'value',
   path?: string,
   initValue: StateValue,
+  persistent?: boolean
 |};
 declare export type CustomValueSchemaEntry = {|
   type: 'customValue',
   path?: string,
   initValue: StateValue,
+  persistent?: boolean,
   actionType: CustomActionType,
   action: (StateValue)=>CustomValueAction,
   reducer: ValueReducer
 |};
 declare export type CollectionSchemaEntry = {|
   type: 'collection',
-  path?: string
+  path?: string,
+  persistent?: boolean
 |};
 declare export type Props = {[string]: StateValue};
 declare export type PropsRecipe = Array<string>;
@@ -248,7 +251,10 @@ declare export interface EngineInterface {
 
   // Repo Functions
   currentBranch(repo: Repo): string;
+  currentBranchState(repo: Repo): State;
+  live(repo: Repo): boolean;
   head(repo: Repo): State;
+  prev(repo: Repo): State;
 
   // SubEngine
   subEngine(subSchemaPath: string): EngineInterface;

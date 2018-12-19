@@ -13,16 +13,16 @@ import { createEngine } from '../src';
 const cast = <T>(value: any): T => (value: T);
 
 test("Initial state - value", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
     },
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const reducer:StateReducer = engine.stateReducer();
-  const state:State = reducer(undefined, {type: "INIT"});
+  const engine: EngineInterface = new createEngine(schema);
+  const reducer: StateReducer = engine.stateReducer();
+  const state: State = reducer(undefined, {type: "INIT"});
 
   expect(state.toJS()).toEqual({
     '_state': {},
@@ -31,15 +31,15 @@ test("Initial state - value", function() {
 });
 
 test("Initial state - collection", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todos': {
       type: 'collection',
     },
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const reducer:StateReducer = engine.stateReducer();
-  const state:State = reducer(undefined, {type: "INIT"});
+  const engine: EngineInterface = new createEngine(schema);
+  const reducer: StateReducer = engine.stateReducer();
+  const state: State = reducer(undefined, {type: "INIT"});
 
   expect(state.toJS()).toEqual({
     "_state": {"todos": {"paused": false}},
@@ -48,7 +48,7 @@ test("Initial state - collection", function() {
 });
 
 test("Initial state - view", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todos': {
       type: 'collection'
     },
@@ -60,9 +60,9 @@ test("Initial state - view", function() {
     },
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const reducer:StateReducer = engine.stateReducer();
-  const state:State = reducer(undefined, {type: "INIT"});
+  const engine: EngineInterface = new createEngine(schema);
+  const reducer: StateReducer = engine.stateReducer();
+  const state: State = reducer(undefined, {type: "INIT"});
 
   expect(state.toJS()).toEqual({
     '_state': {"todos": {"paused": false}},
@@ -72,7 +72,7 @@ test("Initial state - view", function() {
 });
 
 test("Initial state - custom", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'customNextPage': {
       type: 'custom',
       actionType: 'CUSTOM_NEXT_PAGE',
@@ -81,26 +81,26 @@ test("Initial state - custom", function() {
         switch(action.type) {
         case 'CUSTOM_NEXT_PAGE': {
           return state.withMutations((mutableState: State) => {
-            const pageNo:number = mutableState.getIn(["pager", "pageNo"], 0);
+            const pageNo: number = mutableState.getIn(["pager", "pageNo"], 0);
             mutableState.setIn(["pager", "pageNo"], pageNo+1);
           });
         }
-        default:
+        default: 
           return state;
         }
       }
     },
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const reducer:StateReducer = engine.stateReducer();
-  const state:State = reducer(undefined, {type: "INIT"});
+  const engine: EngineInterface = new createEngine(schema);
+  const reducer: StateReducer = engine.stateReducer();
+  const state: State = reducer(undefined, {type: "INIT"});
 
   expect(state.toJS()).toEqual({
     '_state': {}
   });
 
-  const state2:State = reducer(state, cast(schema['customNextPage']).action());
+  const state2: State = reducer(state, cast(schema['customNextPage']).action());
 
   expect(state2.toJS()).toEqual({
     '_state': {},

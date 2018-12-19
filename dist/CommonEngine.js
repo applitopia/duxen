@@ -152,9 +152,12 @@ var CommonEngine = function () {
           var cn = _this2._getCompiledName(name);
           switch (cn.type) {
             case 'value':
+            case 'customValue':
             case 'collection':
               {
-                mutableState.setIn(cn.path, state.getIn(cn.path));
+                if (cn.persistent) {
+                  mutableState.setIn(cn.path, state.getIn(cn.path));
+                }
                 break;
               }
             default:
@@ -181,20 +184,41 @@ var CommonEngine = function () {
       return currentBranch;
     }
   }, {
-    key: 'head',
-    value: function head(repo) {
-      if (!repo) {
-        return undefined;
-      }
-      var currentBranch = repo.get("currentBranch");
+    key: 'currentBranchState',
+    value: function currentBranchState(repo) {
+      var currentBranch = this.currentBranch(repo);
       var branches = repo.get("branches");
       var branch = branches.get(currentBranch);
+      return branch;
+    }
+  }, {
+    key: 'live',
+    value: function live(repo) {
+      var branch = this.currentBranchState(repo);
+      return branch.get("live");
+    }
+  }, {
+    key: 'head',
+    value: function head(repo) {
+      var branch = this.currentBranchState(repo);
       var currentIndex = branch.get("currentIndex");
       if (currentIndex < 0) {
         return undefined;
       }
       var states = branch.get("states");
       var state = states.get(currentIndex);
+      return state;
+    }
+  }, {
+    key: 'prev',
+    value: function prev(repo) {
+      var branch = this.currentBranchState(repo);
+      var currentIndex = branch.get("currentIndex");
+      if (currentIndex <= 0) {
+        return undefined;
+      }
+      var states = branch.get("states");
+      var state = states.get(currentIndex - 1);
       return state;
     }
 

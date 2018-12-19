@@ -15,7 +15,7 @@ const cast = <T>(value: any): T => (value: T);
 const ensure = <T>(value: any): T => cast(fromJS(value));
 
 test("SubEngine action creators", function() {
-  const todos:Schema = {
+  const todos: Schema = {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
@@ -26,7 +26,7 @@ test("SubEngine action creators", function() {
       action: () => ({type: 'CUSTOM_NEXT_PAGE'}),
       // eslint-disable-next-line no-unused-vars
       reducer: (mutableState: State, action: Action): void => {
-          const pageNo:number = mutableState.getIn(["pager", "pageNo"], 0);
+          const pageNo: number = mutableState.getIn(["pager", "pageNo"], 0);
           mutableState.setIn(["pager", "pageNo"], pageNo+1);
       }
     },
@@ -41,65 +41,65 @@ test("SubEngine action creators", function() {
     },
   };
 
-  const schema:Schema = {
+  const schema: Schema = {
     'todosApp': {
       type: 'schema',
       schema: todos,
     }
   };
 
-  const engine:EngineInterface = createEngine(schema);
-  const subEngine:EngineInterface = engine.subEngine('todosApp');
-  const actionFactory:ActionFactoryInterface = subEngine.actionFactory();
+  const engine: EngineInterface = createEngine(schema);
+  const subEngine: EngineInterface = engine.subEngine('todosApp');
+  const actionFactory: ActionFactoryInterface = subEngine.actionFactory();
 
-  const insertAction:InsertAction = actionFactory.insert("todos", "id1", ensure({"text": "Get tickets"}));
+  const insertAction: InsertAction = actionFactory.insert("todos", "id1", ensure({"text": "Get tickets"}));
   expect(insertAction).toEqual({"type": "DUXEN_INSERT", "collName": "todosApp.todos", "id": "id1", "doc": fromJS({"text": "Get tickets"})});
 
-  const updateAction:UpdateAction = actionFactory.update("todos", "id1", ensure({"text": "Get tickets to concert"}));
+  const updateAction: UpdateAction = actionFactory.update("todos", "id1", ensure({"text": "Get tickets to concert"}));
   expect(updateAction).toEqual({"type": "DUXEN_UPDATE", "collName": "todosApp.todos", "id": "id1", "doc": fromJS({"text": "Get tickets to concert"})});
 
-  const removeAction:RemoveAction = actionFactory.remove("todos", "id1");
+  const removeAction: RemoveAction = actionFactory.remove("todos", "id1");
   expect(removeAction).toEqual({"type": "DUXEN_REMOVE", "collName": "todosApp.todos", "id": "id1"});
 
-  const resetAction:ResetAction = actionFactory.reset("todos");
+  const resetAction: ResetAction = actionFactory.reset("todos");
   expect(resetAction).toEqual({"type": "DUXEN_RESET", "collName": "todosApp.todos"});
 
-  const pauseAction:PauseAction = actionFactory.pause("todos");
+  const pauseAction: PauseAction = actionFactory.pause("todos");
   expect(pauseAction).toEqual({"type": "DUXEN_PAUSE", "collName": "todosApp.todos"});
 
-  const resumeAction:ResumeAction = actionFactory.resume("todos");
+  const resumeAction: ResumeAction = actionFactory.resume("todos");
   expect(resumeAction).toEqual({"type": "DUXEN_RESUME", "collName": "todosApp.todos"});
 
-  const saveAction:SaveAction = actionFactory.save("todos");
+  const saveAction: SaveAction = actionFactory.save("todos");
   expect(saveAction).toEqual({"type": "DUXEN_SAVE", "collName": "todosApp.todos"});
 
-  const restoreAction:RestoreAction = actionFactory.restore("todos");
+  const restoreAction: RestoreAction = actionFactory.restore("todos");
   expect(restoreAction).toEqual({"type": "DUXEN_RESTORE", "collName": "todosApp.todos"});
 
-  const saveOriginalsAction:SaveOriginalsAction = actionFactory.saveOriginals("todos");
+  const saveOriginalsAction: SaveOriginalsAction = actionFactory.saveOriginals("todos");
   expect(saveOriginalsAction).toEqual({"type": "DUXEN_SAVE_ORIGINALS", "collName": "todosApp.todos"});
 
-  const retrieveOriginalsAction:RetrieveOriginalsAction = actionFactory.retrieveOriginals("todos");
+  const retrieveOriginalsAction: RetrieveOriginalsAction = actionFactory.retrieveOriginals("todos");
   expect(retrieveOriginalsAction).toEqual({"type": "DUXEN_RETRIEVE_ORIGINALS", "collName": "todosApp.todos"});
 
-  const actions:List<CollAction> = List([insertAction, updateAction, removeAction]);
-  const batchAction:BatchAction = actionFactory.batch(actions);
+  const actions: List<CollAction> = List([insertAction, updateAction, removeAction]);
+  const batchAction: BatchAction = actionFactory.batch(actions);
   expect(batchAction).toEqual({"type": "DUXEN_BATCH", actions});
 
-  const refreshAction:refreshAction = actionFactory.refresh();
+  const refreshAction: refreshAction = actionFactory.refresh();
   expect(refreshAction).toEqual({"type": "DUXEN_REFRESH"});
 
-  const valueAction:ValueAction = actionFactory.value("todosFilter", "Get sugar");
+  const valueAction: ValueAction = actionFactory.value("todosFilter", "Get sugar");
   expect(valueAction).toEqual({"type": "DUXEN_VALUE", "valueName": "todosApp.todosFilter", "value": "Get sugar"});
 
-  const customAction:CustomAction = actionFactory.custom("customNextPage");
+  const customAction: CustomAction = actionFactory.custom("customNextPage");
   expect(customAction).toEqual({"type": "todosApp.CUSTOM_NEXT_PAGE"});
 
 });
 
 
 test("SubEngine Coll Action creators", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todoSchema': {
       type: "schema",
       schema: {
@@ -111,15 +111,15 @@ test("SubEngine Coll Action creators", function() {
     }
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const subEngine:EngineInterface = engine.subEngine("todoSchema");
-  const actionFactory:ActionFactoryInterface = subEngine.actionFactory();
+  const engine: EngineInterface = new createEngine(schema);
+  const subEngine: EngineInterface = engine.subEngine("todoSchema");
+  const actionFactory: ActionFactoryInterface = subEngine.actionFactory();
 
-  expect(() =>  engine.subEngine("todoSchemaa")).toThrow("Missing name in schema:");
+  expect(() =>  engine.subEngine("todoSchemaa")).toThrow("Missing name in schema: ");
 
-  expect(() =>  engine.subEngine("todoSchema.todos")).toThrow("Not a schema:");
+  expect(() =>  engine.subEngine("todoSchema.todos")).toThrow("Not a schema: ");
 
-  const insertAction:InsertAction = actionFactory.insert("todos", "id1", {text: "Get sugar"});
+  const insertAction: InsertAction = actionFactory.insert("todos", "id1", {text: "Get sugar"});
   expect(insertAction).toEqual({"type": "DUXEN_INSERT", collName: "todoSchema.todos", id: "id1", doc: fromJS({text: "Get sugar"})});
 
 });

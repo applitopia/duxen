@@ -15,7 +15,7 @@ const cast = <T>(value: any): T => (value: T);
 const ensure = <T>(value: any): T => cast(fromJS(value));
 
 test("view on view", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
@@ -37,10 +37,10 @@ test("view on view", function() {
     },
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const reducer:StateReducer = engine.stateReducer();
+  const engine: EngineInterface = new createEngine(schema);
+  const reducer: StateReducer = engine.stateReducer();
 
-  const state0:State = reducer(undefined, {type: "INIT"});
+  const state0: State = reducer(undefined, {type: "INIT"});
   const expected0 = {
     _state: {todos: {paused: false}},
     todosFilter: "Get milk",

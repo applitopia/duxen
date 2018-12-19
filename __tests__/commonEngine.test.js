@@ -15,7 +15,7 @@ const cast = <T>(value: any): T => (value: T);
 const ensure = <T>(value: any): T => cast(fromJS(value));
 
 test("common engine", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
@@ -31,10 +31,10 @@ test("common engine", function() {
     },
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const reducer:StateReducer = engine.stateReducer();
+  const engine: EngineInterface = new createEngine(schema);
+  const reducer: StateReducer = engine.stateReducer();
 
-  const state0:State = reducer(undefined, {type: "INIT"});
+  const state0: State = reducer(undefined, {type: "INIT"});
   const expected0 = {
     _state: {todos: {paused: false}},
     todosFilter: "Get milk",
@@ -95,7 +95,7 @@ test("common engine", function() {
   };
   expect(state4.toJS()).toEqual(expected4);
 
-  const state5:State = engine.get(state4, "todos");
+  const state5: State = engine.get(state4, "todos");
   const expected5 = {
     id1: {"text": "Get tickets"},
     id2: {"text": "Get milk"},
@@ -106,7 +106,7 @@ test("common engine", function() {
 });
 
 test("action subscribe", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
@@ -121,8 +121,8 @@ test("action subscribe", function() {
       action: (pageNo) => ({type: 'CUSTOM_PAGE_NUMBER', value: pageNo}),
       // eslint-disable-next-line no-unused-vars
       reducer: (mutableState: State, action: Action): void => {
-        const customAction:CustomAction = cast(action);
-        const pageNo:number = cast(customAction).pageNo;
+        const customAction: CustomAction = cast(action);
+        const pageNo: number = cast(customAction).pageNo;
         mutableState.setIn(["pager", "pageNo"], pageNo);
       }
     },
@@ -132,66 +132,66 @@ test("action subscribe", function() {
       action: () => ({type: 'CUSTOM_NEXT_PAGE'}),
       // eslint-disable-next-line no-unused-vars
       reducer: (mutableState: State, action: Action): void => {
-          const pageNo:number = mutableState.getIn(["pager", "pageNo"], 0);
+          const pageNo: number = mutableState.getIn(["pager", "pageNo"], 0);
           mutableState.setIn(["pager", "pageNo"], pageNo+1);
       }
     },
   };
 
-  const engine:EngineInterface = createEngine(schema);
+  const engine: EngineInterface = createEngine(schema);
 
   const receivedActions = {
 
   };
 
-  const unsubscribeHandle:()=>void = engine.subscribe((action: Action) => {
+  const unsubscribeHandle: ()=>void = engine.subscribe((action: Action) => {
       receivedActions[action.type] = true;
   });
 
-  const insertAction:InsertAction = engine.actionFactory().insert("todos", "id1", ensure({"text": "Get tickets"}));
+  const insertAction: InsertAction = engine.actionFactory().insert("todos", "id1", ensure({"text": "Get tickets"}));
   expect(insertAction).toEqual({"type": "DUXEN_INSERT", "collName": "todos", "id": "id1", "doc": fromJS({"text": "Get tickets"})});
 
-  const updateAction:UpdateAction = engine.actionFactory().update("todos", "id1", ensure({"text": "Get tickets to concert"}));
+  const updateAction: UpdateAction = engine.actionFactory().update("todos", "id1", ensure({"text": "Get tickets to concert"}));
   expect(updateAction).toEqual({"type": "DUXEN_UPDATE", "collName": "todos", "id": "id1", "doc": fromJS({"text": "Get tickets to concert"})});
 
-  const removeAction:RemoveAction = engine.actionFactory().remove("todos", "id1");
+  const removeAction: RemoveAction = engine.actionFactory().remove("todos", "id1");
   expect(removeAction).toEqual({"type": "DUXEN_REMOVE", "collName": "todos", "id": "id1"});
 
-  const resetAction:ResetAction = engine.actionFactory().reset("todos");
+  const resetAction: ResetAction = engine.actionFactory().reset("todos");
   expect(resetAction).toEqual({"type": "DUXEN_RESET", "collName": "todos"});
 
-  const pauseAction:PauseAction = engine.actionFactory().pause("todos");
+  const pauseAction: PauseAction = engine.actionFactory().pause("todos");
   expect(pauseAction).toEqual({"type": "DUXEN_PAUSE", "collName": "todos"});
 
-  const resumeAction:ResumeAction = engine.actionFactory().resume("todos");
+  const resumeAction: ResumeAction = engine.actionFactory().resume("todos");
   expect(resumeAction).toEqual({"type": "DUXEN_RESUME", "collName": "todos"});
 
-  const saveAction:SaveAction = engine.actionFactory().save("todos");
+  const saveAction: SaveAction = engine.actionFactory().save("todos");
   expect(saveAction).toEqual({"type": "DUXEN_SAVE", "collName": "todos"});
 
-  const restoreAction:RestoreAction = engine.actionFactory().restore("todos");
+  const restoreAction: RestoreAction = engine.actionFactory().restore("todos");
   expect(restoreAction).toEqual({"type": "DUXEN_RESTORE", "collName": "todos"});
 
-  const saveOriginalsAction:SaveOriginalsAction = engine.actionFactory().saveOriginals("todos");
+  const saveOriginalsAction: SaveOriginalsAction = engine.actionFactory().saveOriginals("todos");
   expect(saveOriginalsAction).toEqual({"type": "DUXEN_SAVE_ORIGINALS", "collName": "todos"});
 
-  const retrieveOriginalsAction:RetrieveOriginalsAction = engine.actionFactory().retrieveOriginals("todos");
+  const retrieveOriginalsAction: RetrieveOriginalsAction = engine.actionFactory().retrieveOriginals("todos");
   expect(retrieveOriginalsAction).toEqual({"type": "DUXEN_RETRIEVE_ORIGINALS", "collName": "todos"});
 
-  const actions:List<CollAction> = List([insertAction, updateAction, removeAction]);
-  const batchAction:BatchAction = engine.actionFactory().batch(actions);
+  const actions: List<CollAction> = List([insertAction, updateAction, removeAction]);
+  const batchAction: BatchAction = engine.actionFactory().batch(actions);
   expect(batchAction).toEqual({"type": "DUXEN_BATCH", actions});
 
-  const refreshAction:RefreshAction = engine.actionFactory().refresh();
+  const refreshAction: RefreshAction = engine.actionFactory().refresh();
   expect(refreshAction).toEqual({"type": "DUXEN_REFRESH"});
 
-  const valueAction:ValueAction = engine.actionFactory().value("todosFilter", "Get sugar");
+  const valueAction: ValueAction = engine.actionFactory().value("todosFilter", "Get sugar");
   expect(valueAction).toEqual({"type": "DUXEN_VALUE", "valueName": "todosFilter", "value": "Get sugar"});
 
-  const customValueAction:CustomValueAction = engine.actionFactory().customValue("customPageNumber", 127);
+  const customValueAction: CustomValueAction = engine.actionFactory().customValue("customPageNumber", 127);
   expect(customValueAction).toEqual({"type": "CUSTOM_PAGE_NUMBER", "value": 127});
 
-  const customAction:CustomAction = engine.actionFactory().custom("customNextPage");
+  const customAction: CustomAction = engine.actionFactory().custom("customNextPage");
   expect(customAction).toEqual({"type": "CUSTOM_NEXT_PAGE"});
 
   const expectedReceivedActions = {

@@ -16,17 +16,17 @@ const cast = <T>(value: any): T => (value: T);
 // deps is array of [sourceName, dependentName]
 export const compileDependencies = (deps: Array<[string, string]>): {[string]: Array<string>} => {
   // dt is dependecy table
-  const dt:{[string]: Array<string>} = {};
+  const dt: {[string]: Array<string>} = {};
 
   // cd is compiled dependency table
-  const cd:{[string]: Array<string>} = {};
+  const cd: {[string]: Array<string>} = {};
 
   for(let i = 0; i < deps.length; i++) {
     const dep = deps[i];
     const sourceName = dep[0];
     const depName = dep[1];
 
-    let dtDep:Array<string> = dt[sourceName];
+    let dtDep: Array<string> = dt[sourceName];
 
     if(!dtDep) {
       dtDep = [];
@@ -99,7 +99,7 @@ export const compileDependencies = (deps: Array<[string, string]>): {[string]: A
 export const compileSchema = (schema: Schema): CompiledSchema => {
 
   // Compiled Schema
-  const cs:CompiledSchema = {
+  const cs: CompiledSchema = {
     names: {},
     actions: {},
     initState: Map(),
@@ -124,7 +124,7 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
     if(!Array.isArray(props)) {
       throw new Error("Props are not in Array");
     }
-    for(let pi:number = 0, len:number = props.length; pi < len; pi++) {
+    for(let pi: number = 0, len: number = props.length; pi < len; pi++) {
       const propName: string = props[pi];
       switch(typeof(propName)) {
         case 'string': {
@@ -144,7 +144,7 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
   const compileCustomValue = (name: string, entry: CustomValueSchemaEntry, namePrefix: string): void => {
     verifyNames(name, namePrefix);
 
-    let actionType:CustomActionType = entry.actionType;
+    let actionType: CustomActionType = entry.actionType;
 
     if(!actionType) {
       throw new Error("Missing actionType in value schema: "+JSON.stringify(entry));
@@ -154,7 +154,7 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
       throw new Error("Duplicate actionType in value schema: "+JSON.stringify(entry));
     }
 
-    const reducer:ValueReducer = (value: StateValue, action: ValueAction): StateValue => {
+    const reducer: ValueReducer = (value: StateValue, action: ValueAction): StateValue => {
         switch(action.type) {
         case actionType:
           return entry.reducer?entry.reducer(value, action):action.value;
@@ -183,14 +183,14 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
     verifyNames(name, namePrefix);
     verifyProps(entry.props);
 
-    const sourceName:string = entry.sourceName;
+    const sourceName: string = entry.sourceName;
     if(!sourceName) {
       throw new Error("missing sourceName in view schema: "+name);
     }
   };
 
   const compileCustom = (name: string, entry: CustomSchemaEntry, prefix: string): void => {
-    let actionType:CustomActionType = entry.actionType;
+    let actionType: CustomActionType = entry.actionType;
     if(!actionType) {
       throw new Error("Missing actionType in custom schema: "+JSON.stringify(entry));
     }
@@ -205,7 +205,7 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
       throw new Error("Path is not allowed in custom schema: "+JSON.stringify(entry));
     }
 
-    const reducer:CustomReducer = (state: State, action: CustomAction): State => {
+    const reducer: CustomReducer = (state: State, action: CustomAction): State => {
         switch(action.type) {
         case actionType: {
           return state.withMutations((mutableState: State): void => {
@@ -234,30 +234,31 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
         throw Error("Improper definition in schema: "+name);
       }
 
-      let schemaPath:Array<string> = schemaPathName?schemaPathName.split('.'):[];
-      const subPathName:string = (entry.path ? entry.path : name);
-      let subPath:Array<string> = subPathName.split('.');
-      const pathNamePrefix:string = schemaPathName ? schemaPathName + '.' : "";
-      const pathName:string = pathNamePrefix + subPathName;
-      let path:Array<string> = pathName.split('.');
+      let schemaPath: Array<string> = schemaPathName?schemaPathName.split('.'):[];
+      const subPathName: string = (entry.path ? entry.path : name);
+      let subPath: Array<string> = subPathName.split('.');
+      const pathNamePrefix: string = schemaPathName ? schemaPathName + '.' : "";
+      const pathName: string = pathNamePrefix + subPathName;
+      let path: Array<string> = pathName.split('.');
 
       if(entry.type === 'custom') {
         path = path.slice(0, path.length-1);
         subPath = subPath.slice(0, subPath.length-1);
       }
 
-      const namePrefix:string = (schemaName?schemaName+'.':"");
+      const namePrefix: string = (schemaName?schemaName+'.':"");
       name = namePrefix + name;
 
-      const compiledName:CompiledName = cs.names[name];
+      const compiledName: CompiledName = cs.names[name];
 
       if(compiledName) {
         throw Error("Duplicate name in schema: "+name);
       }
 
-      const cn:CompiledName = {
+      const cn: CompiledName = {
         name,
         type: entry.type,
+        persistent: false,
         namePrefix,
         path,
         schemaPath,
@@ -271,12 +272,18 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
 
         case 'value': {
           cn.initValue = entry.initValue;
+          if(entry.persistent === true) {
+            cn.persistent = entry.persistent;
+          }
           compileValue(name, entry, namePrefix);
           break;
         }
 
         case 'customValue': {
           cn.initValue = entry.initValue;
+          if(entry.persistent === true) {
+            cn.persistent = entry.persistent;
+          }
           compileCustomValue(name, entry, namePrefix);
           break;
         }
@@ -287,6 +294,9 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
         }
 
         case 'collection': {
+          if(entry.persistent === true) {
+            cn.persistent = entry.persistent;
+          }
           compileCollection(name, entry, namePrefix);
           break;
         }
@@ -318,13 +328,13 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
     const deps: Array<[string, string]> = [];
     const allDeps: Array<[string, string]> = [];
     for(let name: string in cs.names) {
-      const cn:CompiledName = cs.names[name];
-      const cnse:SchemaEntry = cn.schemaEntry;
+      const cn: CompiledName = cs.names[name];
+      const cnse: SchemaEntry = cn.schemaEntry;
 
       switch(cnse.type) {
         case 'formula': {
           // Add props to the dependencies as well
-          for(let i:number = 0, len:number = cnse.props.length; i < len; i++) {
+          for(let i: number = 0, len: number = cnse.props.length; i < len; i++) {
             deps.push([cn.namePrefix+cnse.props[i], name]);
           }
           allDeps.push(["allDeps", name]);
@@ -335,8 +345,8 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
             throw new Error("Source collection or view name is not specified for: "+name);
           }
 
-          const srcName:string = cn.namePrefix+cnse.sourceName;
-          const sn:CompiledName = cs.names[srcName];
+          const srcName: string = cn.namePrefix+cnse.sourceName;
+          const sn: CompiledName = cs.names[srcName];
           if(!sn) {
             throw new Error("Source name not found in schema: "+srcName);
           }
@@ -344,7 +354,7 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
           allDeps.push(["allDeps", name]);
 
           // Add props to the dependencies as well
-          for(let i:number = 0, len:number = cnse.props.length; i < len; i++) {
+          for(let i: number = 0, len: number = cnse.props.length; i < len; i++) {
             deps.push([cn.namePrefix+cnse.props[i], name]);
           }
           break;
@@ -357,7 +367,7 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
     const cd: {[string]: Array<string>} = compileDependencies(deps);
     for(let name: string in cd) {
       const a: Array<string> = cd[name];
-      const sn:CompiledName = cs.names[name];
+      const sn: CompiledName = cs.names[name];
       if(!sn) {
         throw new Error("Missing compiled name: "+name);
       }
@@ -388,7 +398,7 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
       }
 
       name = prefix+name;
-      const cn:CompiledName = cs.names[name];
+      const cn: CompiledName = cs.names[name];
 
       switch(entry.type) {
       case 'value': {

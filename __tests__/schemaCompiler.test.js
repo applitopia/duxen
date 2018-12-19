@@ -15,7 +15,7 @@ import { compileSchema } from '../src/SchemaCompiler';
 const cast = <T>(value: any): T => (value: T);
 
 test("Does not allow $ and . in names", function() {
-  const schema1:Schema = {
+  const schema1: Schema = {
     'todos.Filter': {
       type: 'value',
       initValue: "Get milk",
@@ -24,7 +24,7 @@ test("Does not allow $ and . in names", function() {
 
   expect(() => compileSchema(schema1)).toThrow("Invalid name (can't start with $ or _, can't contain '.' or '\0')");
 
-  const schema2:Schema = {
+  const schema2: Schema = {
     '$todosFilter': {
       type: 'value',
       initValue: "Get milk",
@@ -33,7 +33,7 @@ test("Does not allow $ and . in names", function() {
 
   expect(() => compileSchema(schema2)).toThrow("Invalid name (can't start with $ or _, can't contain '.' or '\0')");
 
-  const schema3:Schema = {
+  const schema3: Schema = {
     'todos\0Filter': {
       type: 'value',
       initValue: "Get milk",
@@ -43,16 +43,16 @@ test("Does not allow $ and . in names", function() {
   expect(() => compileSchema(schema3)).toThrow("Invalid name (can't start with $ or _, can't contain '.' or '\0')");
 
   // $ in the middle of the string is all right
-  const schema4:Schema = {
+  const schema4: Schema = {
     'todos$Filter': {
       type: 'value',
       initValue: "Get milk",
     },
   };
-  const compiledSchema4:CompiledSchema = compileSchema(schema4);
+  const compiledSchema4: CompiledSchema = compileSchema(schema4);
   expect(compiledSchema4).toMatchObject({actions: {}, names: {}});
 
-  const schema5:Schema = {
+  const schema5: Schema = {
     '_todosFilter': {
       type: 'value',
       initValue: "Get milk",
@@ -64,7 +64,7 @@ test("Does not allow $ and . in names", function() {
 });
 
 test("Simple Schema Compiler", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
@@ -77,11 +77,11 @@ test("Simple Schema Compiler", function() {
         switch(action.type) {
         case 'CUSTOM_NEXT_PAGE': {
           return state.withMutations((mutableState: State) => {
-            const pageNo:number = mutableState.getIn(["pager", "pageNo"], 0);
+            const pageNo: number = mutableState.getIn(["pager", "pageNo"], 0);
             mutableState.setIn(["pager", "pageNo"], pageNo+1);
           });
         }
-        default:
+        default: 
           return state;
         }
       }
@@ -97,14 +97,14 @@ test("Simple Schema Compiler", function() {
     },
   };
 
-  const cs:CompiledSchema = compileSchema(schema);
+  const cs: CompiledSchema = compileSchema(schema);
   delete cs.names.todosView.seqen;
-  const csExpected:CompiledSchema = {
+  const csExpected: CompiledSchema = {
     "names": {
-      "customNextPage": {"name": "customNextPage", "type": "custom", namePrefix: "", path: [], schemaPath: [], subPath: [], schemaEntry: schema.customNextPage, dependents: []},
-      "todos": {"name": "todos", "type": "collection", namePrefix: "", path: ["todos"], schemaPath: [], subPath: ["todos"], schemaEntry: schema.todos, dependents: ["todosView"]},
-      "todosFilter": {"name": "todosFilter", "type": "value", "initValue": "Get milk", namePrefix: "", path: ["todosFilter"], schemaPath: [], subPath: ["todosFilter"], schemaEntry: schema.todosFilter, dependents: []},
-      "todosView": {"name": "todosView", "type": "view", namePrefix: "", path: ["todosView"], schemaPath: [], subPath: ["todosView"], schemaEntry: schema.todosView, dependents: []}
+      "customNextPage": {"name": "customNextPage", "type": "custom", "persistent": false, namePrefix: "", path: [], schemaPath: [], subPath: [], schemaEntry: schema.customNextPage, dependents: []},
+      "todos": {"name": "todos", "type": "collection", "persistent": false, namePrefix: "", path: ["todos"], schemaPath: [], subPath: ["todos"], schemaEntry: schema.todos, dependents: ["todosView"]},
+      "todosFilter": {"name": "todosFilter", "type": "value", "persistent": false, "initValue": "Get milk", namePrefix: "", path: ["todosFilter"], schemaPath: [], subPath: ["todosFilter"], schemaEntry: schema.todosFilter, dependents: []},
+      "todosView": {"name": "todosView", "type": "view", "persistent": false, namePrefix: "", path: ["todosView"], schemaPath: [], subPath: ["todosView"], schemaEntry: schema.todosView, dependents: []}
     },
     "actions": {
       "CUSTOM_NEXT_PAGE": {
@@ -128,7 +128,7 @@ test("Simple Schema Compiler", function() {
 });
 
 test("SubSchema Compiler", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
@@ -144,13 +144,13 @@ test("SubSchema Compiler", function() {
     }
   };
 
-  const cs:CompiledSchema = compileSchema(schema);
+  const cs: CompiledSchema = compileSchema(schema);
   delete cs.names.todosFilter.seqen;
-  const csExpected:CompiledSchema = {
+  const csExpected: CompiledSchema = {
     "names": {
-      "calendarSchema": {"name": "calendarSchema", "type": "schema", namePrefix: "", path: ["calendarSchema"], schemaPath: [], subPath: ["calendarSchema"], schemaEntry: schema.calendarSchema, dependents: []},
-      "calendarSchema.currentMonth": {"name": "calendarSchema.currentMonth", "type": "value", "initValue": "2017-06", namePrefix: "calendarSchema.", path: ["calendarSchema", "currentMonth"], schemaPath: ["calendarSchema"], subPath: ["currentMonth"], schemaEntry: cast(schema["calendarSchema"]).schema.currentMonth, dependents: []},
-      "todosFilter": {"name": "todosFilter", "type": "value", "initValue": "Get milk", namePrefix: "", path: ["todosFilter"], schemaPath: [], subPath: ["todosFilter"], schemaEntry: schema.todosFilter, dependents: []}
+      "calendarSchema": {"name": "calendarSchema", "type": "schema", "persistent": false, namePrefix: "", path: ["calendarSchema"], schemaPath: [], subPath: ["calendarSchema"], schemaEntry: schema.calendarSchema, dependents: []},
+      "calendarSchema.currentMonth": {"name": "calendarSchema.currentMonth", "type": "value", "persistent": false, "initValue": "2017-06", namePrefix: "calendarSchema.", path: ["calendarSchema", "currentMonth"], schemaPath: ["calendarSchema"], subPath: ["currentMonth"], schemaEntry: cast(schema["calendarSchema"]).schema.currentMonth, dependents: []},
+      "todosFilter": {"name": "todosFilter", "type": "value", "persistent": false, "initValue": "Get milk", namePrefix: "", path: ["todosFilter"], schemaPath: [], subPath: ["todosFilter"], schemaEntry: schema.todosFilter, dependents: []}
     },
     "actions": {
     },

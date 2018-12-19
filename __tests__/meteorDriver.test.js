@@ -14,7 +14,7 @@ import { MeteorDriver, MeteorCollection } from '../src/MeteorDriver';
 import { Map } from 'immutable-sorted';
 
 test("Meteor Driver - dispatch, insert, update, remove", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
@@ -30,13 +30,13 @@ test("Meteor Driver - dispatch, insert, update, remove", function() {
     },
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const reducer:StateReducer = engine.stateReducer();
+  const engine: EngineInterface = new createEngine(schema);
+  const reducer: StateReducer = engine.stateReducer();
   const store = createStore(reducer);
-  const meteorDriver:MeteorDriver = new MeteorDriver(engine, store.dispatch, store.getState);
-  const meteorCollection:MeteorCollection = meteorDriver.open("todos", {});
+  const meteorDriver: MeteorDriver = new MeteorDriver(engine, store.dispatch, store.getState);
+  const meteorCollection: MeteorCollection = meteorDriver.open("todos", {});
 
-  const state0:State = store.getState();
+  const state0: State = store.getState();
   const expected0 = {
     _state: {todos: {paused: false}},
     todosFilter: "Get milk",
@@ -97,7 +97,7 @@ test("Meteor Driver - dispatch, insert, update, remove", function() {
 });
 
 test("Meteor Driver - dispatch, insert, update, remove", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
@@ -113,13 +113,13 @@ test("Meteor Driver - dispatch, insert, update, remove", function() {
     },
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const reducer:StateReducer = engine.stateReducer();
+  const engine: EngineInterface = new createEngine(schema);
+  const reducer: StateReducer = engine.stateReducer();
   const store = createStore(reducer);
-  const meteorDriver:MeteorDriver = new MeteorDriver(engine, store.dispatch, store.getState);
-  const meteorCollection:MeteorCollection = meteorDriver.open("todos", {});
+  const meteorDriver: MeteorDriver = new MeteorDriver(engine, store.dispatch, store.getState);
+  const meteorCollection: MeteorCollection = meteorDriver.open("todos", {});
 
-  const state0:State = store.getState();
+  const state0: State = store.getState();
   const expected0 = {
     _state: {todos: {paused: false}},
     todosFilter: "Get milk",
@@ -149,21 +149,21 @@ test("Meteor Driver - dispatch, insert, update, remove", function() {
   };
   expect(state2.toJS()).toEqual(expected2);
 
-  const result3_1:boolean = meteorCollection.findOne({_id: "id1"});
+  const result3_1: boolean = meteorCollection.findOne({_id: "id1"});
   expect(result3_1).toBe(true);
-  const result3_2:boolean = meteorCollection.findOne("id1");
+  const result3_2: boolean = meteorCollection.findOne("id1");
   expect(result3_2).toBe(true);
-  const result3_3:boolean = meteorCollection.findOne({_id: "id2"});
+  const result3_3: boolean = meteorCollection.findOne({_id: "id2"});
   expect(result3_3).toBe(false);
-  const result3_4:boolean = meteorCollection.findOne("id2");
+  const result3_4: boolean = meteorCollection.findOne("id2");
   expect(result3_4).toBe(false);
-  const result3_5:State = meteorCollection.findOne({_id: "id1"}, {fetch: true});
+  const result3_5: State = meteorCollection.findOne({_id: "id1"}, {fetch: true});
   expect(result3_5.toJS()).toEqual({"_id": "id1", "text": "Get tickets"});
   expect(()=>meteorCollection.findOne({})).toThrow("Selector not supported:");
 
   meteorCollection.pauseObservers();
   meteorCollection.resumeObservers();
   meteorCollection.saveOriginals();
-  const originals:Seq<StateKey, mixed> = meteorCollection.retrieveOriginals();
+  const originals: Seq<StateKey, mixed> = meteorCollection.retrieveOriginals();
   expect(originals.toMap()).toEqual(Map());
 });

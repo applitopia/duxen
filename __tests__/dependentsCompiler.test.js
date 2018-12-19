@@ -80,7 +80,7 @@ test("Dependencies Compiler", function() {
 });
 
 test("Simple Schema Compiler", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todos': {
       type: 'collection',
     },
@@ -98,14 +98,15 @@ test("Simple Schema Compiler", function() {
     },
   };
 
-  const cs:CompiledSchema = compileSchema(schema);
+  const cs: CompiledSchema = compileSchema(schema);
   delete cs.names.todosView.seqen;
   delete cs.names.todosViewCnt.seqen;
-  const csExpected:CompiledSchema = {
+  const csExpected: CompiledSchema = {
     "names": {
       "todos": {
         "name": "todos",
         "type": "collection",
+        "persistent": false,
         namePrefix: "",
         path: ["todos"],
         schemaPath: [],
@@ -116,6 +117,7 @@ test("Simple Schema Compiler", function() {
       "todosView": {
         "name": "todosView",
         "type": "view",
+        "persistent": false,
         namePrefix: "",
         path: ["todosView"],
         schemaPath: [],
@@ -126,6 +128,7 @@ test("Simple Schema Compiler", function() {
       "todosViewCnt": {
         "name": "todosViewCnt",
         "type": "view",
+        "persistent": false,
         namePrefix: "",
         path: ["todosViewCnt"],
         schemaPath: [],

@@ -11,7 +11,7 @@
 import { createEngine } from '../src';
 
 test("Reducer insert, update remove", function() {
-  const schema:Schema = {
+  const schema: Schema = {
     'todosFilter': {
       type: 'value',
       initValue: "Get milk",
@@ -27,10 +27,10 @@ test("Reducer insert, update remove", function() {
     },
   };
 
-  const engine:EngineInterface = new createEngine(schema);
-  const repoReducer:RepoReducer = engine.repoReducer();
+  const engine: EngineInterface = new createEngine(schema);
+  const repoReducer: RepoReducer = engine.repoReducer();
 
-  const state0:Repo = repoReducer(undefined, {type: "INIT"});
+  const state0: Repo = repoReducer(undefined, {type: "INIT"});
   const expected0 ={
     "branches": {
       "master": {
@@ -66,7 +66,7 @@ test("Reducer insert, update remove", function() {
 
   const action0: Action = engine.actionFactory().insert("todos", "id1", {"text": "Get tickets"});
 
-  const state1:Repo = repoReducer(state0, action0);
+  const state1: Repo = repoReducer(state0, action0);
   const expected1 = {
     "branches": {
       "master": {
@@ -110,7 +110,7 @@ test("Reducer insert, update remove", function() {
 
   const action1: Action = engine.actionFactory().createBranch("test");
 
-  const state2:Repo = repoReducer(state1, action1);
+  const state2: Repo = repoReducer(state1, action1);
   const expected2 = {
     "branches": {
       "master": {
@@ -160,14 +160,14 @@ test("Reducer insert, update remove", function() {
 
   const action2: Action = engine.actionFactory().switchBranch("hello");
   expect(() => repoReducer(state2, action2)).toThrow("the branch does not exist: hello");
-  const state3:Repo = state2;
+  const state3: Repo = state2;
 
   const action3: Action = engine.actionFactory().createBranch("test");
   expect(() => repoReducer(state3, action3)).toThrow("the branch already exists: test");
-  const state4:Repo = state3;
+  const state4: Repo = state3;
 
   const action4: Action = engine.actionFactory().saveBranch("backup");
-  const state5:Repo = repoReducer(state4, action4);
+  const state5: Repo = repoReducer(state4, action4);
   const expected5 = {
     "branches": {
       "master": {
@@ -237,7 +237,7 @@ test("Reducer insert, update remove", function() {
   expect(engine.head(state5).toJS()).toEqual(expectedHead5);
 
   const action5: Action = engine.actionFactory().switchBranch("test");
-  const state6:Repo = repoReducer(state5, action5);
+  const state6: Repo = repoReducer(state5, action5);
   const expected6 = {
     "branches": {
       "master": {
@@ -302,7 +302,7 @@ test("Reducer insert, update remove", function() {
   expect(engine.head(state6)).toEqual(expectedHead6);
 
   const action6: Action = engine.actionFactory().resetBranch("master");
-  const state7:Repo = repoReducer(state6, action6);
+  const state7: Repo = repoReducer(state6, action6);
   const expected7 = {
     "branches": {
       "master": {
@@ -388,10 +388,10 @@ test("Reducer insert, update remove", function() {
 
   const action7: Action = engine.actionFactory().removeBranch("test");
   expect(() => repoReducer(state7, action7)).toThrow("cannot remove branch that is current");
-  const state8:Repo = state7;
+  const state8: Repo = state7;
 
   const action8: Action = engine.actionFactory().removeBranch("backup");
-  const state9:Repo = repoReducer(state8, action8);
+  const state9: Repo = repoReducer(state8, action8);
   const expected9 = {
     "branches": {
       "master": {
@@ -455,7 +455,7 @@ test("Reducer insert, update remove", function() {
   expect(engine.head(state9).toJS()).toEqual(expectedHead9);
 
   const action9: Action = engine.actionFactory().goBack(1);
-  const state10:Repo = repoReducer(state9, action9);
+  const state10: Repo = repoReducer(state9, action9);
   const expected10 = {
     "branches": {
       "master": {
@@ -518,7 +518,7 @@ test("Reducer insert, update remove", function() {
   expect(engine.head(state10).toJS()).toEqual(expectedHead10);
 
   const action10: Action = engine.actionFactory().goLive();
-  const state11:Repo = repoReducer(state10, action10);
+  const state11: Repo = repoReducer(state10, action10);
   const expected11 = {
     "branches": {
       "master": {
