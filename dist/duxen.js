@@ -225,6 +225,16 @@ var ActionFactory = function () {
       return action;
     }
   }, {
+    key: 'init',
+    value: function init(state) {
+      var action = {
+        type: 'DUXEN_INIT',
+        state: state
+      };
+      this._action(action);
+      return action;
+    }
+  }, {
     key: 'refresh',
     value: function refresh() {
       var action = {
@@ -758,6 +768,8 @@ var CommonEngine = function () {
               {
                 if (cn.persistent) {
                   mutableState.setIn(cn.path, state.getIn(cn.path));
+                } else {
+                  mutableState.setIn(cn.path, cn.initValue);
                 }
                 break;
               }
@@ -797,6 +809,17 @@ var CommonEngine = function () {
     value: function live(repo) {
       var branch = this.currentBranchState(repo);
       return branch.get("live");
+    }
+  }, {
+    key: 'liveState',
+    value: function liveState(repo) {
+      var branch = this.currentBranchState(repo);
+      var states = branch.get("states");
+      if (states.size <= 0) {
+        return undefined;
+      }
+      var state = states.get(states.size - 1);
+      return state;
     }
   }, {
     key: 'head',
@@ -1127,7 +1150,7 @@ var RepoEngine = function (_StateEngine) {
       var stateReducer = _get(RepoEngine.prototype.__proto__ || Object.getPrototypeOf(RepoEngine.prototype), 'stateReducer', this).call(this);
 
       var repoOptionsProps = {
-        history: 100
+        history: 1000
       };
 
       var repoBranchProps = {
@@ -1201,6 +1224,20 @@ var RepoEngine = function (_StateEngine) {
 
       var repoReduceMutable = function repoReduceMutable(mutableRepo, repo, action) {
         switch (action.type) {
+          case 'DUXEN_INIT':
+            {
+              var initAction = cast(action);
+              var rbp = {
+                currentIndex: 0,
+                live: true,
+                states: [(0, _immutableSorted.fromJS)(initAction.state)],
+                actions: [action]
+              };
+              mutableRepo.set("currentBranch", "master");
+              mutableRepo.set("branches", (0, _immutableSorted.fromJS)({ 'master': rbp }));
+              break;
+            }
+
           case 'DUXEN_CREATE_BRANCH':
             {
               var repoAction = cast(action);

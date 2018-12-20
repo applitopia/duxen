@@ -23,7 +23,7 @@ export default class RepoEngine extends StateEngine implements EngineInterface {
     const stateReducer: StateReducer = super.stateReducer();
 
     const repoOptionsProps: RepoOptionsProps = {
-      history: 100,
+      history: 1000,
     };
 
     const repoBranchProps: RepoBranchProps = {
@@ -97,6 +97,19 @@ export default class RepoEngine extends StateEngine implements EngineInterface {
 
     const repoReduceMutable = (mutableRepo: Repo, repo: Repo, action: Action): void => {
       switch (action.type) {
+        case 'DUXEN_INIT': {      
+          const initAction: InitAction = cast(action);
+          const rbp: RepoBranchProps = {
+            currentIndex: 0,
+            live: true,
+            states: [fromJS(initAction.state)],
+            actions: [action],
+          };
+          mutableRepo.set("currentBranch", "master");
+          mutableRepo.set("branches", fromJS({'master': rbp}));
+          break;
+        }
+
         case 'DUXEN_CREATE_BRANCH': {
           const repoAction: CreateBranchAction = cast(action);
           const branches: RepoBranches = repo.get("branches");

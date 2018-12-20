@@ -118,6 +118,8 @@ export default class CommonEngine implements EngineInterface {
           case 'collection': {
             if(cn.persistent) {
               mutableState.setIn(cn.path, state.getIn(cn.path));
+            } else {
+              mutableState.setIn(cn.path, cn.initValue);
             }
             break;
           }
@@ -151,6 +153,16 @@ export default class CommonEngine implements EngineInterface {
   live(repo: Repo): boolean {
     const branch: RepoBranch = this.currentBranchState(repo);
     return branch.get("live");
+  }
+
+  liveState(repo: Repo): State {
+    const branch: RepoBranch = this.currentBranchState(repo);
+    const states: List<State> = branch.get("states");
+    if(states.size <= 0) {
+      return undefined;
+    }
+    const state: State = states.get(states.size - 1);
+    return state;
   }
 
   head(repo: Repo): State {

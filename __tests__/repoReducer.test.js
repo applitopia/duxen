@@ -48,7 +48,7 @@ test("Reducer insert, update remove", function() {
       }
     },
     "currentBranch": "master",
-    "options": {"history": 100},
+    "options": {"history": 1000},
     "version": 0
   };
   expect(state0.toJS()).toEqual(expected0);
@@ -92,7 +92,7 @@ test("Reducer insert, update remove", function() {
        }
      },
      "currentBranch": "master",
-     "options": {"history": 100},
+     "options": {"history": 1000},
      "version": 0
   };
   expect(state1.toJS()).toEqual(expected1);
@@ -142,7 +142,7 @@ test("Reducer insert, update remove", function() {
        }
      },
      "currentBranch": "master",
-     "options": {"history": 100},
+     "options": {"history": 1000},
      "version": 0
   };
   expect(state2.toJS()).toEqual(expected2);
@@ -220,7 +220,7 @@ test("Reducer insert, update remove", function() {
        }
      },
      "currentBranch": "master",
-     "options": {"history": 100},
+     "options": {"history": 1000},
      "version": 0
   };
   expect(state5.toJS()).toEqual(expected5);
@@ -290,7 +290,7 @@ test("Reducer insert, update remove", function() {
        }
      },
      "currentBranch": "test",
-     "options": {"history": 100},
+     "options": {"history": 1000},
      "version": 0
   };
   expect(state6.toJS()).toEqual(expected6);
@@ -370,7 +370,7 @@ test("Reducer insert, update remove", function() {
        }
      },
      "currentBranch": "test",
-     "options": {"history": 100},
+     "options": {"history": 1000},
      "version": 0
   };
   expect(state7.toJS()).toEqual(expected7);
@@ -438,7 +438,7 @@ test("Reducer insert, update remove", function() {
        }
      },
      "currentBranch": "test",
-     "options": {"history": 100},
+     "options": {"history": 1000},
      "version": 0
   };
   expect(state9.toJS()).toEqual(expected9);
@@ -502,7 +502,7 @@ test("Reducer insert, update remove", function() {
        }
      },
      "currentBranch": "test",
-     "options": {"history": 100},
+     "options": {"history": 1000},
      "version": 0
   };
   expect(state10.toJS()).toEqual(expected10);
@@ -565,7 +565,7 @@ test("Reducer insert, update remove", function() {
        }
      },
      "currentBranch": "test",
-     "options": {"history": 100},
+     "options": {"history": 1000},
      "version": 0
   };
   expect(state11.toJS()).toEqual(expected11);

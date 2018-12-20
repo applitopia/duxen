@@ -186,6 +186,15 @@ export default class ActionFactory implements ActionFactoryInterface {
     return action;
   }
 
+  init(state: State): InitAction {
+    const action: InitAction = {
+      type: 'DUXEN_INIT',
+      state
+    };
+    this._action(action);
+    return action;
+  }
+
   refresh(): RefreshAction {
     const action: RefreshAction = {
       type: 'DUXEN_REFRESH',

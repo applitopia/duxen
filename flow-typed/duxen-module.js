@@ -37,6 +37,7 @@ declare export type CollActionType =
   'DUXEN_RETRIEVE_ORIGINALS' ;
 
 declare export type DuxenActionType =
+    'DUXEN_INIT' |
     'DUXEN_REFRESH' |
     'DUXEN_BATCH' |
     'DUXEN_VALUE';
@@ -71,10 +72,11 @@ declare export type CollAction = InsertAction | UpdateAction | RemoveAction |
   SaveOriginalsAction | RetrieveOriginalsAction;
 
 // Duxen Actions
+declare export type InitAction = {| type: 'DUXEN_INIT', state: State |};
 declare export type RefreshAction = {| type: 'DUXEN_REFRESH' |};
 declare export type BatchAction = {| type: 'DUXEN_BATCH', actions: List<Action> |};
 declare export type ValueAction = {| type: 'DUXEN_VALUE', valueName: string, value: StateValue |};
-declare export type DuxenAction = RefreshAction | BatchAction | ValueAction;
+declare export type DuxenAction = InitAction | RefreshAction | BatchAction | ValueAction;
 
 // Custom Actions
 declare export type CustomValueAction = {type: CustomActionType, value: StateValue};

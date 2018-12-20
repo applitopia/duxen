@@ -157,6 +157,8 @@ var CommonEngine = function () {
               {
                 if (cn.persistent) {
                   mutableState.setIn(cn.path, state.getIn(cn.path));
+                } else {
+                  mutableState.setIn(cn.path, cn.initValue);
                 }
                 break;
               }
@@ -196,6 +198,17 @@ var CommonEngine = function () {
     value: function live(repo) {
       var branch = this.currentBranchState(repo);
       return branch.get("live");
+    }
+  }, {
+    key: 'liveState',
+    value: function liveState(repo) {
+      var branch = this.currentBranchState(repo);
+      var states = branch.get("states");
+      if (states.size <= 0) {
+        return undefined;
+      }
+      var state = states.get(states.size - 1);
+      return state;
     }
   }, {
     key: 'head',

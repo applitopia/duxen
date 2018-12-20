@@ -35,6 +35,7 @@ type CollActionType =
   'DUXEN_RETRIEVE_ORIGINALS' ;
 
 type DuxenActionType =
+    'DUXEN_INIT' |
     'DUXEN_REFRESH' |
     'DUXEN_BATCH' |
     'DUXEN_VALUE';
@@ -69,10 +70,11 @@ type CollAction = InsertAction | UpdateAction | RemoveAction |
   SaveOriginalsAction | RetrieveOriginalsAction;
 
 // Duxen Actions
+type InitAction = {| type: 'DUXEN_INIT', state: State |};
 type RefreshAction = {| type: 'DUXEN_REFRESH' |};
 type BatchAction = {| type: 'DUXEN_BATCH', actions: List<Action> |};
 type ValueAction = {| type: 'DUXEN_VALUE', valueName: string, value: StateValue |};
-type DuxenAction = RefreshAction | BatchAction | ValueAction;
+type DuxenAction = InitAction | RefreshAction | BatchAction | ValueAction;
 
 // Custom Actions
 type CustomValueAction = {type: CustomActionType, value: StateValue};
