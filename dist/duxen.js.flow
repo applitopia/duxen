@@ -50,7 +50,8 @@ declare export type RepoActionType =
     'DUXEN_REMOVE_BRANCH' |
     'DUXEN_GO_FORWARD' |
     'DUXEN_GO_BACK' |
-    'DUXEN_GO_LIVE'
+    'DUXEN_GO_LIVE' |
+    'DUXEN_SET_OPTION'
     ;
 
 declare export type CustomActionType = string;
@@ -91,8 +92,9 @@ declare export type RemoveBranchAction = {| type: 'DUXEN_REMOVE_BRANCH', branchN
 declare export type GoForwardAction = {| type: 'DUXEN_GO_FORWARD', steps: number |};
 declare export type GoBackAction = {| type: 'DUXEN_GO_BACK', steps: number |};
 declare export type GoLiveAction = {| type: 'DUXEN_GO_LIVE' |};
+declare export type SetOptionAction = {| type: 'DUXEN_SET_OPTION', optionName: string, optionValue: mixed |};
 declare export type RepoAction = CreateBranchAction | SwitchBranchAction | ResetBranchAction | SaveBranchAction |
-  RemoveBranchAction | GoForwardAction | GoBackAction | GoLiveAction;
+  RemoveBranchAction | GoForwardAction | GoBackAction | GoLiveAction | SetOptionAction;
 
 // type Action includes all types of actions
 declare export type Action = CollAction | DuxenAction | CustomValueAction | CustomAction | RepoAction;
@@ -182,7 +184,8 @@ declare export type Schema = {
 //
 
 declare export type RepoOptionsProps = {|
-  history: number
+  history: number,
+  showRepo: boolean
 |};
 declare export type RepoOptions = State;
 
@@ -238,6 +241,7 @@ declare export interface ActionFactoryInterface {
   goForward(steps: number): GoForwardAction;
   goBack(steps: number): GoBackAction;
   goLive(): GoLiveAction;
+  setOption(optionName: string, optionValue: mixed): SetOptionAction;
 
   // Utility Actions
   refresh() : RefreshAction;

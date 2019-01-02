@@ -157,4 +157,9 @@ export default class SubActionFactory implements ActionFactoryInterface {
     return action;
   }
 
+  setOption(optionName: string, optionValue: mixed): SetOptionAction {
+    const action: SetOptionAction = this._actionFactory.setOption(optionName, optionValue);
+    return action;
+  }
+
 }

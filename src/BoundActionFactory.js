@@ -165,4 +165,10 @@ export default class BoundActionFactory implements ActionFactoryInterface {
     return action;
   }
 
+  setOption(optionName: string, optionValue: mixed): SetOptionAction {
+    const action: SetOptionAction = this._actionFactory.setOption(optionName, optionValue);
+    this._dispatch(action);
+    return action;
+  }
+
 }

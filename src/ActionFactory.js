@@ -344,4 +344,14 @@ export default class ActionFactory implements ActionFactoryInterface {
     return action;
   }
 
+  setOption(optionName: string, optionValue: mixed): SetOptionAction {
+    const action: SetOptionAction = {
+      type: 'DUXEN_SET_OPTION',
+      optionName,
+      optionValue,
+    };
+    this._action(action);
+    return action;
+  }
+
 }

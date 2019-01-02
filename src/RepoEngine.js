@@ -24,6 +24,7 @@ export default class RepoEngine extends StateEngine implements EngineInterface {
 
     const repoOptionsProps: RepoOptionsProps = {
       history: 1000,
+      showRepo: false,
     };
 
     const repoBranchProps: RepoBranchProps = {
@@ -237,6 +238,12 @@ export default class RepoEngine extends StateEngine implements EngineInterface {
           });
           const newBranches = branches.set(currentBranch, newBranch);
           mutableRepo.set("branches", newBranches);
+          break;
+        }
+
+        case 'DUXEN_SET_OPTION': {
+          const repoAction: SetOptionAction = cast(action);
+          mutableRepo.setIn(["options", repoAction.optionName], repoAction.optionValue);
           break;
         }
 

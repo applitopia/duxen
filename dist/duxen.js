@@ -396,6 +396,17 @@ var ActionFactory = function () {
       this._action(action);
       return action;
     }
+  }, {
+    key: 'setOption',
+    value: function setOption(optionName, optionValue) {
+      var action = {
+        type: 'DUXEN_SET_OPTION',
+        optionName: optionName,
+        optionValue: optionValue
+      };
+      this._action(action);
+      return action;
+    }
   }]);
 
   return ActionFactory;
@@ -599,6 +610,13 @@ var BoundActionFactory = function () {
     key: 'goLive',
     value: function goLive() {
       var action = this._actionFactory.goLive();
+      this._dispatch(action);
+      return action;
+    }
+  }, {
+    key: 'setOption',
+    value: function setOption(optionName, optionValue) {
+      var action = this._actionFactory.setOption(optionName, optionValue);
       this._dispatch(action);
       return action;
     }
@@ -1158,7 +1176,8 @@ var RepoEngine = function (_StateEngine) {
       var stateReducer = _get(RepoEngine.prototype.__proto__ || Object.getPrototypeOf(RepoEngine.prototype), 'stateReducer', this).call(this);
 
       var repoOptionsProps = {
-        history: 1000
+        history: 1000,
+        showRepo: false
       };
 
       var repoBranchProps = {
@@ -1381,6 +1400,13 @@ var RepoEngine = function (_StateEngine) {
               });
               var _newBranches6 = _branches6.set(_currentBranch5, _newBranch5);
               mutableRepo.set("branches", _newBranches6);
+              break;
+            }
+
+          case 'DUXEN_SET_OPTION':
+            {
+              var _repoAction7 = cast(action);
+              mutableRepo.setIn(["options", _repoAction7.optionName], _repoAction7.optionValue);
               break;
             }
 
@@ -2549,6 +2575,12 @@ var SubActionFactory = function () {
     key: 'goLive',
     value: function goLive() {
       var action = this._actionFactory.goLive();
+      return action;
+    }
+  }, {
+    key: 'setOption',
+    value: function setOption(optionName, optionValue) {
+      var action = this._actionFactory.setOption(optionName, optionValue);
       return action;
     }
   }]);
