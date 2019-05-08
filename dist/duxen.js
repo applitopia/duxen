@@ -785,8 +785,6 @@ var CommonEngine = function () {
               {
                 if (cn.persistent) {
                   mutableState.setIn(cn.path, state.getIn(cn.path));
-                } else {
-                  mutableState.setIn(cn.path, cn.initValue);
                 }
                 break;
               }
@@ -794,8 +792,6 @@ var CommonEngine = function () {
               {
                 if (cn.persistent) {
                   mutableState.setIn(cn.path, state.getIn(cn.path));
-                } else {
-                  mutableState.setIn(cn.path, (0, _immutableSorted.Map)());
                 }
                 break;
               }

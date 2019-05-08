@@ -117,16 +117,12 @@ export default class CommonEngine implements EngineInterface {
           case 'customValue': {
             if(cn.persistent) {
               mutableState.setIn(cn.path, state.getIn(cn.path));
-            } else {
-              mutableState.setIn(cn.path, cn.initValue);
             }
             break;
           }
           case 'collection': {
             if(cn.persistent) {
               mutableState.setIn(cn.path, state.getIn(cn.path));
-            } else {
-              mutableState.setIn(cn.path, Map());
             }
             break;
           }
