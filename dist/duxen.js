@@ -1326,7 +1326,11 @@ function (_StateEngine) {
       };
 
       var stateReduce = function stateReduce(mutableRepo, repo, action) {
-        if (!Object.isFrozen(action) && action.type !== "INIT") {
+        if (action.type === undefined) {
+          throw new Error("Action object is missing a mandatory field: type");
+        }
+
+        if (!Object.isFrozen(action) && action.type !== "INIT" && !action.type.startsWith("@@redux/INIT")) {
           throw new Error("Action object is not frozen");
         }
 

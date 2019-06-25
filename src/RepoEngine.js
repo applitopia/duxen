@@ -51,7 +51,10 @@ export default class RepoEngine extends StateEngine implements EngineInterface {
     }
 
     const stateReduce = (mutableRepo: Repo, repo: Repo, action: Action): void => {
-      if(!Object.isFrozen(action) && action.type !== "INIT") {
+      if(action.type === undefined) {
+        throw new Error("Action object is missing a mandatory field: type");
+      }
+      if(!Object.isFrozen(action) && action.type !== "INIT" && !action.type.startsWith("@@redux/INIT")) {
         throw new Error("Action object is not frozen");
       }
       const options: RepoOptions = mutableRepo.get("options");
