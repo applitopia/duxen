@@ -43,20 +43,20 @@
   "homepage": "https://github.com/applitopia/duxen#readme",
   "dependencies": {
     "ducen": "^0.0.3",
-    "immutable-sorted": "^0.2.6",
-    "seqen": "^0.0.2"
+    "immutable-sorted": "^0.2.11",
+    "seqen": "^0.0.4"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-eslint": "^10.0.1",
-    "babel-jest": "^23.6.0",
-    "babel-preset-env": "^1.6.1",
-    "babel-preset-flow": "^6.23.0",
-    "browserify": "^16.2.0",
-    "eslint": "^5.10.0",
-    "eslint-plugin-flowtype": "^3.2.0",
-    "flow-bin": "^0.89.0",
-    "jest": "^23.6.0",
+    "@babel/cli": "^7.0.0",
+    "babel-eslint": "^10.0.2",
+    "babel-jest": "^24.8.0",
+    "@babel/preset-env": "^7.0.0",
+    "@babel/preset-flow": "^7.0.0",
+    "browserify": "^16.2.3",
+    "eslint": "^6.0.0",
+    "eslint-plugin-flowtype": "^3.11.1",
+    "flow-bin": "^0.101.1",
+    "jest": "^24.8.0",
     "redux": "^4.0.1",
     "regenerator-runtime": "^0.13.1",
     "rimraf": "^2.6.2"

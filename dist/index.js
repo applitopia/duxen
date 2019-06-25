@@ -1,17 +1,21 @@
-'use strict';
+"use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.MeteorDriver = exports.createEngine = undefined;
+Object.defineProperty(exports, "MeteorDriver", {
+  enumerable: true,
+  get: function get() {
+    return _MeteorDriver.MeteorDriver;
+  }
+});
+exports["default"] = exports.createEngine = void 0;
 
-var _RepoEngine = require('./RepoEngine');
+var _RepoEngine = _interopRequireDefault(require("./RepoEngine"));
 
-var _RepoEngine2 = _interopRequireDefault(_RepoEngine);
+var _MeteorDriver = require("./MeteorDriver");
 
-var _MeteorDriver = require('./MeteorDriver');
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 /**
  *  Copyright (c) 2017, Applitopia, Inc.
@@ -22,13 +26,12 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  *
  *  
  */
-
 var createEngine = function createEngine(schema) {
-  return new _RepoEngine2.default(schema);
+  return new _RepoEngine["default"](schema);
 };
 
 exports.createEngine = createEngine;
-exports.MeteorDriver = _MeteorDriver.MeteorDriver;
-exports.default = {
+var _default = {
   createEngine: createEngine
 };
+exports["default"] = _default;

@@ -30,7 +30,7 @@ test("Reducer insert, update remove", function() {
   const engine: EngineInterface = new createEngine(schema);
   const repoReducer: RepoReducer = engine.repoReducer();
 
-  const state0: Repo = repoReducer(undefined, {type: "INIT"});
+  const state0: Repo = repoReducer(undefined, Object.freeze({type: "INIT"}));
   const expected0 ={
     "branches": {
       "master": {

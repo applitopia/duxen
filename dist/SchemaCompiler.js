@@ -1,47 +1,38 @@
-'use strict';
+"use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.compileSchema = exports.compileDependencies = undefined;
+exports.compileSchema = exports.compileDependencies = void 0;
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; /**
-                                                                                                                                                                                                                                                                               *  Copyright (c) 2017, Applitopia, Inc.
-                                                                                                                                                                                                                                                                               *  All rights reserved.
-                                                                                                                                                                                                                                                                               *
-                                                                                                                                                                                                                                                                               *  This source code is licensed under the MIT-style license found in the
-                                                                                                                                                                                                                                                                               *  LICENSE file in the root directory of this source tree.
-                                                                                                                                                                                                                                                                               *
-                                                                                                                                                                                                                                                                               *  
-                                                                                                                                                                                                                                                                               */
+var _immutableSorted = require("immutable-sorted");
 
-var _immutableSorted = require('immutable-sorted');
+var _seqen = require("seqen");
 
-var _seqen = require('seqen');
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 var cast = function cast(value) {
   return value;
-};
+}; // deps is array of [sourceName, dependentName]
 
-// deps is array of [sourceName, dependentName]
-var compileDependencies = exports.compileDependencies = function compileDependencies(deps) {
+
+var compileDependencies = function compileDependencies(deps) {
   // dt is dependecy table
-  var dt = {};
+  var dt = {}; // cd is compiled dependency table
 
-  // cd is compiled dependency table
   var cd = {};
 
   for (var i = 0; i < deps.length; i++) {
     var dep = deps[i];
     var sourceName = dep[0];
     var depName = dep[1];
-
     var dtDep = dt[sourceName];
 
     if (!dtDep) {
       dtDep = [];
       dt[sourceName] = dtDep;
     }
+
     dtDep.push(depName);
   }
 
@@ -53,20 +44,17 @@ var compileDependencies = exports.compileDependencies = function compileDependen
     }
 
     stackTable[s] = true;
-
     var a = dt[s];
-
     if (a) for (var _i = 0; _i < a.length; _i++) {
       var si = a[_i];
       output.push(si);
       expand(si, output, stackTable, stack);
     }
-
     stack.pop();
     delete stackTable[s];
-  };
+  }; // eliminate duplicates in arrays (keep the last reference)
 
-  // eliminate duplicates in arrays (keep the last reference)
+
   var dedupe = function dedupe(a) {
     var t = {};
 
@@ -79,6 +67,7 @@ var compileDependencies = exports.compileDependencies = function compileDependen
     }
 
     var r = [];
+
     for (var _i3 = 0; _i3 < a.length; _i3++) {
       var _s = a[_i3];
 
@@ -88,25 +77,24 @@ var compileDependencies = exports.compileDependencies = function compileDependen
     }
 
     return r;
-  };
+  }; // Expand arrays, identify loops, eliminate duplicates
 
-  // Expand arrays, identify loops, eliminate duplicates
+
   for (var _sourceName in dt) {
     var ea = [];
     var stackTable = {};
     var stack = [];
-
     expand(_sourceName, ea, stackTable, stack);
     var dea = dedupe(ea);
-
     cd[_sourceName] = dea;
   }
 
   return cd;
 };
 
-var compileSchema = exports.compileSchema = function compileSchema(schema) {
+exports.compileDependencies = compileDependencies;
 
+var compileSchema = function compileSchema(schema) {
   // Compiled Schema
   var cs = {
     names: {},
@@ -133,16 +121,19 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
     if (!Array.isArray(props)) {
       throw new Error("Props are not in Array");
     }
+
     for (var pi = 0, len = props.length; pi < len; pi++) {
       var propName = props[pi];
-      switch (typeof propName === 'undefined' ? 'undefined' : _typeof(propName)) {
+
+      switch (_typeof(propName)) {
         case 'string':
           {
             break;
           }
+
         default:
           {
-            throw new Error("Invalid type of propName: " + (typeof propName === 'undefined' ? 'undefined' : _typeof(propName)));
+            throw new Error("Invalid type of propName: " + _typeof(propName));
           }
       }
     }
@@ -154,13 +145,14 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
 
   var compileCustomValue = function compileCustomValue(name, entry, namePrefix) {
     verifyNames(name, namePrefix);
-
     var actionType = entry.actionType;
 
     if (!actionType) {
       throw new Error("Missing actionType in value schema: " + JSON.stringify(entry));
     }
+
     actionType = namePrefix + actionType;
+
     if (cs.actions[actionType]) {
       throw new Error("Duplicate actionType in value schema: " + JSON.stringify(entry));
     }
@@ -169,12 +161,18 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
       switch (action.type) {
         case actionType:
           return entry.reducer ? entry.reducer(value, action) : action.value;
+
         default:
           return value;
       }
     };
 
-    cs.actions[actionType] = { type: "customValue", name: name, actionType: actionType, reducer: reducer };
+    cs.actions[actionType] = {
+      type: "customValue",
+      name: name,
+      actionType: actionType,
+      reducer: reducer
+    };
   };
 
   var compileFormula = function compileFormula(name, entry, namePrefix) {
@@ -193,8 +191,8 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
   var compileView = function compileView(name, entry, namePrefix) {
     verifyNames(name, namePrefix);
     verifyProps(entry.props);
-
     var sourceName = entry.sourceName;
+
     if (!sourceName) {
       throw new Error("missing sourceName in view schema: " + name);
     }
@@ -202,16 +200,21 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
 
   var compileCustom = function compileCustom(name, entry, prefix) {
     var actionType = entry.actionType;
+
     if (!actionType) {
       throw new Error("Missing actionType in custom schema: " + JSON.stringify(entry));
     }
+
     actionType = prefix + actionType;
+
     if (cs.actions[actionType]) {
       throw new Error("Duplicate actionType in custom schema: " + JSON.stringify(entry));
     }
+
     if (!entry.reducer) {
       throw new Error("Missing reducer in custom schema: " + JSON.stringify(entry));
     }
+
     if (entry.path) {
       throw new Error("Path is not allowed in custom schema: " + JSON.stringify(entry));
     }
@@ -224,6 +227,7 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
               entry.reducer(mutableState, action);
             });
           }
+
         default:
           {
             return state;
@@ -231,11 +235,15 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
       }
     };
 
-    cs.actions[actionType] = { type: "custom", name: name, actionType: actionType, reducer: reducer };
+    cs.actions[actionType] = {
+      type: "custom",
+      name: name,
+      actionType: actionType,
+      reducer: reducer
+    };
   };
 
   var compile = function compile(schema, schemaName, schemaPathName) {
-
     for (var name in schema) {
       if (name.match(/^[$_]|\.|\0/)) {
         throw Error("Invalid name (can't start with $ or _, can't contain '.' or '\0'): " + name);
@@ -261,7 +269,6 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
 
       var namePrefix = schemaName ? schemaName + '.' : "";
       name = namePrefix + name;
-
       var compiledName = cs.names[name];
 
       if (compiledName) {
@@ -282,13 +289,14 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
       cs.names[name] = cn;
 
       switch (entry.type) {
-
         case 'value':
           {
             cn.initValue = entry.initValue;
+
             if (entry.persistent === true) {
               cn.persistent = entry.persistent;
             }
+
             compileValue(name, entry, namePrefix);
             break;
           }
@@ -296,9 +304,11 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
         case 'customValue':
           {
             cn.initValue = entry.initValue;
+
             if (entry.persistent === true) {
               cn.persistent = entry.persistent;
             }
+
             compileCustomValue(name, entry, namePrefix);
             break;
           }
@@ -314,6 +324,7 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
             if (entry.persistent === true) {
               cn.persistent = entry.persistent;
             }
+
             compileCollection(name, entry, namePrefix);
             break;
           }
@@ -343,11 +354,12 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
             throw new Error("Invalid SchemaEntry type: " + entry.type);
           }
       }
-    }
+    } // Build dependents
 
-    // Build dependents
+
     var deps = [];
     var allDeps = [];
+
     for (var _name in cs.names) {
       var _cn = cs.names[_name];
       var cnse = _cn.schemaEntry;
@@ -359,9 +371,11 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
             for (var i = 0, len = cnse.props.length; i < len; i++) {
               deps.push([_cn.namePrefix + cnse.props[i], _name]);
             }
+
             allDeps.push(["allDeps", _name]);
             break;
           }
+
         case 'view':
           {
             if (!cnse.sourceName) {
@@ -370,51 +384,59 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
 
             var srcName = _cn.namePrefix + cnse.sourceName;
             var sn = cs.names[srcName];
+
             if (!sn) {
               throw new Error("Source name not found in schema: " + srcName);
             }
-            deps.push([srcName, _name]);
-            allDeps.push(["allDeps", _name]);
 
-            // Add props to the dependencies as well
+            deps.push([srcName, _name]);
+            allDeps.push(["allDeps", _name]); // Add props to the dependencies as well
+
             for (var _i4 = 0, _len = cnse.props.length; _i4 < _len; _i4++) {
               deps.push([_cn.namePrefix + cnse.props[_i4], _name]);
             }
+
             break;
           }
+
         default:
           {
             break;
           }
       }
     }
+
     var cd = compileDependencies(deps);
+
     for (var _name2 in cd) {
       var a = cd[_name2];
       var _sn = cs.names[_name2];
+
       if (!_sn) {
         throw new Error("Missing compiled name: " + _name2);
       }
+
       _sn.dependents = a;
     }
 
     var allDepsCombined = allDeps.concat(deps);
     var allCd = compileDependencies(allDepsCombined);
+
     if (allCd.allDeps) {
       cs.allDependents = allCd.allDeps;
     }
-  };
-
-  //
+  }; //
   // Initial state
   //
+
+
   var compileInitState = function compileInitState(schema, prefix, rootMap) {
     return (0, _immutableSorted.Map)().withMutations(function (map) {
-
       if (!rootMap) {
         rootMap = map;
         map.set('_state', (0, _immutableSorted.Map)());
       }
+
       for (var name in schema) {
         var entry = schema[name];
 
@@ -431,31 +453,37 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
               map.setIn(cast(cn.subPath), cn.initValue);
               break;
             }
+
           case 'customValue':
             {
               map.setIn(cast(cn.subPath), cn.initValue);
               break;
             }
+
           case 'collection':
             {
               map.setIn(cast(cn.subPath), (0, _immutableSorted.Map)());
               rootMap.setIn(["_state", name, "paused"], false);
               break;
             }
+
           case 'schema':
             {
               map.setIn(cast(cn.subPath), compileInitState(entry.schema, prefix + name + ".", rootMap));
               break;
             }
+
           case 'custom':
             {
               break;
             }
+
           case 'view':
             {
               map.setIn(cast(cn.subPath), (0, _immutableSorted.Map)());
               break;
             }
+
           case 'formula':
             {
               map.setIn(cast(cn.subPath), undefined);
@@ -473,6 +501,7 @@ var compileSchema = exports.compileSchema = function compileSchema(schema) {
 
   compile(schema, "", "");
   cs.initState = compileInitState(schema, "", undefined);
-
   return cs;
 };
+
+exports.compileSchema = compileSchema;
