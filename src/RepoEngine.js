@@ -51,7 +51,7 @@ export default class RepoEngine extends StateEngine implements EngineInterface {
     }
 
     const stateReduce = (mutableRepo: Repo, repo: Repo, action: Action): void => {
-      if(!Object.isFrozen(action)) {
+      if(!Object.isFrozen(action) && action.type !== "INIT") {
         throw new Error("Action object is not frozen");
       }
       const options: RepoOptions = mutableRepo.get("options");

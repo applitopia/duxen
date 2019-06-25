@@ -1326,7 +1326,7 @@ function (_StateEngine) {
       };
 
       var stateReduce = function stateReduce(mutableRepo, repo, action) {
-        if (!Object.isFrozen(action)) {
+        if (!Object.isFrozen(action) && action.type !== "INIT") {
           throw new Error("Action object is not frozen");
         }
 

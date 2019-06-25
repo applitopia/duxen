@@ -228,7 +228,7 @@ test("subEngine interface", function() {
   const subEngine: EngineInterface = engine.subEngine("calendarSchema");
 
   const reducer: RepoReducer = engine.repoReducer();
-  const state: State = reducer(undefined, Object.freeze({type: "INIT"}));
+  const state: State = reducer(undefined, {type: "INIT"});
   const headState: State = subEngine.head(state);
   expect(subEngine.printableState(headState).toJS()).toEqual({
     "currentMonth": "2017-07"
