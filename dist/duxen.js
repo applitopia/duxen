@@ -2063,13 +2063,16 @@ var compileSchema = function compileSchema(schema) {
 
       for (var name in schema) {
         var entry = schema[name];
-
-        if (map.get(name)) {
-          throw new Error('duplicate name in schema: ' + name);
-        }
-
         name = prefix + name;
         var cn = cs.names[name];
+
+        if (!cn) {
+          throw new Error('unknown name: ' + name);
+        }
+
+        if (cn.type !== 'custom' && map.getIn(cast(cn.subPath))) {
+          throw new Error('duplicate name in schema: ' + name);
+        }
 
         switch (entry.type) {
           case 'value':
@@ -2093,7 +2096,7 @@ var compileSchema = function compileSchema(schema) {
 
           case 'schema':
             {
-              map.setIn(cast(cn.subPath), compileInitState(entry.schema, prefix + name + ".", rootMap));
+              map.setIn(cast(cn.subPath), compileInitState(entry.schema, name + ".", rootMap));
               break;
             }
 

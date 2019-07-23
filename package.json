@@ -55,7 +55,7 @@
     "browserify": "^16.2.3",
     "eslint": "^6.0.0",
     "eslint-plugin-flowtype": "^3.11.1",
-    "flow-bin": "^0.101.1",
+    "flow-bin": "^0.103.0",
     "jest": "^24.8.0",
     "redux": "^4.0.1",
     "regenerator-runtime": "^0.13.1",

@@ -393,12 +393,16 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
     for(let name: string in schema) {
       const entry: SchemaEntry = schema[name];
 
-      if(map.get(name)) {
-        throw new Error('duplicate name in schema: '+name);
-      }
-
       name = prefix+name;
       const cn: CompiledName = cs.names[name];
+
+      if(!cn) {
+        throw new Error('unknown name: '+name);
+      }
+
+      if(cn.type !== 'custom' && map.getIn(cast(cn.subPath))) {
+        throw new Error('duplicate name in schema: '+name);
+      }
 
       switch(entry.type) {
       case 'value': {
@@ -415,7 +419,7 @@ export const compileSchema = (schema: Schema): CompiledSchema => {
         break;
       }
       case 'schema': {
-        map.setIn(cast(cn.subPath), compileInitState(entry.schema, prefix+name+".", rootMap));
+        map.setIn(cast(cn.subPath), compileInitState(entry.schema, name+".", rootMap));
         break;
       }
       case 'custom': {
